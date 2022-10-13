@@ -1,0 +1,15 @@
+[features]
+seeds = false
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[scripts]
+test = "npx ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[programs.localnet]
+omnisol = "36V9V9myUXLDC6vvGKkRjwXGMbjfUGJrSQ85Xhx87q1n"

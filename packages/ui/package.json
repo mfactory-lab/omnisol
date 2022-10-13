@@ -1,0 +1,43 @@
+{
+  "name": "@omnisol/ui",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "vite --port 3333",
+    "build": "vite build --mode production",
+    "build:preview": "vite build --mode preview",
+    "build:staging": "vite build --mode staging",
+    "build:testing": "vite build --mode testing",
+    "build:report": "vite build --mode report",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@omnisol/sdk": "*",
+    "@project-serum/anchor": "^0.25",
+    "@solana/wallet-adapter-wallets": "^0.19.0",
+    "@solana/web3.js": "^1.63.1",
+    "@quasar/extras": "^1.15.4",
+    "quasar": "^2.9.2",
+    "@vueuse/core": "^9.3.0",
+    "@vueuse/head": "^0.8.2",
+    "vue": "^3.2.40",
+    "vue-router": "^4.1.5",
+    "solana-wallets-vue": "^0.4.5",
+    "lodash-es": "^4.17.21",
+    "mitt": "^3.0.0",
+    "pinia": "^2.0.22",
+    "decimal.js": "^10.4.1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-inject": "^4.0.4",
+    "@quasar/vite-plugin": "^1.2.3",
+    "@types/lodash-es": "^4.17.6",
+    "@vitejs/plugin-vue": "^3.1.2",
+    "sass": "1.32.0",
+    "unplugin-auto-import": "^0.11.2",
+    "unplugin-vue-components": "^0.22.8",
+    "vite": "^3.1.7",
+    "vite-plugin-pages": "^0.26.0",
+    "vite-plugin-vue-layouts": "^0.7.0"
+  }
+}

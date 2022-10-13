@@ -1,0 +1,20 @@
+[package]
+name = "omnisol"
+version = "0.0.4"
+license = "Apache-2.0"
+description = "Omnisol Program"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[features]
+no-entrypoint = []
+no-idl = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.25.0"
+anchor-spl = "0.25.0"
+rust_decimal = "1.26"
