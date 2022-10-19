@@ -3,21 +3,15 @@ mod instructions;
 mod state;
 mod utils;
 
-use anchor_lang::{prelude::*, solana_program::stake};
-use anchor_spl::{
-    token,
-    token::{Token, TokenAccount},
-};
-use events::*;
+use anchor_lang::prelude::*;
+use anchor_spl::token::{self, Token, TokenAccount};
 
-use crate::state::Pool;
+use crate::{events::*, stake::Stake, state::Pool, utils::stake};
 
 declare_id!("36V9V9myUXLDC6vvGKkRjwXGMbjfUGJrSQ85Xhx87q1n");
 
 #[program]
 pub mod omnisol {
-    use anchor_lang::solana_program::program::invoke;
-
     use super::*;
 
     pub fn init_pool(ctx: Context<InitPool>) -> Result<()> {
@@ -36,32 +30,43 @@ pub mod omnisol {
     /// Call the amount of lamports in excess of the initial deposit the **reserve amount.**
     pub fn deposit_stake(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
         let pool = &mut ctx.accounts.pool;
+        let pool_key = pool.key();
+        let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
 
-        // stake::state::Stake::
-        // create new stake from existing stake
-        for ix in stake::instruction::split(
-            ctx.accounts.source_stake_account.key,
-            ctx.accounts.stake_authority.key,
+        let clock = &ctx.accounts.clock;
+
+        // Create a new stake from existing stake
+        stake::split(
+            CpiContext::new_with_signer(
+                ctx.accounts.stake_program.to_account_info(),
+                stake::Split {
+                    stake: ctx.accounts.source_stake_account.to_account_info(),
+                    split_stake: ctx.accounts.destination_stake_account.to_account_info(),
+                    authority: ctx.accounts.stake_authority.to_account_info(),
+                    system_program: ctx.accounts.system_program.to_account_info(),
+                },
+                &[],
+            ),
             amount,
-            ctx.accounts.destination_stake_account.key,
-        ) {
-            invoke(
-                &ix,
-                &[
-                    ctx.accounts.source_stake_account.to_account_info(),
-                    ctx.accounts.stake_authority.to_account_info(),
-                    ctx.accounts.destination_stake_account.to_account_info(),
-                ],
-            )?;
-        }
+        )?;
 
-        // Mint omniSOL
-        // TODO: calculate
-        let mint_amount = 1u64;
+        // Authorize withdraw stake for program
+        stake::authorize(
+            CpiContext::new_with_signer(
+                ctx.accounts.stake_program.to_account_info(),
+                stake::Authorize {
+                    stake: ctx.accounts.destination_stake_account.to_account_info(),
+                    authority: ctx.accounts.stake_authority.to_account_info(),
+                    new_authority: ctx.accounts.pool_authority.to_account_info(),
+                    clock: clock.to_account_info(),
+                },
+                &[&pool_authority_seeds],
+            ),
+            anchor_lang::solana_program::stake::state::StakeAuthorize::Withdrawer,
+            None,
+        )?;
 
-        let pool_key = &pool.key();
-        let signer_seeds = &[pool_key.as_ref(), &[pool.authority_bump]];
-
+        // Mint new omniSOL
         token::mint_to(
             CpiContext::new_with_signer(
                 ctx.accounts.token_program.to_account_info(),
@@ -70,19 +75,18 @@ pub mod omnisol {
                     to: ctx.accounts.pool_token.to_account_info(),
                     authority: ctx.accounts.pool_authority.to_account_info(),
                 },
-                &[signer_seeds],
+                &[&pool_authority_seeds],
             ),
-            mint_amount,
+            amount,
         )?;
 
-        let timestamp = Clock::get()?.unix_timestamp;
         let stake = ctx.accounts.source_stake_account.key();
 
         emit!(DepositStakeEvent {
             pool: pool.key(),
             stake,
             amount,
-            timestamp,
+            timestamp: clock.unix_timestamp,
         });
 
         Ok(())
@@ -173,6 +177,8 @@ pub struct DepositStake<'info> {
     pub stake_authority: Signer<'info>,
     #[account(mut)]
     pub authority: Signer<'info>,
+    pub clock: Sysvar<'info, Clock>,
+    pub stake_program: Program<'info, Stake>,
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }
