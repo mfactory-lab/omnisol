@@ -4,10 +4,18 @@ use anchor_spl::{
     token::{Token, TokenAccount},
 };
 
-use crate::state::Pool;
+use crate::{
+    events::WithdrawEvent,
+    state::{Pledge, Pool},
+    utils::{
+        self, stake,
+        stake::{Stake, StakeAccount},
+    },
+    ErrorCode,
+};
 
 /// Withdraw a given amount of omniSOL.
-/// Caller provides some [amount] of omniLamports that are to be burned in
+/// Caller provides some [amount] of omni-lamports that are to be burned in
 ///
 /// Any omniSOL minter can at any time return withdrawn omniSOL to their account.
 /// This burns the omniSOL, allowing the minter to withdraw their staked SOL.
@@ -16,12 +24,48 @@ use crate::state::Pool;
 ///
 pub fn handle(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
+    let pledge = &mut ctx.accounts.pledge;
 
-    // Burning omniSOL (with an stake account)
-    // TODO: implement
+    let rest_amount = pledge.amount.checked_sub(amount).ok_or(ErrorCode::InsufficientAmount)?;
 
-    // Burning omniSOL (without an stake account)
-    // TODO: implement
+    let pool_key = pool.key();
+    let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
+    let clock = &ctx.accounts.clock;
+
+    let source_stake: AccountInfo = if rest_amount > 0 {
+        let stake = &ctx.accounts.ephemeral_stake;
+        stake::split(
+            CpiContext::new_with_signer(
+                ctx.accounts.stake_program.to_account_info(),
+                stake::Split {
+                    stake: ctx.accounts.split_stake.to_account_info(),
+                    split_stake: stake.to_account_info(),
+                    authority: ctx.accounts.pool_authority.to_account_info(),
+                    system_program: ctx.accounts.system_program.to_account_info(),
+                },
+                &[&pool_authority_seeds],
+            ),
+            amount,
+        )?;
+        stake.to_account_info()
+    } else {
+        ctx.accounts.split_stake.to_account_info()
+    };
+
+    stake::merge(CpiContext::new_with_signer(
+        ctx.accounts.stake_program.to_account_info(),
+        stake::Merge {
+            source_stake,
+            destination_stake: ctx.accounts.source_stake.to_account_info(),
+            authority: ctx.accounts.pool_authority.to_account_info(),
+            stake_history: ctx.accounts.stake_history.to_account_info(),
+            clock: clock.to_account_info(),
+            system_program: ctx.accounts.system_program.to_account_info(),
+        },
+        &[&pool_authority_seeds],
+    ))?;
+
+    // TODO: implement logic if ctx.accounts.source_stake is not exists
 
     token::burn(
         CpiContext::new(
@@ -35,14 +79,22 @@ pub fn handle(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
         amount,
     )?;
 
+    if rest_amount == 0 {
+        // close the pledge account
+        utils::close(pledge.to_account_info(), ctx.accounts.authority.to_account_info())?;
+    } else {
+        pledge.amount = rest_amount;
+    }
+
     let timestamp = Clock::get()?.unix_timestamp;
 
-    // emit!(WithdrawEvent {
-    //     pool: pool.key(),
-    //     stake,
-    //     amount,
-    //     timestamp,
-    // });
+    emit!(WithdrawEvent {
+        pool: pool.key(),
+        pledge: pledge.key(),
+        amount,
+        rest_amount,
+        timestamp,
+    });
 
     Ok(())
 }
@@ -55,6 +107,23 @@ pub struct Withdraw<'info> {
     #[account(address = pool.pool_mint)]
     pub pool_mint: Account<'info, token::Mint>,
 
+    /// CHECK: no needs to check, only for signing
+    #[account(seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
+    pub pool_authority: AccountInfo<'info>,
+
+    #[account(mut, has_one = pool, has_one = authority)]
+    pub pledge: Box<Account<'info, Pledge>>,
+
+    #[account(mut, constraint = pledge.source_stake == source_stake)]
+    pub source_stake: Account<'info, StakeAccount>,
+
+    #[account(mut, constraint = pledge.split_stake == split_stake)]
+    pub split_stake: Account<'info, StakeAccount>,
+
+    /// CHECK:
+    #[account(mut)]
+    pub ephemeral_stake: AccountInfo<'info>,
+
     /// CHECK:
     #[account(
         mut,
@@ -66,6 +135,9 @@ pub struct Withdraw<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 
+    pub clock: Sysvar<'info, Clock>,
+    pub stake_history: Sysvar<'info, StakeHistory>,
+    pub stake_program: Program<'info, Stake>,
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }

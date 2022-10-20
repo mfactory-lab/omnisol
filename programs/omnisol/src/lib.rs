@@ -36,4 +36,6 @@ pub enum ErrorCode {
     Unauthorized,
     #[msg("Invalid stake account")]
     InvalidStakeAccount,
+    #[msg("Insufficient amount")]
+    InsufficientAmount,
 }
