@@ -102,7 +102,8 @@ pub fn split<'info>(ctx: CpiContext<'_, '_, '_, 'info, Split<'info>>, amount: u6
             ctx.accounts.system_program.to_account_info(),
         ],
         ctx.signer_seeds,
-    )?;
+    )
+    .map_err(Into::into)?;
 
     solana_program::program::invoke_signed(
         assign_ix,
@@ -111,7 +112,8 @@ pub fn split<'info>(ctx: CpiContext<'_, '_, '_, 'info, Split<'info>>, amount: u6
             ctx.accounts.system_program.to_account_info(),
         ],
         ctx.signer_seeds,
-    )?;
+    )
+    .map_err(Into::into)?;
 
     solana_program::program::invoke_signed(
         split_ix,
@@ -121,78 +123,79 @@ pub fn split<'info>(ctx: CpiContext<'_, '_, '_, 'info, Split<'info>>, amount: u6
             ctx.accounts.authority.to_account_info(),
         ],
         ctx.signer_seeds,
-    )?;
+    )
+    .map_err(Into::into)?;
 
     Ok(())
+}
+
+pub fn merge<'info>(ctx: CpiContext<'_, '_, '_, 'info, Merge<'info>>) -> Result<()> {
+    let ix = stake::instruction::merge(
+        ctx.accounts.destination_stake.key,
+        ctx.accounts.source_stake.key,
+        ctx.accounts.authority.key,
+    );
+    solana_program::program::invoke_signed(
+        &ix.0,
+        &[
+            ctx.accounts.destination_stake,
+            ctx.accounts.source_stake,
+            ctx.accounts.authority,
+            ctx.accounts.stake_history,
+            ctx.accounts.clock,
+        ],
+        ctx.signer_seeds,
+    )
+    .map_err(Into::into)
 }
 
 // CPI accounts
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
-    /// The stake account to be initialized
     pub stake: AccountInfo<'info>,
-
-    /// Rent sysvar
     pub sysvar_rent: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
 pub struct Authorize<'info> {
-    /// The stake account to be updated
     pub stake: AccountInfo<'info>,
-
-    /// The existing authority
     pub authority: AccountInfo<'info>,
-
-    /// The new authority to replace the existing authority
     pub new_authority: AccountInfo<'info>,
-
-    /// Clock sysvar
     pub clock: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
 pub struct Withdraw<'info> {
-    /// The stake account to be updated
     pub stake: AccountInfo<'info>,
-
-    /// The stake account's withdraw authority
     pub withdrawer: AccountInfo<'info>,
-
-    /// Account to send withdrawn lamports to
     pub to: AccountInfo<'info>,
-
-    /// Clock sysvar
     pub clock: AccountInfo<'info>,
-
-    /// StakeHistory sysvar
     pub stake_history: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
 pub struct DeactivateStake<'info> {
-    /// The stake account to be deactivated
     pub stake: AccountInfo<'info>,
-
-    /// The stake account's stake authority
     pub staker: AccountInfo<'info>,
-
-    /// Clock sysvar
     pub clock: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
 pub struct Split<'info> {
-    /// The stake account to be divided
     pub stake: AccountInfo<'info>,
-
-    /// The split stake account
     pub split_stake: AccountInfo<'info>,
-
-    /// The existing authority
     pub authority: AccountInfo<'info>,
+    pub system_program: AccountInfo<'info>,
+}
 
+#[derive(Accounts)]
+pub struct Merge<'info> {
+    pub destination_stake: AccountInfo<'info>,
+    pub source_stake: AccountInfo<'info>,
+    pub authority: AccountInfo<'info>,
+    pub stake_history: AccountInfo<'info>,
+    pub clock: AccountInfo<'info>,
     pub system_program: AccountInfo<'info>,
 }
 
