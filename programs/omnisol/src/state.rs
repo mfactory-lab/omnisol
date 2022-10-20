@@ -20,14 +20,17 @@ impl Pool {
 pub struct Pledge {
     pub authority: Pubkey,
     pub pool: Pubkey,
-    pub stake: Pubkey,
-    pub delegation_stake: u64,
+    pub source_stake: Pubkey,
+    pub split_stake: Pubkey,
+    pub stake_delegation: u64,
     pub amount: u64,
+    // pub last_withdraw_amount: u64,
+    // pub last_withdraw_at: i64,
     pub created_at: i64,
     /// Bump seed for deriving PDA seeds.
     pub bump: u8,
 }
 
 impl Pledge {
-    pub const SIZE: usize = 121; // 32 + 32 + 32 + 8 + 8 + 8 + 1;
+    pub const SIZE: usize = 32 + 32 + 32 + 32 + 8 + 8 + 8 + 1;
 }
