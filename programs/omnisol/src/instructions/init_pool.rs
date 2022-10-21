@@ -16,6 +16,8 @@ pub fn handle(ctx: Context<InitPool>) -> Result<()> {
     pool.authority = ctx.accounts.authority.key();
     pool.pool_mint = ctx.accounts.pool_mint.key();
     pool.authority_bump = ctx.bumps["pool_authority"];
+    pool.deposit_count = 0;
+    pool.withdraw_count = 0;
 
     Ok(())
 }

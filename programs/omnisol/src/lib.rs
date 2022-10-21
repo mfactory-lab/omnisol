@@ -22,11 +22,15 @@ pub mod omnisol {
     }
 
     pub fn deposit_stake(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
-        deposit::handle(ctx, amount)
+        deposit_stake::handle(ctx, amount)
     }
 
-    pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
-        withdraw::handle(ctx, amount)
+    pub fn withdraw_stake(ctx: Context<WithdrawStake>, amount: u64) -> Result<()> {
+        withdraw_stake::handle(ctx, amount)
+    }
+
+    pub fn withdraw_sol(ctx: Context<WithdrawSol>, amount: u64) -> Result<()> {
+        withdraw_sol::handle(ctx, amount)
     }
 }
 
