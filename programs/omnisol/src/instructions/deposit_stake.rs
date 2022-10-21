@@ -20,8 +20,8 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
         CpiContext::new_with_signer(
             ctx.accounts.stake_program.to_account_info(),
             stake::Split {
-                stake: ctx.accounts.source_stake_account.to_account_info(),
-                split_stake: ctx.accounts.split_stake_account.to_account_info(),
+                stake: ctx.accounts.source_stake.to_account_info(),
+                split_stake: ctx.accounts.split_stake.to_account_info(),
                 authority: ctx.accounts.stake_authority.to_account_info(),
                 system_program: ctx.accounts.system_program.to_account_info(),
             },
@@ -39,7 +39,7 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
         CpiContext::new_with_signer(
             ctx.accounts.stake_program.to_account_info(),
             stake::Authorize {
-                stake: ctx.accounts.split_stake_account.to_account_info(),
+                stake: ctx.accounts.split_stake.to_account_info(),
                 authority: ctx.accounts.stake_authority.to_account_info(),
                 new_authority: ctx.accounts.pool_authority.to_account_info(),
                 clock: clock.to_account_info(),
@@ -64,7 +64,7 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
         amount,
     )?;
 
-    let stake = &ctx.accounts.source_stake_account;
+    let stake = &ctx.accounts.source_stake;
     let stake_delegation = stake.stake().unwrap().delegation.stake;
 
     let pledge = &mut ctx.accounts.pledge;
@@ -72,11 +72,13 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
     pledge.authority = ctx.accounts.authority.key();
     pledge.pool = pool_key;
     pledge.source_stake = stake.key();
-    pledge.split_stake = ctx.accounts.split_stake_account.key();
+    pledge.split_stake = ctx.accounts.split_stake.key();
     pledge.stake_delegation = stake_delegation;
     pledge.amount = amount;
     pledge.created_at = clock.unix_timestamp;
     pledge.bump = ctx.bumps["pledge"];
+
+    pool.deposit_count = pool.deposit_count.saturating_add(1);
 
     emit!(DepositStakeEvent {
         pool: pool.key(),
@@ -100,17 +102,23 @@ pub struct DepositStake<'info> {
     #[account(seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
     pub pool_authority: AccountInfo<'info>,
 
-    #[account(init, payer = authority, space = Pledge::SIZE)]
+    #[account(
+        init,
+        seeds = [Pledge::SEED, pool.key().as_ref(), source_stake.key().as_ref()],
+        bump,
+        payer = authority,
+        space = Pledge::SIZE,
+    )]
     pub pledge: Box<Account<'info, Pledge>>,
 
     #[account(mut)]
     pub user_pool_token: Account<'info, TokenAccount>,
 
     #[account(mut)]
-    pub source_stake_account: Account<'info, StakeAccount>,
+    pub source_stake: Account<'info, StakeAccount>,
     /// CHECK:
     #[account(mut)]
-    pub split_stake_account: AccountInfo<'info>,
+    pub split_stake: AccountInfo<'info>,
     /// CHECK:
     pub stake_authority: Signer<'info>,
 
