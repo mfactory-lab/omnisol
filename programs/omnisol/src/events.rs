@@ -5,7 +5,8 @@ pub struct DepositStakeEvent {
     #[index]
     pub pool: Pubkey,
     #[index]
-    pub pledge: Pubkey,
+    pub collateral: Pubkey,
+    pub delegation_stake: u64,
     pub amount: u64,
     pub timestamp: i64,
 }
@@ -15,7 +16,7 @@ pub struct WithdrawStakeEvent {
     #[index]
     pub pool: Pubkey,
     #[index]
-    pub pledge: Pubkey,
+    pub collateral: Pubkey,
     pub amount: u64,
     pub rest_amount: u64,
     pub timestamp: i64,
@@ -25,8 +26,6 @@ pub struct WithdrawStakeEvent {
 pub struct WithdrawSolEvent {
     #[index]
     pub pool: Pubkey,
-    #[index]
-    pub withdrawal: Pubkey,
     pub authority: Pubkey,
     pub amount: u64,
     pub timestamp: i64,
