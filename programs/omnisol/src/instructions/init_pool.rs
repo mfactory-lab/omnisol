@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token};
+use anchor_spl::token;
 
 use crate::{state::Pool, ErrorCode};
 
@@ -16,8 +16,7 @@ pub fn handle(ctx: Context<InitPool>) -> Result<()> {
     pool.authority = ctx.accounts.authority.key();
     pool.pool_mint = ctx.accounts.pool_mint.key();
     pool.authority_bump = ctx.bumps["pool_authority"];
-    pool.deposit_count = 0;
-    pool.withdraw_count = 0;
+    pool.deposit_amount = 0;
 
     Ok(())
 }
@@ -37,6 +36,5 @@ pub struct InitPool<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 
-    pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }
