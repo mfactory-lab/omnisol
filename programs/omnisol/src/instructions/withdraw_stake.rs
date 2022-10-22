@@ -1,16 +1,10 @@
-use anchor_lang::prelude::*;
-use anchor_spl::{
-    token,
-    token::{Token, TokenAccount},
-};
+use anchor_lang::{prelude::*, solana_program::stake::state::StakeAuthorize};
+use anchor_spl::token;
 
 use crate::{
     events::*,
-    state::{Pledge, Pool},
-    utils::{
-        self,
-        stake::{self, Stake, StakeAccount},
-    },
+    state::{Collateral, Pool},
+    utils::{self, stake},
     ErrorCode,
 };
 
@@ -21,22 +15,39 @@ use crate::{
 /// This burns the omniSOL, allowing the minter to withdraw their staked SOL.
 pub fn handle(ctx: Context<WithdrawStake>, amount: u64) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
-    let pledge = &mut ctx.accounts.pledge;
+    let collateral = &mut ctx.accounts.collateral;
 
-    let rest_amount = pledge.amount.checked_sub(amount).ok_or(ErrorCode::InsufficientAmount)?;
+    let rest_amount = collateral
+        .amount
+        .checked_sub(amount)
+        .ok_or(ErrorCode::InsufficientAmount)?;
 
     let pool_key = pool.key();
     let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
     let clock = &ctx.accounts.clock;
 
     let source_stake = if rest_amount > 0 {
-        let stake = &ctx.accounts.ephemeral_stake;
+        // TODO: check it
+        // stake::authorize(
+        //     CpiContext::new_with_signer(
+        //         ctx.accounts.stake_program.to_account_info(),
+        //         stake::Authorize {
+        //             stake: ctx.accounts.source_stake.to_account_info(),
+        //             authority: ctx.accounts.pool_authority.to_account_info(),
+        //             new_authority: ctx.accounts.pool_authority.to_account_info(),
+        //             clock: clock.to_account_info(),
+        //         },
+        //         &[&pool_authority_seeds],
+        //     ),
+        //     StakeAuthorize::Staker,
+        //     None,
+        // )?;
         stake::split(
             CpiContext::new_with_signer(
                 ctx.accounts.stake_program.to_account_info(),
                 stake::Split {
-                    stake: ctx.accounts.split_stake.to_account_info(),
-                    split_stake: stake.to_account_info(),
+                    stake: ctx.accounts.source_stake.to_account_info(),
+                    split_stake: ctx.accounts.split_stake.to_account_info(),
                     authority: ctx.accounts.pool_authority.to_account_info(),
                     system_program: ctx.accounts.system_program.to_account_info(),
                 },
@@ -44,23 +55,40 @@ pub fn handle(ctx: Context<WithdrawStake>, amount: u64) -> Result<()> {
             ),
             amount,
         )?;
-        stake.to_account_info()
-    } else {
         ctx.accounts.split_stake.to_account_info()
+    } else {
+        ctx.accounts.source_stake.to_account_info()
     };
 
-    stake::merge(CpiContext::new_with_signer(
-        ctx.accounts.stake_program.to_account_info(),
-        stake::Merge {
-            source_stake,
-            destination_stake: ctx.accounts.source_stake.to_account_info(),
-            authority: ctx.accounts.pool_authority.to_account_info(),
-            stake_history: ctx.accounts.stake_history.to_account_info(),
-            clock: clock.to_account_info(),
-            system_program: ctx.accounts.system_program.to_account_info(),
-        },
-        &[&pool_authority_seeds],
-    ))?;
+    if source_stake.key() == ctx.accounts.destination_stake.key() {
+        stake::authorize(
+            CpiContext::new_with_signer(
+                ctx.accounts.stake_program.to_account_info(),
+                stake::Authorize {
+                    stake: source_stake,
+                    authority: ctx.accounts.pool_authority.to_account_info(),
+                    new_authority: ctx.accounts.stake_authority.to_account_info(),
+                    clock: clock.to_account_info(),
+                },
+                &[&pool_authority_seeds],
+            ),
+            StakeAuthorize::Withdrawer,
+            None,
+        )?;
+    } else {
+        stake::merge(CpiContext::new_with_signer(
+            ctx.accounts.stake_program.to_account_info(),
+            stake::Merge {
+                source_stake,
+                destination_stake: ctx.accounts.destination_stake.to_account_info(),
+                authority: ctx.accounts.pool_authority.to_account_info(),
+                stake_history: ctx.accounts.stake_history.to_account_info(),
+                clock: clock.to_account_info(),
+                system_program: ctx.accounts.system_program.to_account_info(),
+            },
+            &[&pool_authority_seeds],
+        ))?;
+    }
 
     token::burn(
         CpiContext::new(
@@ -75,20 +103,18 @@ pub fn handle(ctx: Context<WithdrawStake>, amount: u64) -> Result<()> {
     )?;
 
     if rest_amount == 0 {
-        // close the pledge account
-        utils::close(pledge.to_account_info(), ctx.accounts.authority.to_account_info())?;
+        // close the collateral account
+        utils::close(collateral.to_account_info(), ctx.accounts.authority.to_account_info())?;
     } else {
-        pledge.amount = rest_amount;
+        collateral.amount = rest_amount;
     }
-
-    let timestamp = Clock::get()?.unix_timestamp;
 
     emit!(WithdrawStakeEvent {
         pool: pool.key(),
-        pledge: pledge.key(),
-        amount,
+        collateral: collateral.key(),
+        timestamp: clock.unix_timestamp,
         rest_amount,
-        timestamp,
+        amount,
     });
 
     Ok(())
@@ -107,31 +133,33 @@ pub struct WithdrawStake<'info> {
     pub pool_authority: AccountInfo<'info>,
 
     #[account(mut, has_one = pool, has_one = authority)]
-    pub pledge: Box<Account<'info, Pledge>>,
+    pub collateral: Box<Account<'info, Collateral>>,
 
-    #[account(mut, constraint = pledge.source_stake == source_stake)]
-    pub source_stake: Account<'info, StakeAccount>,
+    #[account(mut, constraint = collateral.source_stake == destination_stake)]
+    pub destination_stake: Account<'info, stake::StakeAccount>,
 
-    #[account(mut, constraint = pledge.split_stake == split_stake)]
-    pub split_stake: Account<'info, StakeAccount>,
+    #[account(mut, constraint = collateral.split_stake == source_stake)]
+    pub source_stake: Account<'info, stake::StakeAccount>,
 
     /// CHECK:
     #[account(mut)]
-    pub ephemeral_stake: AccountInfo<'info>,
+    pub split_stake: AccountInfo<'info>,
 
     #[account(
         mut,
         associated_token::mint = pool_mint,
         associated_token::authority = authority,
     )]
-    pub source_token_account: Account<'info, TokenAccount>,
+    pub source_token_account: Account<'info, token::TokenAccount>,
+
+    pub stake_authority: Signer<'info>,
 
     #[account(mut)]
     pub authority: Signer<'info>,
 
     pub clock: Sysvar<'info, Clock>,
     pub stake_history: Sysvar<'info, StakeHistory>,
-    pub stake_program: Program<'info, Stake>,
-    pub token_program: Program<'info, Token>,
+    pub stake_program: Program<'info, stake::Stake>,
+    pub token_program: Program<'info, token::Token>,
     pub system_program: Program<'info, System>,
 }
