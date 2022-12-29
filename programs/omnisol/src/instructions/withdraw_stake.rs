@@ -135,10 +135,10 @@ pub struct WithdrawStake<'info> {
     #[account(mut, has_one = pool, has_one = authority)]
     pub collateral: Box<Account<'info, Collateral>>,
 
-    #[account(mut, constraint = collateral.source_stake == destination_stake)]
-    pub destination_stake: Account<'info, stake::StakeAccount>,
+    #[account(mut, constraint = collateral.source_stake == destination_stake.key())]
+    pub destination_stake: Box<Account<'info, stake::StakeAccount>>,
 
-    #[account(mut, constraint = collateral.split_stake == source_stake)]
+    #[account(mut, constraint = collateral.split_stake == source_stake.key())]
     pub source_stake: Account<'info, stake::StakeAccount>,
 
     /// CHECK:

@@ -51,7 +51,7 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
         CpiContext::new(
             ctx.accounts.stake_program.to_account_info(),
             stake::Authorize {
-                stake: stake_account,
+                stake: stake_account.clone(),
                 authority: ctx.accounts.authority.to_account_info(),
                 new_authority: ctx.accounts.pool_authority.to_account_info(),
                 clock: clock.to_account_info(),
@@ -104,6 +104,7 @@ pub struct DepositStake<'info> {
     #[account(mut)]
     pub pool: Box<Account<'info, Pool>>,
 
+    /// CHECK:
     #[account(address = pool.pool_mint)]
     pub pool_mint: AccountInfo<'info>,
 
