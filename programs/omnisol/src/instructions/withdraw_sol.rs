@@ -5,6 +5,7 @@ use crate::{
     state::Pool,
     utils::{stake, unstake_it},
 };
+use crate::utils::unstake_it::Unstake;
 
 /// Withdraw a given amount of omniSOL (without an account).
 /// Caller provides some [amount] of omni-lamports that are to be burned in
@@ -12,7 +13,7 @@ use crate::{
 /// TODO: get account from priority queue
 /// TODO: liquidate the account
 /// TODO: transfer sol or split stake?
-pub fn handle(ctx: Context<WithdrawSol>, amount: u64) -> Result<()> {
+pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, WithdrawSol<'info>>, amount: u64) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 
     let pool_key = pool.key();
@@ -31,41 +32,42 @@ pub fn handle(ctx: Context<WithdrawSol>, amount: u64) -> Result<()> {
     )?;
 
     // TODO: get from oracle
-    // let stake_account = ctx.remaining_accounts.get(0).unwrap();
-    //
-    // let pool_account = ctx.remaining_accounts.get(0).expect("Expect #0 account");
-    // let pool_sol_reserves = ctx.remaining_accounts.get(1).expect("Expect #1 account");
-    // let fee_account = ctx.remaining_accounts.get(2).expect("Expect #2 account");
-    // let stake_account_record_account = ctx.remaining_accounts.get(3).expect("Expect #3 account");
-    // let protocol_fee_account = ctx.remaining_accounts.get(4).expect("Expect #4 account");
-    // let protocol_fee_destination = ctx.remaining_accounts.get(5).expect("Expect #5 account");
+    let stake_account = ctx.remaining_accounts.get(0).unwrap();
 
-    // unstake_it::unstake(CpiContext::new_with_signer(
-    //     ctx.accounts.token_program.to_account_info(),
-    //     unstake_it::Unstake {
-    //         payer: ctx.accounts.authority.to_account_info(),
-    //         unstaker: ctx.accounts.pool_authority.to_account_info(),
-    //         stake_account: stake_account.to_account_info(),
-    //         destination: ctx.accounts.authority.to_account_info(), // TODO: destination account
-    //         pool_account: pool_account.to_account_info(),
-    //         pool_sol_reserves: pool_sol_reserves.to_account_info(),
-    //         fee_account: fee_account.to_account_info(),
-    //         stake_account_record_account: stake_account_record_account.to_account_info(),
-    //         protocol_fee_account: protocol_fee_account.to_account_info(),
-    //         protocol_fee_destination: protocol_fee_destination.to_account_info(),
-    //         clock: ctx.accounts.clock.to_account_info(),
-    //         stake_program: ctx.accounts.stake_program.to_account_info(),
-    //         system_program: ctx.accounts.system_program.to_account_info(),
-    //     },
-    //     &[&pool_authority_seeds],
-    // ))?;
+    let pool_account = ctx.remaining_accounts.get(0).expect("Expect #0 account");
+    let pool_sol_reserves = ctx.remaining_accounts.get(1).expect("Expect #1 account");
+    let fee_account = ctx.remaining_accounts.get(2).expect("Expect #2 account");
+    let stake_account_record_account = ctx.remaining_accounts.get(3).expect("Expect #3 account");
+    let protocol_fee_account = ctx.remaining_accounts.get(4).expect("Expect #4 account");
+    let protocol_fee_destination = ctx.remaining_accounts.get(5).expect("Expect #5 account");
+
+    unstake_it::unstake(CpiContext::new_with_signer(
+        ctx.accounts.token_program.to_account_info(),
+        unstake_it::Unstake {
+            payer: ctx.accounts.authority.to_account_info(),
+            unstaker: ctx.accounts.pool_authority.to_account_info(),
+            stake_account: stake_account.to_account_info(),
+            destination: ctx.accounts.authority.to_account_info(), // TODO: destination account
+            pool_account: pool_account.to_account_info(),
+            pool_sol_reserves: pool_sol_reserves.to_account_info(),
+            fee_account: fee_account.to_account_info(),
+            stake_account_record_account: stake_account_record_account.to_account_info(),
+            protocol_fee_account: protocol_fee_account.to_account_info(),
+            protocol_fee_destination: protocol_fee_destination.to_account_info(),
+            clock: ctx.accounts.clock.to_account_info(),
+            stake_program: ctx.accounts.stake_program.to_account_info(),
+            system_program: ctx.accounts.system_program.to_account_info(),
+        },
+        &[&pool_authority_seeds],
+    ))?;
 
     // let timestamp = Clock::get()?.unix_timestamp;
+
     // emit!(WithdrawSolEvent {
-    //     pool: pool.key(),
-    //     authority: withdrawal.owner.key(),
-    //     amount,
-    //     timestamp,
+    //      pool: pool.key(),
+    //      authority: withdrawal.owner.key(),
+    //      amount,
+    //      timestamp,
     // });
 
     Ok(())

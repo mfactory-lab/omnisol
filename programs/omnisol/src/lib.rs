@@ -29,7 +29,7 @@ pub mod omnisol {
         withdraw_stake::handle(ctx, amount)
     }
 
-    pub fn withdraw_sol(ctx: Context<WithdrawSol>, amount: u64) -> Result<()> {
+    pub fn withdraw_sol<'info>(ctx: Context<'_, '_, '_, 'info, WithdrawSol<'info>>, amount: u64) -> Result<()> {
         withdraw_sol::handle(ctx, amount)
     }
 }

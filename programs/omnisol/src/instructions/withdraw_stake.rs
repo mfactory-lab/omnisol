@@ -27,21 +27,21 @@ pub fn handle(ctx: Context<WithdrawStake>, amount: u64) -> Result<()> {
     let clock = &ctx.accounts.clock;
 
     let source_stake = if rest_amount > 0 {
-        // TODO: check it
-        // stake::authorize(
-        //     CpiContext::new_with_signer(
-        //         ctx.accounts.stake_program.to_account_info(),
-        //         stake::Authorize {
-        //             stake: ctx.accounts.source_stake.to_account_info(),
-        //             authority: ctx.accounts.pool_authority.to_account_info(),
-        //             new_authority: ctx.accounts.pool_authority.to_account_info(),
-        //             clock: clock.to_account_info(),
-        //         },
-        //         &[&pool_authority_seeds],
-        //     ),
-        //     StakeAuthorize::Staker,
-        //     None,
-        // )?;
+        stake::authorize(
+            CpiContext::new_with_signer(
+                ctx.accounts.stake_program.to_account_info(),
+                stake::Authorize {
+                    stake: ctx.accounts.source_stake.to_account_info(),
+                    authority: ctx.accounts.pool_authority.to_account_info(),
+                    new_authority: ctx.accounts.pool_authority.to_account_info(),
+                    clock: clock.to_account_info(),
+                },
+                &[&pool_authority_seeds],
+            ),
+            StakeAuthorize::Staker,
+            None,
+        )?;
+
         stake::split(
             CpiContext::new_with_signer(
                 ctx.accounts.stake_program.to_account_info(),
