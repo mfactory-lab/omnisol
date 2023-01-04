@@ -1,11 +1,12 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount};
 
+use crate::utils::unstake_it::Unstake;
 use crate::{
     state::Pool,
     utils::{stake, unstake_it},
+    events::WithdrawSolEvent,
 };
-use crate::utils::unstake_it::Unstake;
 
 /// Withdraw a given amount of omniSOL (without an account).
 /// Caller provides some [amount] of omni-lamports that are to be burned in
@@ -43,7 +44,7 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, WithdrawSol<'info>>, amount
 
     unstake_it::unstake(CpiContext::new_with_signer(
         ctx.accounts.token_program.to_account_info(),
-        unstake_it::Unstake {
+        Unstake {
             payer: ctx.accounts.authority.to_account_info(),
             unstaker: ctx.accounts.pool_authority.to_account_info(),
             stake_account: stake_account.to_account_info(),
@@ -62,7 +63,7 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, WithdrawSol<'info>>, amount
     ))?;
 
     // let timestamp = Clock::get()?.unix_timestamp;
-
+    //
     // emit!(WithdrawSolEvent {
     //      pool: pool.key(),
     //      authority: withdrawal.owner.key(),

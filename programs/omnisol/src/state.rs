@@ -18,13 +18,21 @@ impl Pool {
 
 #[account]
 pub struct Collateral {
+    /// Authority of the staking pool
     pub authority: Pubkey,
+    /// Address of the global pool
     pub pool: Pubkey,
+    /// An account of staking pool
     pub source_stake: Pubkey,
+    /// An account of splited staking pool
     pub split_stake: Pubkey,
+    /// An amount of delegated staked tokens
     pub delegation_stake: u64,
+    /// An amount of minted pool tokens
     pub amount: u64,
+    /// Time of collateral's creation
     pub created_at: i64,
+    /// Signer bump seed for deriving PDA seeds
     pub bump: u8,
 }
 

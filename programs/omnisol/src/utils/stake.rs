@@ -1,15 +1,19 @@
 use std::ops::Deref;
 
-use anchor_lang::{context::CpiContext, solana_program::{
-    self,
-    account_info::AccountInfo,
-    pubkey::Pubkey,
-    stake::{
+use anchor_lang::{
+    context::CpiContext,
+    solana_program::{
         self,
-        program::ID,
-        state::{StakeAuthorize, StakeState},
+        account_info::AccountInfo,
+        pubkey::Pubkey,
+        stake::{
+            self,
+            program::ID,
+            state::{StakeAuthorize, StakeState},
+        },
     },
-}, Accounts, AnchorDeserialize, Result, ToAccountInfo};
+    Accounts, AnchorDeserialize, Result, ToAccountInfo,
+};
 
 // CPI functions
 
