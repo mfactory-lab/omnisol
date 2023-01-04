@@ -1,15 +1,19 @@
-import type { Address, Program } from '@project-serum/anchor'
+import type { Address, BN, Program } from '@project-serum/anchor'
 import type { Commitment } from '@solana/web3.js'
 import { PublicKey, Transaction } from '@solana/web3.js'
 import { web3 } from '@project-serum/anchor'
-import type { InitPoolInstructionAccounts } from './generated'
-import { PROGRAM_ID, Pool, createInitPoolInstruction } from './generated'
+import {
+  PROGRAM_ID,
+  Pool,
+  createClosePoolInstruction,
+  createDepositStakeInstruction,
+  createInitPoolInstruction, createWithdrawStakeInstruction, createWithdrawSolInstruction,
+} from './generated'
 
 const COLLATERAL_SEED_PREFIX = 'collateral'
 
 export class OmnisolClient {
   static programId = PROGRAM_ID
-  private accounts: InitPoolInstructionAccounts
 
   constructor(private readonly props: OmnisolClientProps) {}
 
@@ -28,16 +32,106 @@ export class OmnisolClient {
   async createGlobalPool(props: CreateGlobalPoolProps) {
     const payer = this.wallet.publicKey
     const [poolAuthority] = await this.pda.poolAuthority(props.pool)
-    this.accounts = {
-      authority: payer,
-      pool: props.pool,
-      poolAuthority,
-      poolMint: props.mint,
-      systemProgram: web3.SystemProgram.programId,
-    }
     const instruction = createInitPoolInstruction(
-      this.accounts,
-      new PublicKey(this.program),
+      {
+        authority: payer,
+        pool: props.pool,
+        poolAuthority,
+        poolMint: props.mint,
+      },
+    )
+    const transaction = new Transaction().add(instruction)
+
+    return {
+      transaction,
+    }
+  }
+
+  async closeGlobalPool(props: CloseGlobalPoolProps) {
+    const payer = this.wallet.publicKey
+    const instruction = createClosePoolInstruction(
+      {
+        pool: props.pool,
+        authority: payer,
+      },
+    )
+    const transaction = new Transaction().add(instruction)
+
+    return {
+      transaction,
+    }
+  }
+
+  async depositStake(props: DepositStakeProps) {
+    const payer = this.wallet.publicKey
+    const instruction = createDepositStakeInstruction(
+      {
+        pool: props.pool,
+        poolMint: props.poolMint,
+        poolAuthority: props.poolAuthority,
+        collateral: props.collateral,
+        userPoolToken: props.userPoolToken,
+        sourceStake: props.sourceStake,
+        splitStake: props.splitStake,
+        authority: payer,
+        clock: props.clock,
+        stakeProgram: props.stakeProgram,
+      },
+      {
+        amount: props.amount,
+      },
+    )
+    const transaction = new Transaction().add(instruction)
+
+    return {
+      transaction,
+    }
+  }
+
+  async withdrawStake(props: WithdrawStakeProps) {
+    const payer = this.wallet.publicKey
+    const instruction = createWithdrawStakeInstruction(
+      {
+        pool: props.pool,
+        poolMint: props.poolMint,
+        poolAuthority: props.poolAuthority,
+        collateral: props.collateral,
+        destinationStake: props.destinationStake,
+        sourceStake: props.sourceStake,
+        splitStake: props.splitStake,
+        sourceTokenAccount: props.sourceTokenAccount,
+        stakeAuthority: props.stakeAuthority,
+        authority: payer,
+        clock: props.clock,
+        stakeHistory: props.stakeHistory,
+        stakeProgram: props.stakeProgram,
+      },
+      {
+        amount: props.amount,
+      },
+    )
+    const transaction = new Transaction().add(instruction)
+
+    return {
+      transaction,
+    }
+  }
+
+  async withdrawSol(props: WithdrawSolProps) {
+    const payer = this.wallet.publicKey
+    const instruction = createWithdrawSolInstruction(
+      {
+        pool: props.pool,
+        poolMint: props.poolMint,
+        poolAuthority: props.poolAuthority,
+        sourceTokenAccount: props.sourceTokenAccount,
+        authority: payer,
+        clock: props.clock,
+        stakeProgram: props.stakeProgram,
+      },
+      {
+        amount: props.amount,
+      },
     )
     const transaction = new Transaction().add(instruction)
 
@@ -87,4 +181,48 @@ interface OmnisolClientProps {
 interface CreateGlobalPoolProps {
   pool: PublicKey
   mint: PublicKey
+}
+
+interface CloseGlobalPoolProps {
+  pool: PublicKey
+}
+
+interface DepositStakeProps {
+  pool: PublicKey
+  poolMint: PublicKey
+  poolAuthority: PublicKey
+  collateral: PublicKey
+  userPoolToken: PublicKey
+  sourceStake: PublicKey
+  splitStake: PublicKey
+  authority: PublicKey
+  clock: PublicKey
+  stakeProgram: PublicKey
+  amount: BN
+}
+
+interface WithdrawStakeProps {
+  pool: PublicKey
+  poolMint: PublicKey
+  poolAuthority: PublicKey
+  collateral: PublicKey
+  destinationStake: PublicKey
+  sourceStake: PublicKey
+  splitStake: PublicKey
+  sourceTokenAccount: PublicKey
+  stakeAuthority: PublicKey
+  clock: PublicKey
+  stakeHistory: PublicKey
+  stakeProgram: PublicKey
+  amount: BN
+}
+
+interface WithdrawSolProps {
+  pool: PublicKey
+  poolMint: PublicKey
+  poolAuthority: PublicKey
+  sourceTokenAccount: PublicKey
+  clock: PublicKey
+  stakeProgram: PublicKey
+  amount: BN
 }
