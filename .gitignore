@@ -4,3 +4,9 @@ target
 **/*.rs.bk
 node_modules
 test-ledger
+.idea
+.eslintcache
+helper.txt
+Cargo.lock
+pnpm-lock.yaml
+
