@@ -101,7 +101,7 @@ export class Collateral implements CollateralArgs {
    */
   static gpaBuilder(
     programId: web3.PublicKey = new web3.PublicKey(
-      '36V9V9myUXLDC6vvGKkRjwXGMbjfUGJrSQ85Xhx87q1n',
+      '9SfbhzHrx5xczfoiTo2VVpG5oukcS5Schgy2ppLH3zQd',
     ),
   ) {
     return beetSolana.GpaBuilder.fromStruct(programId, collateralBeet)

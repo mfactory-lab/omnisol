@@ -4,19 +4,26 @@
   "scripts": {
     "api:gen": "pnpm --filter=sdk run api:gen && eslint --fix --ext .ts ./packages/sdk/src/**",
     "ui:dev": "pnpm --filter=ui run dev",
-    "lint:fix": "eslint --cache --fix --ext .js,.vue,.ts ./packages/**"
+    "lint:fix": "eslint --cache --fix --ext .js,.vue,.ts ./packages/**",
+    "amman:start": "CI=1 DEBUG='amman:(error|info|debug)*' ./node_modules/.bin/amman start",
+    "amman:stop": "./node_modules/.bin/amman stop",
+    "test": "CI=1 node tests/omnisol.ts"
   },
   "dependencies": {
     "@project-serum/anchor": "^0.25.0"
   },
   "devDependencies": {
+    "@metaplex-foundation/amman": "^0.6.1",
     "@antfu/eslint-config-vue": "^0.27.0",
     "@types/bn.js": "^5.1.0",
     "@types/bs58": "^4.0.1",
     "@types/mocha": "^9.1.1",
+    "@solana/spl-token": "^0.3.6",
     "eslint": "^8.25.0",
     "mocha": "^10.0.0",
     "ts-mocha": "^10.0.0",
-    "typescript": "^4.8.4"
+    "typescript": "^4.8.4",
+    "chai": "^4.3.7",
+    "tape": "^5.6.1"
   }
 }

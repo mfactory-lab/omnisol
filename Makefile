@@ -6,7 +6,8 @@ cwd = $(shell pwd)
 #cluster = https://solana-api.projectserum.com
 #cluster = https://mainnet.rpcpool.com
 #cluster = mainnet
-cluster = devnet
+#cluster = devnet
+cluster = localnet
 
 program = omnisol
 program_id = $(shell sed -n 's/^ *${program}.*=.*"\([^"]*\)".*/\1/p' Anchor.toml | head -1)

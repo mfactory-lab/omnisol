@@ -13,7 +13,7 @@ pub struct Pool {
 }
 
 impl Pool {
-    pub const SIZE: usize = 32 + 32 + 8 + 1;
+    pub const SIZE: usize = 8 + 32 + 32 + 8 + 1;
 }
 
 #[account]

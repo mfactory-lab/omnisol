@@ -1,5 +1,4 @@
 import type { Address, BN, Program } from '@project-serum/anchor'
-import type { Commitment } from '@solana/web3.js'
 import { PublicKey, Transaction } from '@solana/web3.js'
 import { web3 } from '@project-serum/anchor'
 import {
@@ -7,13 +6,15 @@ import {
   Pool,
   createClosePoolInstruction,
   createDepositStakeInstruction,
-  createInitPoolInstruction, createWithdrawStakeInstruction, createWithdrawSolInstruction,
+  createInitPoolInstruction, createWithdrawSolInstruction, createWithdrawStakeInstruction,
 } from './generated'
+import { IDL } from './idl/omnisol'
 
 const COLLATERAL_SEED_PREFIX = 'collateral'
 
 export class OmnisolClient {
   static programId = PROGRAM_ID
+  static IDL = IDL
 
   constructor(private readonly props: OmnisolClientProps) {}
 
@@ -31,20 +32,27 @@ export class OmnisolClient {
 
   async createGlobalPool(props: CreateGlobalPoolProps) {
     const payer = this.wallet.publicKey
-    const [poolAuthority] = await this.pda.poolAuthority(props.pool)
-    const instruction = createInitPoolInstruction(
+    const pool = props.pool
+    const [poolAuthority, bump] = await this.pda.poolAuthority(pool)
+    const ix = createInitPoolInstruction(
       {
         authority: payer,
-        pool: props.pool,
+        pool,
         poolAuthority,
         poolMint: props.mint,
       },
     )
-    const transaction = new Transaction().add(instruction)
+    const tx = new Transaction().add(ix)
 
     return {
-      transaction,
+      tx,
+      poolAuthority,
+      bump,
     }
+  }
+
+  async fetchGlobalPool(address: Address) {
+    return await this.program.account.pool.fetchNullable(address) as unknown as Pool
   }
 
   async closeGlobalPool(props: CloseGlobalPoolProps) {
@@ -55,10 +63,10 @@ export class OmnisolClient {
         authority: payer,
       },
     )
-    const transaction = new Transaction().add(instruction)
+    const tx = new Transaction().add(instruction)
 
     return {
-      transaction,
+      tx,
     }
   }
 
@@ -139,14 +147,6 @@ export class OmnisolClient {
       transaction,
     }
   }
-
-  async fetchGlobalPool(address: Address) {
-    return await Pool.fromAccountAddress(
-      this.props.connection,
-      new PublicKey(address),
-      this.props.commitment,
-    )
-  }
 }
 
 class OmnisolPDA {
@@ -173,9 +173,7 @@ export interface Wallet {
 
 interface OmnisolClientProps {
   wallet: Wallet
-  program: Program
-  connection: web3.Connection
-  commitment: Commitment
+  program: Program<typeof IDL>
 }
 
 interface CreateGlobalPoolProps {

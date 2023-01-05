@@ -12,4 +12,4 @@ cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [programs.localnet]
-omnisol = "36V9V9myUXLDC6vvGKkRjwXGMbjfUGJrSQ85Xhx87q1n"
+omnisol = "9SfbhzHrx5xczfoiTo2VVpG5oukcS5Schgy2ppLH3zQd"

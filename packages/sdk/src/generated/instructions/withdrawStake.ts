@@ -89,7 +89,7 @@ export const withdrawStakeInstructionDiscriminator = [
 export function createWithdrawStakeInstruction(
   accounts: WithdrawStakeInstructionAccounts,
   args: WithdrawStakeInstructionArgs,
-  programId = new web3.PublicKey('36V9V9myUXLDC6vvGKkRjwXGMbjfUGJrSQ85Xhx87q1n'),
+  programId = new web3.PublicKey('9SfbhzHrx5xczfoiTo2VVpG5oukcS5Schgy2ppLH3zQd'),
 ) {
   const [data] = withdrawStakeStruct.serialize({
     instructionDiscriminator: withdrawStakeInstructionDiscriminator,
