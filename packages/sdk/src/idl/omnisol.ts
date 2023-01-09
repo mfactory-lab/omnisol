@@ -128,6 +128,58 @@ export interface Omnisol {
       'args': []
     },
     {
+      'name': 'blockUser'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'user'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'userWallet'
+          'isMut': false
+          'isSigner': false
+        },
+      ]
+      'args': []
+    },
+    {
+      'name': 'unblockUser'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'user'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'userWallet'
+          'isMut': false
+          'isSigner': false
+        },
+      ]
+      'args': []
+    },
+    {
       'name': 'closePool'
       'accounts': [
         {
@@ -628,12 +680,22 @@ export interface Omnisol {
     {
       'code': 6003
       'name': 'PoolAlreadyPaused'
-      'msg': 'Pool already paused'
+      'msg': 'Pool is already paused'
     },
     {
       'code': 6004
       'name': 'PoolAlreadyResumed'
-      'msg': 'Pool already resumed'
+      'msg': 'Pool is already resumed'
+    },
+    {
+      'code': 6005
+      'name': 'UserBlocked'
+      'msg': 'User is blocked'
+    },
+    {
+      'code': 6006
+      'name': 'UserNotBlocked'
+      'msg': 'User is not blocked'
     },
   ]
 }
@@ -761,6 +823,58 @@ export const IDL: Omnisol = {
         },
         {
           name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: 'blockUser',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'user',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'userWallet',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: 'unblockUser',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'user',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'userWallet',
           isMut: false,
           isSigner: false,
         },
@@ -1268,12 +1382,22 @@ export const IDL: Omnisol = {
     {
       code: 6003,
       name: 'PoolAlreadyPaused',
-      msg: 'Pool already paused',
+      msg: 'Pool is already paused',
     },
     {
       code: 6004,
       name: 'PoolAlreadyResumed',
-      msg: 'Pool already resumed',
+      msg: 'Pool is already resumed',
+    },
+    {
+      code: 6005,
+      name: 'UserBlocked',
+      msg: 'User is blocked',
+    },
+    {
+      code: 6006,
+      name: 'UserNotBlocked',
+      msg: 'User is not blocked',
     },
   ],
 }

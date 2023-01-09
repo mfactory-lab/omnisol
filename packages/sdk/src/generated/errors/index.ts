@@ -78,7 +78,7 @@ createErrorFromNameLookup.set(
 )
 
 /**
- * PoolAlreadyPaused: 'Pool already paused'
+ * PoolAlreadyPaused: 'Pool is already paused'
  *
  * @category Errors
  * @category generated
@@ -87,7 +87,7 @@ export class PoolAlreadyPausedError extends Error {
   readonly code: number = 0x1773
   readonly name: string = 'PoolAlreadyPaused'
   constructor() {
-    super('Pool already paused')
+    super('Pool is already paused')
     if (typeof Error.captureStackTrace === 'function') {
       Error.captureStackTrace(this, PoolAlreadyPausedError)
     }
@@ -101,7 +101,7 @@ createErrorFromNameLookup.set(
 )
 
 /**
- * PoolAlreadyResumed: 'Pool already resumed'
+ * PoolAlreadyResumed: 'Pool is already resumed'
  *
  * @category Errors
  * @category generated
@@ -110,7 +110,7 @@ export class PoolAlreadyResumedError extends Error {
   readonly code: number = 0x1774
   readonly name: string = 'PoolAlreadyResumed'
   constructor() {
-    super('Pool already resumed')
+    super('Pool is already resumed')
     if (typeof Error.captureStackTrace === 'function') {
       Error.captureStackTrace(this, PoolAlreadyResumedError)
     }
@@ -122,6 +122,46 @@ createErrorFromNameLookup.set(
   'PoolAlreadyResumed',
   () => new PoolAlreadyResumedError(),
 )
+
+/**
+ * UserBlocked: 'User is blocked'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class UserBlockedError extends Error {
+  readonly code: number = 0x1775
+  readonly name: string = 'UserBlocked'
+  constructor() {
+    super('User is blocked')
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, UserBlockedError)
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1775, () => new UserBlockedError())
+createErrorFromNameLookup.set('UserBlocked', () => new UserBlockedError())
+
+/**
+ * UserNotBlocked: 'User is not blocked'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class UserNotBlockedError extends Error {
+  readonly code: number = 0x1776
+  readonly name: string = 'UserNotBlocked'
+  constructor() {
+    super('User is not blocked')
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, UserNotBlockedError)
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1776, () => new UserNotBlockedError())
+createErrorFromNameLookup.set('UserNotBlocked', () => new UserNotBlockedError())
 
 /**
  * Attempts to resolve a custom program error from the provided error code.

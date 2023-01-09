@@ -2,21 +2,26 @@ import type { Address, BN, Program } from '@project-serum/anchor'
 import type { PublicKey } from '@solana/web3.js'
 import { Transaction } from '@solana/web3.js'
 import { web3 } from '@project-serum/anchor'
-import type { Pool } from './generated'
+import type { Pool, Whitelist } from './generated'
 import {
   PROGRAM_ID,
   createAddToWhitelistInstruction,
+  createBlockUserInstruction,
   createClosePoolInstruction,
   createDepositStakeInstruction,
   createInitPoolInstruction,
   createPausePoolInstruction,
+  createRemoveFromWhitelistInstruction,
   createResumePoolInstruction,
-  createWithdrawSolInstruction, createWithdrawStakeInstruction, createRemoveFromWhitelistInstruction, Whitelist,
+  createUnblockUserInstruction,
+  createWithdrawSolInstruction,
+  createWithdrawStakeInstruction,
 } from './generated'
 import { IDL } from './idl/omnisol'
 
 const COLLATERAL_SEED_PREFIX = 'collateral'
 const WHITELIST_SEED_PREFIX = 'whitelist'
+const USER_SEED_PREFIX = 'user'
 
 export class OmnisolClient {
   static programId = PROGRAM_ID
@@ -143,6 +148,42 @@ export class OmnisolClient {
     }
   }
 
+  async blockUser(props: BlockUserProps) {
+    const payer = this.wallet.publicKey
+    const [user] = await this.pda.user(props.user_wallet)
+    const instruction = createBlockUserInstruction(
+      {
+        authority: payer,
+        pool: props.pool,
+        user,
+        userWallet: props.user_wallet,
+      },
+    )
+    const tx = new Transaction().add(instruction)
+
+    return {
+      tx,
+    }
+  }
+
+  async unblockUser(props: UnblockUserProps) {
+    const payer = this.wallet.publicKey
+    const [user] = await this.pda.user(props.user_wallet)
+    const instruction = createUnblockUserInstruction(
+      {
+        authority: payer,
+        pool: props.pool,
+        user,
+        userWallet: props.user_wallet,
+      },
+    )
+    const tx = new Transaction().add(instruction)
+
+    return {
+      tx,
+    }
+  }
+
   async fetchWhitelist(address: Address) {
     return await this.program.account.whitelist.fetchNullable(address) as unknown as Whitelist
   }
@@ -238,6 +279,11 @@ class OmnisolPDA {
     new web3.PublicKey(token).toBuffer(),
   ])
 
+  user = (user_wallet: Address) => this.pda([
+    Buffer.from(USER_SEED_PREFIX),
+    new web3.PublicKey(user_wallet).toBuffer(),
+  ])
+
   collateral = (pool: Address, sourceStake: Address) => this.pda([
     Buffer.from(COLLATERAL_SEED_PREFIX),
     new web3.PublicKey(pool).toBuffer(),
@@ -285,6 +331,16 @@ interface AddToWhitelistProps {
 interface RemoveFromWhitelistProps {
   pool: PublicKey
   token: PublicKey
+}
+
+interface BlockUserProps {
+  pool: PublicKey
+  user_wallet: PublicKey
+}
+
+interface UnblockUserProps {
+  pool: PublicKey
+  user_wallet: PublicKey
 }
 
 interface DepositStakeProps {

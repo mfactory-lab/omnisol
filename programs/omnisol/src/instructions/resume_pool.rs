@@ -5,7 +5,7 @@ use crate::{state::Pool, ErrorCode};
 pub fn handle(ctx: Context<ResumePool>) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 
-    if pool.is_active != false {
+    if pool.is_active {
         return Err(ErrorCode::PoolAlreadyResumed.into());
     }
 

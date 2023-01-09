@@ -33,6 +33,14 @@ pub mod omnisol {
         remove_from_whitelist::handle(ctx)
     }
 
+    pub fn block_user(ctx: Context<BlockUser>) -> Result<()> {
+        block_user::handle(ctx)
+    }
+
+    pub fn unblock_user(ctx: Context<UnblockUser>) -> Result<()> {
+        unblock_user::handle(ctx)
+    }
+
     pub fn close_pool(ctx: Context<ClosePool>) -> Result<()> {
         close_pool::handle(ctx)
     }
@@ -58,8 +66,12 @@ pub enum ErrorCode {
     InvalidStakeAccount,
     #[msg("Insufficient amount")]
     InsufficientAmount,
-    #[msg("Pool already paused")]
+    #[msg("Pool is already paused")]
     PoolAlreadyPaused,
-    #[msg("Pool already resumed")]
+    #[msg("Pool is already resumed")]
     PoolAlreadyResumed,
+    #[msg("User is blocked")]
+    UserBlocked,
+    #[msg("User is not blocked")]
+    UserNotBlocked,
 }
