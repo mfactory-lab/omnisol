@@ -66,6 +66,68 @@ export interface Omnisol {
       'args': []
     },
     {
+      'name': 'addToWhitelist'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'addressToWhitelist'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'whitelist'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'systemProgram'
+          'isMut': false
+          'isSigner': false
+        },
+      ]
+      'args': []
+    },
+    {
+      'name': 'removeFromWhitelist'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'whitelist'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'addressToWhitelist'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'systemProgram'
+          'isMut': false
+          'isSigner': false
+        },
+      ]
+      'args': []
+    },
+    {
       'name': 'closePool'
       'accounts': [
         {
@@ -408,6 +470,57 @@ export interface Omnisol {
         ]
       }
     },
+    {
+      'name': 'whitelist'
+      'type': {
+        'kind': 'struct'
+        'fields': [
+          {
+            'name': 'whitelistedToken'
+            'docs': [
+              'Token mint address that is whitelisted to the pool',
+            ]
+            'type': 'publicKey'
+          },
+        ]
+      }
+    },
+    {
+      'name': 'user'
+      'type': {
+        'kind': 'struct'
+        'fields': [
+          {
+            'name': 'wallet'
+            'docs': [
+              'Wallet of registered user',
+            ]
+            'type': 'publicKey'
+          },
+          {
+            'name': 'rate'
+            'docs': [
+              'Rate value for priority queue',
+            ]
+            'type': 'u64'
+          },
+          {
+            'name': 'numOfCollaterals'
+            'docs': [
+              'Current number of non-liquidated collaterals',
+            ]
+            'type': 'u64'
+          },
+          {
+            'name': 'isBlocked'
+            'docs': [
+              'Flag that indicates that the user is blocked or not',
+            ]
+            'type': 'bool'
+          },
+        ]
+      }
+    },
   ]
   'events': [
     {
@@ -588,6 +701,68 @@ export const IDL: Omnisol = {
           name: 'authority',
           isMut: true,
           isSigner: true,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: 'addToWhitelist',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'addressToWhitelist',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'whitelist',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: 'removeFromWhitelist',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'whitelist',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'addressToWhitelist',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
         },
       ],
       args: [],
@@ -931,6 +1106,57 @@ export const IDL: Omnisol = {
               'Signer bump seed for deriving PDA seeds',
             ],
             type: 'u8',
+          },
+        ],
+      },
+    },
+    {
+      name: 'whitelist',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'whitelistedToken',
+            docs: [
+              'Token mint address that is whitelisted to the pool',
+            ],
+            type: 'publicKey',
+          },
+        ],
+      },
+    },
+    {
+      name: 'user',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'wallet',
+            docs: [
+              'Wallet of registered user',
+            ],
+            type: 'publicKey',
+          },
+          {
+            name: 'rate',
+            docs: [
+              'Rate value for priority queue',
+            ],
+            type: 'u64',
+          },
+          {
+            name: 'numOfCollaterals',
+            docs: [
+              'Current number of non-liquidated collaterals',
+            ],
+            type: 'u64',
+          },
+          {
+            name: 'isBlocked',
+            docs: [
+              'Flag that indicates that the user is blocked or not',
+            ],
+            type: 'bool',
           },
         ],
       },

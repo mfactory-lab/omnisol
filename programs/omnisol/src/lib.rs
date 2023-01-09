@@ -25,6 +25,14 @@ pub mod omnisol {
         resume_pool::handle(ctx)
     }
 
+    pub fn add_to_whitelist(ctx: Context<AddToWhitelist>) -> Result<()> {
+        add_to_whitelist::handle(ctx)
+    }
+
+    pub fn remove_from_whitelist(ctx: Context<RemoveFromWhitelist>) -> Result<()> {
+        remove_from_whitelist::handle(ctx)
+    }
+
     pub fn close_pool(ctx: Context<ClosePool>) -> Result<()> {
         close_pool::handle(ctx)
     }

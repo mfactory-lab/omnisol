@@ -3,9 +3,9 @@ use anchor_spl::token::{self, Token, TokenAccount};
 
 use crate::utils::unstake_it::Unstake;
 use crate::{
+    events::WithdrawSolEvent,
     state::Pool,
     utils::{stake, unstake_it},
-    events::WithdrawSolEvent,
 };
 
 /// Withdraw a given amount of omniSOL (without an account).

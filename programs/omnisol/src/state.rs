@@ -40,5 +40,33 @@ pub struct Collateral {
 
 impl Collateral {
     pub const SEED: &'static [u8] = b"collateral";
-    pub const SIZE: usize = 32 + 32 + 32 + 32 + 8 + 8 + 8 + 1;
+    pub const SIZE: usize = 8 + 32 + 32 + 32 + 32 + 8 + 8 + 8 + 1;
+}
+
+#[account]
+pub struct Whitelist {
+    /// Token mint address that is whitelisted to the pool
+    pub whitelisted_token: Pubkey,
+}
+
+impl Whitelist {
+    pub const SEED: &'static [u8] = b"whitelist";
+    pub const SIZE: usize = 8 + 32;
+}
+
+#[account]
+pub struct User {
+    /// Wallet of registered user
+    pub wallet: Pubkey,
+    /// Rate value for priority queue
+    pub rate: u64,
+    /// Current number of non-liquidated collaterals
+    pub num_of_collaterals: u64,
+    /// Flag that indicates that the user is blocked or not
+    pub is_blocked: bool,
+}
+
+impl User {
+    pub const SEED: &'static [u8] = b"user";
+    pub const SIZE: usize = 8 + 32 + 8 + 8;
 }

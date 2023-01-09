@@ -121,6 +121,37 @@ describe('omnisol', () => {
     assert.equal(poolData.isActive, true)
   })
 
+  it('can add to whitelist', async () => {
+    const { tx, whitelist } = await client.addToWhitelist({
+      pool,
+      token: poolMint,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const whitelistData = await client.fetchWhitelist(whitelist)
+    assert.equal(whitelistData.whitelistedToken.equals(poolMint), true)
+  })
+
+  it('can remove from whitelist', async () => {
+    const { tx } = await client.removeFromWhitelist({
+      pool,
+      token: poolMint,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+  })
+
   // it('can deposit stake', async () => {
   //   const { tx } = await client.depositStake({
   //     pool,

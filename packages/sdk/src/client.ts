@@ -5,17 +5,18 @@ import { web3 } from '@project-serum/anchor'
 import type { Pool } from './generated'
 import {
   PROGRAM_ID,
+  createAddToWhitelistInstruction,
   createClosePoolInstruction,
   createDepositStakeInstruction,
   createInitPoolInstruction,
   createPausePoolInstruction,
   createResumePoolInstruction,
-  createWithdrawSolInstruction,
-  createWithdrawStakeInstruction,
+  createWithdrawSolInstruction, createWithdrawStakeInstruction, createRemoveFromWhitelistInstruction, Whitelist,
 } from './generated'
 import { IDL } from './idl/omnisol'
 
 const COLLATERAL_SEED_PREFIX = 'collateral'
+const WHITELIST_SEED_PREFIX = 'whitelist'
 
 export class OmnisolClient {
   static programId = PROGRAM_ID
@@ -105,6 +106,47 @@ export class OmnisolClient {
     }
   }
 
+  async addToWhitelist(props: AddToWhitelistProps) {
+    const payer = this.wallet.publicKey
+    const [whitelist] = await this.pda.whitelist(props.token)
+    const instruction = createAddToWhitelistInstruction(
+      {
+        addressToWhitelist: props.token,
+        authority: payer,
+        pool: props.pool,
+        whitelist,
+      },
+    )
+    const tx = new Transaction().add(instruction)
+
+    return {
+      tx,
+      whitelist,
+    }
+  }
+
+  async removeFromWhitelist(props: RemoveFromWhitelistProps) {
+    const payer = this.wallet.publicKey
+    const [whitelist] = await this.pda.whitelist(props.token)
+    const instruction = createRemoveFromWhitelistInstruction(
+      {
+        addressToWhitelist: props.token,
+        authority: payer,
+        pool: props.pool,
+        whitelist,
+      },
+    )
+    const tx = new Transaction().add(instruction)
+
+    return {
+      tx,
+    }
+  }
+
+  async fetchWhitelist(address: Address) {
+    return await this.program.account.whitelist.fetchNullable(address) as unknown as Whitelist
+  }
+
   async depositStake(props: DepositStakeProps) {
     const payer = this.wallet.publicKey
     const [poolAuthority] = await this.pda.poolAuthority(props.pool)
@@ -191,6 +233,11 @@ class OmnisolPDA {
     new web3.PublicKey(pool).toBuffer(),
   ])
 
+  whitelist = (token: Address) => this.pda([
+    Buffer.from(WHITELIST_SEED_PREFIX),
+    new web3.PublicKey(token).toBuffer(),
+  ])
+
   collateral = (pool: Address, sourceStake: Address) => this.pda([
     Buffer.from(COLLATERAL_SEED_PREFIX),
     new web3.PublicKey(pool).toBuffer(),
@@ -228,6 +275,16 @@ interface PauseGlobalPoolProps {
 
 interface ResumeGlobalPoolProps {
   pool: PublicKey
+}
+
+interface AddToWhitelistProps {
+  pool: PublicKey
+  token: PublicKey
+}
+
+interface RemoveFromWhitelistProps {
+  pool: PublicKey
+  token: PublicKey
 }
 
 interface DepositStakeProps {
