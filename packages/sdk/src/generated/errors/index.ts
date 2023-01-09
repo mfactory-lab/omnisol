@@ -78,6 +78,52 @@ createErrorFromNameLookup.set(
 )
 
 /**
+ * PoolAlreadyPaused: 'Pool already paused'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class PoolAlreadyPausedError extends Error {
+  readonly code: number = 0x1773
+  readonly name: string = 'PoolAlreadyPaused'
+  constructor() {
+    super('Pool already paused')
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, PoolAlreadyPausedError)
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1773, () => new PoolAlreadyPausedError())
+createErrorFromNameLookup.set(
+  'PoolAlreadyPaused',
+  () => new PoolAlreadyPausedError(),
+)
+
+/**
+ * PoolAlreadyResumed: 'Pool already resumed'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class PoolAlreadyResumedError extends Error {
+  readonly code: number = 0x1774
+  readonly name: string = 'PoolAlreadyResumed'
+  constructor() {
+    super('Pool already resumed')
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, PoolAlreadyResumedError)
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1774, () => new PoolAlreadyResumedError())
+createErrorFromNameLookup.set(
+  'PoolAlreadyResumed',
+  () => new PoolAlreadyResumedError(),
+)
+
+/**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors
  * @category generated

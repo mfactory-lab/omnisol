@@ -10,10 +10,12 @@ pub struct Pool {
     pub deposit_amount: u64,
     /// Signer bump seed for deriving PDA seeds
     pub authority_bump: u8,
+    /// Flag that indicates that the pool is running or paused
+    pub is_active: bool,
 }
 
 impl Pool {
-    pub const SIZE: usize = 8 + 32 + 32 + 8 + 1;
+    pub const SIZE: usize = 8 + 32 + 32 + 8 + 1 + 1;
 }
 
 #[account]

@@ -34,6 +34,38 @@
       "args": []
     },
     {
+      "name": "pausePool",
+      "accounts": [
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "resumePool",
+      "accounts": [
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "closePool",
       "accounts": [
         {
@@ -301,6 +333,13 @@
               "Signer bump seed for deriving PDA seeds"
             ],
             "type": "u8"
+          },
+          {
+            "name": "isActive",
+            "docs": [
+              "Flag that indicates that the pool is running or paused"
+            ],
+            "type": "bool"
           }
         ]
       }
@@ -472,6 +511,16 @@
       "code": 6002,
       "name": "InsufficientAmount",
       "msg": "Insufficient amount"
+    },
+    {
+      "code": 6003,
+      "name": "PoolAlreadyPaused",
+      "msg": "Pool already paused"
+    },
+    {
+      "code": 6004,
+      "name": "PoolAlreadyResumed",
+      "msg": "Pool already resumed"
     }
   ],
   "metadata": {

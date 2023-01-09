@@ -18,6 +18,7 @@ describe('omnisol', () => {
   })
 
   let pool: web3.PublicKey
+  let poolMint: web3.PublicKey
 
   before(async () => {
     await provider.connection.confirmTransaction(
@@ -29,7 +30,7 @@ describe('omnisol', () => {
     const poolKeypair = web3.Keypair.generate()
     pool = poolKeypair.publicKey
     const [poolAuthority, bump] = await client.pda.poolAuthority(pool)
-    const poolMint = await createMint(provider.connection, payerKeypair, poolAuthority, null, 1, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
+    poolMint = await createMint(provider.connection, payerKeypair, poolAuthority, null, 1, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
     const { tx } = await client.createGlobalPool({
       pool,
       mint: poolMint,
@@ -53,7 +54,90 @@ describe('omnisol', () => {
     assert.equal(poolData.depositAmount, 0)
     assert.equal(poolData.authorityBump, bump)
     assert.equal(poolData.authority.equals(provider.wallet.publicKey), true)
+    assert.equal(poolData.isActive, true)
   })
+
+  it('can pause pool', async () => {
+    const { tx } = await client.pauseGlobalPool({
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const poolData = await client.fetchGlobalPool(pool)
+    assert.equal(poolData.isActive, false)
+  })
+
+  it('can not pause pool twice', async () => {
+    const { tx } = await client.pauseGlobalPool({
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, 'PoolAlreadyPaused')
+    }
+
+    const poolData = await client.fetchGlobalPool(pool)
+    assert.equal(poolData.isActive, false)
+  })
+
+  it('can resume pool', async () => {
+    const { tx } = await client.resumeGlobalPool({
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const poolData = await client.fetchGlobalPool(pool)
+    assert.equal(poolData.isActive, true)
+  })
+
+  it('can not resume pool twice', async () => {
+    const { tx } = await client.resumeGlobalPool({
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, 'PoolAlreadyResumed')
+    }
+
+    const poolData = await client.fetchGlobalPool(pool)
+    assert.equal(poolData.isActive, true)
+  })
+
+  // it('can deposit stake', async () => {
+  //   const { tx } = await client.depositStake({
+  //     pool,
+  //   })
+  //
+  //   try {
+  //     await provider.sendAndConfirm(tx)
+  //   } catch (e) {
+  //     console.log(e)
+  //     throw e
+  //   }
+  //
+  //   const poolData = await client.fetchGlobalPool(pool)
+  //   if (poolData) {
+  //     throw new Error('Pool is not closed')
+  //   }
+  // })
 
   it('can close global pool', async () => {
     const { tx } = await client.closeGlobalPool({
@@ -74,6 +158,6 @@ describe('omnisol', () => {
   })
 })
 
-// export function assertErrorCode(error: { logs?: string[] }, code: string) {
-//   assert.ok(String((error?.logs ?? []).join('')).includes(`Error Code: ${code}`))
-// }
+export function assertErrorCode(error: { logs?: string[] }, code: string) {
+  assert.ok(String((error?.logs ?? []).join('')).includes(`Error Code: ${code}`))
+}

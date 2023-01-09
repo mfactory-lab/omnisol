@@ -19,6 +19,7 @@ export interface PoolArgs {
   authority: web3.PublicKey
   depositAmount: beet.bignum
   authorityBump: number
+  isActive: boolean
 }
 
 export const poolDiscriminator = [241, 154, 109, 4, 17, 177, 109, 188]
@@ -35,6 +36,7 @@ export class Pool implements PoolArgs {
     readonly authority: web3.PublicKey,
     readonly depositAmount: beet.bignum,
     readonly authorityBump: number,
+    readonly isActive: boolean,
   ) {}
 
   /**
@@ -46,6 +48,7 @@ export class Pool implements PoolArgs {
       args.authority,
       args.depositAmount,
       args.authorityBump,
+      args.isActive,
     )
   }
 
@@ -166,6 +169,7 @@ export class Pool implements PoolArgs {
         return x
       })(),
       authorityBump: this.authorityBump,
+      isActive: this.isActive,
     }
   }
 }
@@ -186,6 +190,7 @@ export const poolBeet = new beet.BeetStruct<
     ['authority', beetSolana.publicKey],
     ['depositAmount', beet.u64],
     ['authorityBump', beet.u8],
+    ['isActive', beet.bool],
   ],
   Pool.fromArgs,
   'Pool',

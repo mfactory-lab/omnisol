@@ -34,6 +34,38 @@ export interface Omnisol {
       'args': []
     },
     {
+      'name': 'pausePool'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+      ]
+      'args': []
+    },
+    {
+      'name': 'resumePool'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+      ]
+      'args': []
+    },
+    {
       'name': 'closePool'
       'accounts': [
         {
@@ -302,6 +334,13 @@ export interface Omnisol {
             ]
             'type': 'u8'
           },
+          {
+            'name': 'isActive'
+            'docs': [
+              'Flag that indicates that the pool is running or paused',
+            ]
+            'type': 'bool'
+          },
         ]
       }
     },
@@ -473,6 +512,16 @@ export interface Omnisol {
       'name': 'InsufficientAmount'
       'msg': 'Insufficient amount'
     },
+    {
+      'code': 6003
+      'name': 'PoolAlreadyPaused'
+      'msg': 'Pool already paused'
+    },
+    {
+      'code': 6004
+      'name': 'PoolAlreadyResumed'
+      'msg': 'Pool already resumed'
+    },
   ]
 }
 
@@ -507,6 +556,38 @@ export const IDL: Omnisol = {
           name: 'systemProgram',
           isMut: false,
           isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: 'pausePool',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: 'resumePool',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
         },
       ],
       args: [],
@@ -780,6 +861,13 @@ export const IDL: Omnisol = {
             ],
             type: 'u8',
           },
+          {
+            name: 'isActive',
+            docs: [
+              'Flag that indicates that the pool is running or paused',
+            ],
+            type: 'bool',
+          },
         ],
       },
     },
@@ -950,6 +1038,16 @@ export const IDL: Omnisol = {
       code: 6002,
       name: 'InsufficientAmount',
       msg: 'Insufficient amount',
+    },
+    {
+      code: 6003,
+      name: 'PoolAlreadyPaused',
+      msg: 'Pool already paused',
+    },
+    {
+      code: 6004,
+      name: 'PoolAlreadyResumed',
+      msg: 'Pool already resumed',
     },
   ],
 }

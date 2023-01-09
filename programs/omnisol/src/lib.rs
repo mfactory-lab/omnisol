@@ -17,6 +17,14 @@ pub mod omnisol {
         init_pool::handle(ctx)
     }
 
+    pub fn pause_pool(ctx: Context<PausePool>) -> Result<()> {
+        pause_pool::handle(ctx)
+    }
+
+    pub fn resume_pool(ctx: Context<ResumePool>) -> Result<()> {
+        resume_pool::handle(ctx)
+    }
+
     pub fn close_pool(ctx: Context<ClosePool>) -> Result<()> {
         close_pool::handle(ctx)
     }
@@ -42,4 +50,8 @@ pub enum ErrorCode {
     InvalidStakeAccount,
     #[msg("Insufficient amount")]
     InsufficientAmount,
+    #[msg("Pool already paused")]
+    PoolAlreadyPaused,
+    #[msg("Pool already resumed")]
+    PoolAlreadyResumed,
 }

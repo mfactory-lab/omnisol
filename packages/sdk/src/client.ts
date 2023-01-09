@@ -1,12 +1,17 @@
 import type { Address, BN, Program } from '@project-serum/anchor'
-import { PublicKey, Transaction } from '@solana/web3.js'
+import type { PublicKey } from '@solana/web3.js'
+import { Transaction } from '@solana/web3.js'
 import { web3 } from '@project-serum/anchor'
+import type { Pool } from './generated'
 import {
   PROGRAM_ID,
-  Pool,
   createClosePoolInstruction,
   createDepositStakeInstruction,
-  createInitPoolInstruction, createWithdrawSolInstruction, createWithdrawStakeInstruction,
+  createInitPoolInstruction,
+  createPausePoolInstruction,
+  createResumePoolInstruction,
+  createWithdrawSolInstruction,
+  createWithdrawStakeInstruction,
 } from './generated'
 import { IDL } from './idl/omnisol'
 
@@ -70,14 +75,46 @@ export class OmnisolClient {
     }
   }
 
+  async pauseGlobalPool(props: PauseGlobalPoolProps) {
+    const payer = this.wallet.publicKey
+    const instruction = createPausePoolInstruction(
+      {
+        pool: props.pool,
+        authority: payer,
+      },
+    )
+    const tx = new Transaction().add(instruction)
+
+    return {
+      tx,
+    }
+  }
+
+  async resumeGlobalPool(props: ResumeGlobalPoolProps) {
+    const payer = this.wallet.publicKey
+    const instruction = createResumePoolInstruction(
+      {
+        pool: props.pool,
+        authority: payer,
+      },
+    )
+    const tx = new Transaction().add(instruction)
+
+    return {
+      tx,
+    }
+  }
+
   async depositStake(props: DepositStakeProps) {
     const payer = this.wallet.publicKey
+    const [poolAuthority] = await this.pda.poolAuthority(props.pool)
+    const [collateral] = await this.pda.collateral(props.pool, props.sourceStake)
     const instruction = createDepositStakeInstruction(
       {
         pool: props.pool,
         poolMint: props.poolMint,
-        poolAuthority: props.poolAuthority,
-        collateral: props.collateral,
+        poolAuthority,
+        collateral,
         userPoolToken: props.userPoolToken,
         sourceStake: props.sourceStake,
         splitStake: props.splitStake,
@@ -185,16 +222,22 @@ interface CloseGlobalPoolProps {
   pool: PublicKey
 }
 
+interface PauseGlobalPoolProps {
+  pool: PublicKey
+}
+
+interface ResumeGlobalPoolProps {
+  pool: PublicKey
+}
+
 interface DepositStakeProps {
   pool: PublicKey
   poolMint: PublicKey
-  poolAuthority: PublicKey
-  collateral: PublicKey
-  userPoolToken: PublicKey
+  userPoolToken: PublicKey // TODO check
   sourceStake: PublicKey
   splitStake: PublicKey
   authority: PublicKey
-  clock: PublicKey
+  clock: PublicKey // TODO check
   stakeProgram: PublicKey
   amount: BN
 }
