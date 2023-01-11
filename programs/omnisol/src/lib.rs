@@ -45,6 +45,10 @@ pub mod omnisol {
         close_pool::handle(ctx)
     }
 
+    pub fn deposit_lp(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
+        deposit_lp_tokens::handle(ctx, amount)
+    }
+
     pub fn deposit_stake(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
         deposit_stake::handle(ctx, amount)
     }

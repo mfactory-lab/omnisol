@@ -20,14 +20,12 @@ impl Pool {
 
 #[account]
 pub struct Collateral {
-    /// Authority of the staking pool
-    pub authority: Pubkey,
+    /// User PDA with wallet that has authority of the staking pool
+    pub user: Pubkey,
     /// Address of the global pool
     pub pool: Pubkey,
-    /// An account of staking pool
+    /// An account of staking pool or LP token
     pub source_stake: Pubkey,
-    /// An account of splited staking pool
-    pub split_stake: Pubkey,
     /// An amount of delegated staked tokens
     pub delegation_stake: u64,
     /// An amount of minted pool tokens
@@ -36,6 +34,8 @@ pub struct Collateral {
     pub created_at: i64,
     /// Signer bump seed for deriving PDA seeds
     pub bump: u8,
+    /// Flag that indicates the type of stake (can be LP token account or native staking pool)
+    pub is_native: bool,
 }
 
 impl Collateral {
@@ -68,5 +68,5 @@ pub struct User {
 
 impl User {
     pub const SEED: &'static [u8] = b"user";
-    pub const SIZE: usize = 8 + 32 + 8 + 8;
+    pub const SIZE: usize = 8 + 32 + 8 + 8 + 1;
 }

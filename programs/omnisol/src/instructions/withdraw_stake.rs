@@ -131,14 +131,15 @@ pub struct WithdrawStake<'info> {
     /// CHECK: no needs to check, only for signing
     #[account(seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
     pub pool_authority: AccountInfo<'info>,
-
-    #[account(mut, has_one = pool, has_one = authority)]
+    // , has_one = user
+    #[account(mut, has_one = pool)]
     pub collateral: Box<Account<'info, Collateral>>,
 
     #[account(mut, constraint = collateral.source_stake == destination_stake.key())]
     pub destination_stake: Box<Account<'info, stake::StakeAccount>>,
 
-    #[account(mut, constraint = collateral.split_stake == source_stake.key())]
+    // , constraint = collateral.split_stake == source_stake.key()
+    #[account(mut)]
     pub source_stake: Account<'info, stake::StakeAccount>,
 
     /// CHECK:

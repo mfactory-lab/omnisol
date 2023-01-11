@@ -1,48 +1,37 @@
-use anchor_lang::{prelude::*, solana_program::stake::state::StakeAuthorize};
+use anchor_lang::prelude::*;
 use anchor_spl::token;
 
 use crate::{
     events::*,
     state::{Collateral, Pool},
-    utils::stake,
     ErrorCode,
 };
-use crate::state::User;
+use crate::state::{User, Whitelist};
 
 /// The user can use their deposit as collateral and mint omniSOL.
 /// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
-/// As their stake accounts continue to earn yield, the amount of lamports under them increases.
-/// Call the amount of lamports in excess of the initial deposit the **reserve amount.**
-pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
+pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
-
-    if !pool.is_active {
-        return Err(ErrorCode::PoolAlreadyPaused.into());
-    }
-
-    let delegation = ctx
-        .accounts
-        .source_stake
-        .delegation()
-        .ok_or(ErrorCode::InvalidStakeAccount)?;
 
     let pool_key = pool.key();
     let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
     let clock = &ctx.accounts.clock;
 
-    // Authorize to `withdraw` the split stake for the program
-    stake::authorize(
+    if !pool.is_active {
+        return Err(ErrorCode::PoolAlreadyPaused.into());
+    }
+
+    // Transfer LP tokens to the pool
+    token::transfer(
         CpiContext::new(
-            ctx.accounts.stake_program.to_account_info(),
-            stake::Authorize {
-                stake: ctx.accounts.source_stake.to_account_info(),
+            ctx.accounts.token_program.to_account_info(),
+            token::Transfer {
+                from: ctx.accounts.source.to_account_info(),
+                to: ctx.accounts.destination.to_account_info(),
                 authority: ctx.accounts.authority.to_account_info(),
-                new_authority: ctx.accounts.pool_authority.to_account_info(),
-                clock: clock.to_account_info(),
-            },
+            }
         ),
-        StakeAuthorize::Withdrawer,
-        None,
+        amount,
     )?;
 
     // Mint new pool tokens equals to `amount`
@@ -66,10 +55,9 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
             return Err(ErrorCode::UserBlocked.into());
         }
         user.num_of_collaterals += 1;
-        user.rate += delegation.stake - amount;
     } else {
         user.wallet = ctx.accounts.authority.key();
-        user.rate = delegation.stake - amount;
+        user.rate = 0;
         user.is_blocked = false;
         user.num_of_collaterals = 1;
     }
@@ -83,12 +71,12 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
 
     collateral.user = ctx.accounts.user.key();
     collateral.pool = pool_key;
-    collateral.source_stake = ctx.accounts.source_stake.key();
-    collateral.delegation_stake = delegation.stake;
+    collateral.source_stake = ctx.accounts.lp_token.key();
+    collateral.delegation_stake = amount;
     collateral.amount = amount;
     collateral.created_at = clock.unix_timestamp;
     collateral.bump = ctx.bumps["collateral"];
-    collateral.is_native = true;
+    collateral.is_native = false;
 
     pool.deposit_amount = pool.deposit_amount.saturating_add(amount);
 
@@ -104,7 +92,7 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
 }
 
 #[derive(Accounts)]
-pub struct DepositStake<'info> {
+pub struct DepositLPTokens<'info> {
     #[account(mut)]
     pub pool: Box<Account<'info, Pool>>,
 
@@ -138,20 +126,43 @@ pub struct DepositStake<'info> {
     pub collateral: Box<Account<'info, Collateral>>,
 
     #[account(
-        mut,
-        associated_token::mint = pool_mint,
-        associated_token::authority = authority,
+    mut,
+    associated_token::mint = pool_mint,
+    associated_token::authority = authority,
     )]
     pub user_pool_token: Account<'info, token::TokenAccount>,
 
-    #[account(mut)]
-    pub source_stake: Account<'info, stake::StakeAccount>,
+    #[account(
+    mut,
+    associated_token::mint = lp_token,
+    associated_token::authority = authority,
+    )]
+    pub source: Account<'info, token::TokenAccount>,
+
+    #[account(
+    mut,
+    associated_token::mint = lp_token,
+    associated_token::authority = pool_authority,
+    )]
+    pub destination: Account<'info, token::TokenAccount>,
+
+    #[account(
+    seeds = [
+    Whitelist::SEED,
+    lp_token.key().as_ref(),
+    ],
+    bump,
+    )]
+    pub whitelist: Box<Account<'info, Whitelist>>,
+
+    /// CHECK: Address of a token, will be checked via whitelist
+    #[account(address = whitelist.whitelisted_token)]
+    pub lp_token: AccountInfo<'info>,
 
     #[account(mut)]
     pub authority: Signer<'info>,
 
     pub clock: Sysvar<'info, Clock>,
-    pub stake_program: Program<'info, stake::Stake>,
     pub token_program: Program<'info, token::Token>,
     pub system_program: Program<'info, System>,
 }
