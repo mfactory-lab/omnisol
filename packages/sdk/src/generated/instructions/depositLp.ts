@@ -5,66 +5,89 @@
  * See: https://github.com/metaplex-foundation/solita
  */
 
+import * as splToken from '@solana/spl-token'
 import * as beet from '@metaplex-foundation/beet'
 import * as web3 from '@solana/web3.js'
 
 /**
  * @category Instructions
- * @category DepositStake
+ * @category DepositLp
  * @category generated
  */
-export const depositStakeStruct = new beet.BeetArgsStruct<{
-  instructionDiscriminator: number[] /* size: 8 */
-}>(
-  [['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)]],
-  'DepositStakeInstructionArgs',
+export interface DepositLpInstructionArgs {
+  amount: beet.bignum
+}
+/**
+ * @category Instructions
+ * @category DepositLp
+ * @category generated
+ */
+export const depositLpStruct = new beet.BeetArgsStruct<
+  DepositLpInstructionArgs & {
+    instructionDiscriminator: number[] /* size: 8 */
+  }
+>(
+  [
+    ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
+    ['amount', beet.u64],
+  ],
+  'DepositLpInstructionArgs',
 )
 /**
- * Accounts required by the _depositStake_ instruction
+ * Accounts required by the _depositLp_ instruction
  *
  * @property [_writable_] pool
  * @property [] poolAuthority
  * @property [_writable_] user
  * @property [_writable_] collateral
- * @property [_writable_] sourceStake
+ * @property [_writable_] source
+ * @property [_writable_] destination
+ * @property [] whitelist
+ * @property [] lpToken
  * @property [_writable_, **signer**] authority
  * @property [] clock
- * @property [] stakeProgram
  * @category Instructions
- * @category DepositStake
+ * @category DepositLp
  * @category generated
  */
-export interface DepositStakeInstructionAccounts {
+export interface DepositLpInstructionAccounts {
   pool: web3.PublicKey
   poolAuthority: web3.PublicKey
   user: web3.PublicKey
   collateral: web3.PublicKey
-  sourceStake: web3.PublicKey
+  source: web3.PublicKey
+  destination: web3.PublicKey
+  whitelist: web3.PublicKey
+  lpToken: web3.PublicKey
   authority: web3.PublicKey
   clock: web3.PublicKey
-  stakeProgram: web3.PublicKey
+  tokenProgram?: web3.PublicKey
   systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
-export const depositStakeInstructionDiscriminator = [
-  160, 167, 9, 220, 74, 243, 228, 43,
+export const depositLpInstructionDiscriminator = [
+  83, 107, 16, 26, 26, 20, 130, 56,
 ]
 
 /**
- * Creates a _DepositStake_ instruction.
+ * Creates a _DepositLp_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
+ * @param args to provide as instruction data to the program
+ *
  * @category Instructions
- * @category DepositStake
+ * @category DepositLp
  * @category generated
  */
-export function createDepositStakeInstruction(
-  accounts: DepositStakeInstructionAccounts,
+export function createDepositLpInstruction(
+  accounts: DepositLpInstructionAccounts,
+  args: DepositLpInstructionArgs,
   programId = new web3.PublicKey('9SfbhzHrx5xczfoiTo2VVpG5oukcS5Schgy2ppLH3zQd'),
 ) {
-  const [data] = depositStakeStruct.serialize({
-    instructionDiscriminator: depositStakeInstructionDiscriminator,
+  const [data] = depositLpStruct.serialize({
+    instructionDiscriminator: depositLpInstructionDiscriminator,
+    ...args,
   })
   const keys: web3.AccountMeta[] = [
     {
@@ -88,8 +111,23 @@ export function createDepositStakeInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.sourceStake,
+      pubkey: accounts.source,
       isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.destination,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.whitelist,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.lpToken,
+      isWritable: false,
       isSigner: false,
     },
     {
@@ -103,7 +141,7 @@ export function createDepositStakeInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.stakeProgram,
+      pubkey: accounts.tokenProgram ?? splToken.TOKEN_PROGRAM_ID,
       isWritable: false,
       isSigner: false,
     },

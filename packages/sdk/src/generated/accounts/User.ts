@@ -17,7 +17,6 @@ import * as beetSolana from '@metaplex-foundation/beet-solana'
 export interface UserArgs {
   wallet: web3.PublicKey
   rate: beet.bignum
-  numOfCollaterals: beet.bignum
   isBlocked: boolean
 }
 
@@ -33,7 +32,6 @@ export class User implements UserArgs {
   private constructor(
     readonly wallet: web3.PublicKey,
     readonly rate: beet.bignum,
-    readonly numOfCollaterals: beet.bignum,
     readonly isBlocked: boolean,
   ) {}
 
@@ -41,12 +39,7 @@ export class User implements UserArgs {
    * Creates a {@link User} instance from the provided args.
    */
   static fromArgs(args: UserArgs) {
-    return new User(
-      args.wallet,
-      args.rate,
-      args.numOfCollaterals,
-      args.isBlocked,
-    )
+    return new User(args.wallet, args.rate, args.isBlocked)
   }
 
   /**
@@ -164,17 +157,6 @@ export class User implements UserArgs {
         }
         return x
       })(),
-      numOfCollaterals: (() => {
-        const x = <{ toNumber: () => number }> this.numOfCollaterals
-        if (typeof x.toNumber === 'function') {
-          try {
-            return x.toNumber()
-          } catch (_) {
-            return x
-          }
-        }
-        return x
-      })(),
       isBlocked: this.isBlocked,
     }
   }
@@ -194,7 +176,6 @@ export const userBeet = new beet.BeetStruct<
     ['accountDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
     ['wallet', beetSolana.publicKey],
     ['rate', beet.u64],
-    ['numOfCollaterals', beet.u64],
     ['isBlocked', beet.bool],
   ],
   User.fromArgs,

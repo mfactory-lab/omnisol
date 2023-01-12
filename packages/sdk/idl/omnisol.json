@@ -201,16 +201,11 @@
       "args": []
     },
     {
-      "name": "depositStake",
+      "name": "depositLp",
       "accounts": [
         {
           "name": "pool",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "poolMint",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -219,24 +214,34 @@
           "isSigner": false
         },
         {
+          "name": "user",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "collateral",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "userPoolToken",
+          "name": "source",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "sourceStake",
+          "name": "destination",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "splitStake",
-          "isMut": true,
-          "isSigner": true
+          "name": "whitelist",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lpToken",
+          "isMut": false,
+          "isSigner": false
         },
         {
           "name": "authority",
@@ -245,11 +250,6 @@
         },
         {
           "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "stakeProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -270,6 +270,57 @@
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "depositStake",
+      "accounts": [
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sourceStake",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakeProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     },
     {
       "name": "withdrawStake",
@@ -464,9 +515,9 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "authority",
+            "name": "user",
             "docs": [
-              "Authority of the staking pool"
+              "User PDA with wallet that has authority of the staking pool"
             ],
             "type": "publicKey"
           },
@@ -480,14 +531,7 @@
           {
             "name": "sourceStake",
             "docs": [
-              "An account of staking pool"
-            ],
-            "type": "publicKey"
-          },
-          {
-            "name": "splitStake",
-            "docs": [
-              "An account of splited staking pool"
+              "An account of staking pool or LP token"
             ],
             "type": "publicKey"
           },
@@ -518,6 +562,13 @@
               "Signer bump seed for deriving PDA seeds"
             ],
             "type": "u8"
+          },
+          {
+            "name": "isNative",
+            "docs": [
+              "Flag that indicates the type of stake (can be LP token account or native staking pool)"
+            ],
+            "type": "bool"
           }
         ]
       }
@@ -553,13 +604,6 @@
             "name": "rate",
             "docs": [
               "Rate value for priority queue"
-            ],
-            "type": "u64"
-          },
-          {
-            "name": "numOfCollaterals",
-            "docs": [
-              "Current number of non-liquidated collaterals"
             ],
             "type": "u64"
           },
@@ -657,6 +701,21 @@
           "name": "timestamp",
           "type": "i64",
           "index": false
+        }
+      ]
+    },
+    {
+      "name": "RegisterUserEvent",
+      "fields": [
+        {
+          "name": "pool",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": true
         }
       ]
     }

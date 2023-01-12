@@ -15,14 +15,14 @@ import * as beetSolana from '@metaplex-foundation/beet-solana'
  * @category generated
  */
 export interface CollateralArgs {
-  authority: web3.PublicKey
+  user: web3.PublicKey
   pool: web3.PublicKey
   sourceStake: web3.PublicKey
-  splitStake: web3.PublicKey
   delegationStake: beet.bignum
   amount: beet.bignum
   createdAt: beet.bignum
   bump: number
+  isNative: boolean
 }
 
 export const collateralDiscriminator = [123, 130, 234, 63, 255, 240, 255, 92]
@@ -35,14 +35,14 @@ export const collateralDiscriminator = [123, 130, 234, 63, 255, 240, 255, 92]
  */
 export class Collateral implements CollateralArgs {
   private constructor(
-    readonly authority: web3.PublicKey,
+    readonly user: web3.PublicKey,
     readonly pool: web3.PublicKey,
     readonly sourceStake: web3.PublicKey,
-    readonly splitStake: web3.PublicKey,
     readonly delegationStake: beet.bignum,
     readonly amount: beet.bignum,
     readonly createdAt: beet.bignum,
     readonly bump: number,
+    readonly isNative: boolean,
   ) {}
 
   /**
@@ -50,14 +50,14 @@ export class Collateral implements CollateralArgs {
    */
   static fromArgs(args: CollateralArgs) {
     return new Collateral(
-      args.authority,
+      args.user,
       args.pool,
       args.sourceStake,
-      args.splitStake,
       args.delegationStake,
       args.amount,
       args.createdAt,
       args.bump,
+      args.isNative,
     )
   }
 
@@ -164,10 +164,9 @@ export class Collateral implements CollateralArgs {
    */
   pretty() {
     return {
-      authority: this.authority.toBase58(),
+      user: this.user.toBase58(),
       pool: this.pool.toBase58(),
       sourceStake: this.sourceStake.toBase58(),
-      splitStake: this.splitStake.toBase58(),
       delegationStake: (() => {
         const x = <{ toNumber: () => number }> this.delegationStake
         if (typeof x.toNumber === 'function') {
@@ -202,6 +201,7 @@ export class Collateral implements CollateralArgs {
         return x
       })(),
       bump: this.bump,
+      isNative: this.isNative,
     }
   }
 }
@@ -218,14 +218,14 @@ export const collateralBeet = new beet.BeetStruct<
 >(
   [
     ['accountDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['authority', beetSolana.publicKey],
+    ['user', beetSolana.publicKey],
     ['pool', beetSolana.publicKey],
     ['sourceStake', beetSolana.publicKey],
-    ['splitStake', beetSolana.publicKey],
     ['delegationStake', beet.u64],
     ['amount', beet.u64],
     ['createdAt', beet.i64],
     ['bump', beet.u8],
+    ['isNative', beet.bool],
   ],
   Collateral.fromArgs,
   'Collateral',

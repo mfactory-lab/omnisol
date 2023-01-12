@@ -21,6 +21,10 @@ pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
         return Err(ErrorCode::PoolAlreadyPaused.into());
     }
 
+    if amount == 0 {
+        return Err(ErrorCode::InsufficientAmount.into());
+    }
+
     // Transfer LP tokens to the pool
     token::transfer(
         CpiContext::new(
@@ -34,51 +38,39 @@ pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
         amount,
     )?;
 
-    // Mint new pool tokens equals to `amount`
-    token::mint_to(
-        CpiContext::new_with_signer(
-            ctx.accounts.token_program.to_account_info(),
-            token::MintTo {
-                mint: ctx.accounts.pool_mint.to_account_info(),
-                to: ctx.accounts.user_pool_token.to_account_info(),
-                authority: ctx.accounts.pool_authority.to_account_info(),
-            },
-            &[&pool_authority_seeds],
-        ),
-        amount,
-    )?;
-
     let user = &mut ctx.accounts.user;
+    let collateral = &mut ctx.accounts.collateral;
 
-    if user.wallet == ctx.accounts.authority.key() {
-        if user.is_blocked {
-            return Err(ErrorCode::UserBlocked.into());
-        }
-        user.num_of_collaterals += 1;
-    } else {
+    if user.wallet != ctx.accounts.authority.key() {
         user.wallet = ctx.accounts.authority.key();
         user.rate = 0;
         user.is_blocked = false;
-        user.num_of_collaterals = 1;
     }
+
+    if collateral.user != user.key() {
+        collateral.user = user.key();
+        collateral.pool = pool_key;
+        collateral.source_stake = ctx.accounts.lp_token.key();
+        collateral.delegation_stake = 0;
+        collateral.amount = 0;
+        collateral.created_at = clock.unix_timestamp;
+        collateral.bump = ctx.bumps["collateral"];
+        collateral.is_native = false;
+    }
+
+    if user.is_blocked {
+        return Err(ErrorCode::UserBlocked.into());
+    }
+
+    user.rate += amount;
+    collateral.delegation_stake += amount;
+
+    pool.deposit_amount = pool.deposit_amount.saturating_add(amount);
 
     emit!(RegisterUserEvent {
         pool: pool_key,
         user: ctx.accounts.user.key(),
     });
-
-    let collateral = &mut ctx.accounts.collateral;
-
-    collateral.user = ctx.accounts.user.key();
-    collateral.pool = pool_key;
-    collateral.source_stake = ctx.accounts.lp_token.key();
-    collateral.delegation_stake = amount;
-    collateral.amount = amount;
-    collateral.created_at = clock.unix_timestamp;
-    collateral.bump = ctx.bumps["collateral"];
-    collateral.is_native = false;
-
-    pool.deposit_amount = pool.deposit_amount.saturating_add(amount);
 
     emit!(DepositStakeEvent {
         pool: pool.key(),
@@ -95,10 +87,6 @@ pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
 pub struct DepositLPTokens<'info> {
     #[account(mut)]
     pub pool: Box<Account<'info, Pool>>,
-
-    /// CHECK:
-    #[account(address = pool.pool_mint)]
-    pub pool_mint: AccountInfo<'info>,
 
     /// CHECK: no needs to check, only for signing
     #[account(seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
@@ -117,20 +105,14 @@ pub struct DepositLPTokens<'info> {
     pub user: Box<Account<'info, User>>,
 
     #[account(
-    init,
-    seeds = [Collateral::SEED, user.key().as_ref(), &(user.num_of_collaterals + 1).to_le_bytes()],
+    init_if_needed,
+    seeds = [Collateral::SEED, user.key().as_ref(), lp_token.key().as_ref()],
     bump,
     payer = authority,
+    owner = user.key(),
     space = Collateral::SIZE,
     )]
-    pub collateral: Box<Account<'info, Collateral>>,
-
-    #[account(
-    mut,
-    associated_token::mint = pool_mint,
-    associated_token::authority = authority,
-    )]
-    pub user_pool_token: Account<'info, token::TokenAccount>,
+    pub collateral: Account<'info, Collateral>,
 
     #[account(
     mut,

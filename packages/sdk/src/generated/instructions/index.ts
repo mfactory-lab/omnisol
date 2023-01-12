@@ -1,6 +1,7 @@
 export * from './addToWhitelist'
 export * from './blockUser'
 export * from './closePool'
+export * from './depositLp'
 export * from './depositStake'
 export * from './initPool'
 export * from './pausePool'

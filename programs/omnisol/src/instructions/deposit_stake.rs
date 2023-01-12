@@ -1,5 +1,4 @@
 use anchor_lang::{prelude::*, solana_program::stake::state::StakeAuthorize};
-use anchor_spl::token;
 
 use crate::{
     events::*,
@@ -13,7 +12,7 @@ use crate::state::User;
 /// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
 /// As their stake accounts continue to earn yield, the amount of lamports under them increases.
 /// Call the amount of lamports in excess of the initial deposit the **reserve amount.**
-pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
+pub fn handle(ctx: Context<DepositStake>) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 
     if !pool.is_active {
@@ -30,7 +29,11 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
     let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
     let clock = &ctx.accounts.clock;
 
-    // Authorize to `withdraw` the split stake for the program
+    if delegation.stake == 0 {
+        return Err(ErrorCode::InsufficientAmount.into());
+    }
+
+    // Authorize to `withdraw` the stake for the program
     stake::authorize(
         CpiContext::new(
             ctx.accounts.stake_program.to_account_info(),
@@ -45,59 +48,43 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
         None,
     )?;
 
-    // Mint new pool tokens equals to `amount`
-    token::mint_to(
-        CpiContext::new_with_signer(
-            ctx.accounts.token_program.to_account_info(),
-            token::MintTo {
-                mint: ctx.accounts.pool_mint.to_account_info(),
-                to: ctx.accounts.user_pool_token.to_account_info(),
-                authority: ctx.accounts.pool_authority.to_account_info(),
-            },
-            &[&pool_authority_seeds],
-        ),
-        amount,
-    )?;
-
     let user = &mut ctx.accounts.user;
+    let collateral = &mut ctx.accounts.collateral;
 
-    if user.wallet == ctx.accounts.authority.key() {
-        if user.is_blocked {
-            return Err(ErrorCode::UserBlocked.into());
-        }
-        user.num_of_collaterals += 1;
-        user.rate += delegation.stake - amount;
-    } else {
+    if user.wallet != ctx.accounts.authority.key() {
         user.wallet = ctx.accounts.authority.key();
-        user.rate = delegation.stake - amount;
+        user.rate = 0;
         user.is_blocked = false;
-        user.num_of_collaterals = 1;
     }
+
+    if user.is_blocked {
+        return Err(ErrorCode::UserBlocked.into());
+    }
+
+    user.rate += delegation.stake;
+
+    collateral.user = ctx.accounts.user.key();
+    collateral.pool = pool_key;
+    collateral.source_stake = ctx.accounts.source_stake.key();
+    collateral.delegation_stake = delegation.stake;
+    collateral.amount = 0;
+    collateral.created_at = clock.unix_timestamp;
+    collateral.bump = ctx.bumps["collateral"];
+    collateral.is_native = true;
+
+    pool.deposit_amount = pool.deposit_amount.saturating_add(delegation.stake);
 
     emit!(RegisterUserEvent {
         pool: pool_key,
         user: ctx.accounts.user.key(),
     });
 
-    let collateral = &mut ctx.accounts.collateral;
-
-    collateral.user = ctx.accounts.user.key();
-    collateral.pool = pool_key;
-    collateral.source_stake = ctx.accounts.source_stake.key();
-    collateral.delegation_stake = delegation.stake;
-    collateral.amount = amount;
-    collateral.created_at = clock.unix_timestamp;
-    collateral.bump = ctx.bumps["collateral"];
-    collateral.is_native = true;
-
-    pool.deposit_amount = pool.deposit_amount.saturating_add(amount);
-
     emit!(DepositStakeEvent {
         pool: pool.key(),
         collateral: collateral.key(),
         delegation_stake: collateral.delegation_stake,
         timestamp: clock.unix_timestamp,
-        amount,
+        amount: delegation.stake,
     });
 
     Ok(())
@@ -107,10 +94,6 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
 pub struct DepositStake<'info> {
     #[account(mut)]
     pub pool: Box<Account<'info, Pool>>,
-
-    /// CHECK:
-    #[account(address = pool.pool_mint)]
-    pub pool_mint: AccountInfo<'info>,
 
     /// CHECK: no needs to check, only for signing
     #[account(seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
@@ -130,19 +113,13 @@ pub struct DepositStake<'info> {
 
     #[account(
     init,
-    seeds = [Collateral::SEED, user.key().as_ref(), &(user.num_of_collaterals + 1).to_le_bytes()],
+    seeds = [Collateral::SEED, user.key().as_ref(), source_stake.key().as_ref()],
     bump,
     payer = authority,
+    owner = user.key(),
     space = Collateral::SIZE,
     )]
-    pub collateral: Box<Account<'info, Collateral>>,
-
-    #[account(
-        mut,
-        associated_token::mint = pool_mint,
-        associated_token::authority = authority,
-    )]
-    pub user_pool_token: Account<'info, token::TokenAccount>,
+    pub collateral: Account<'info, Collateral>,
 
     #[account(mut)]
     pub source_stake: Account<'info, stake::StakeAccount>,
@@ -152,6 +129,5 @@ pub struct DepositStake<'info> {
 
     pub clock: Sysvar<'info, Clock>,
     pub stake_program: Program<'info, stake::Stake>,
-    pub token_program: Program<'info, token::Token>,
     pub system_program: Program<'info, System>,
 }
