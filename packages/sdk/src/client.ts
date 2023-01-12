@@ -8,14 +8,13 @@ import {
   createAddToWhitelistInstruction,
   createBlockUserInstruction,
   createClosePoolInstruction,
+  createDepositLpInstruction,
   createDepositStakeInstruction,
   createInitPoolInstruction,
   createPausePoolInstruction,
   createRemoveFromWhitelistInstruction,
   createResumePoolInstruction,
-  createUnblockUserInstruction,
-  createWithdrawSolInstruction,
-  createWithdrawStakeInstruction,
+  createUnblockUserInstruction, createMintPoolTokenInstruction,
 } from './generated'
 import { IDL } from './idl/omnisol'
 
@@ -26,6 +25,8 @@ const USER_SEED_PREFIX = 'user'
 export class OmnisolClient {
   static programId = PROGRAM_ID
   static IDL = IDL
+  static clock = web3.SYSVAR_CLOCK_PUBKEY
+  static stakeProgram = web3.StakeProgram.programId
 
   constructor(private readonly props: OmnisolClientProps) {}
 
@@ -39,6 +40,14 @@ export class OmnisolClient {
 
   get pda() {
     return new OmnisolPDA()
+  }
+
+  async fetchGlobalPool(address: Address) {
+    return await this.program.account.pool.fetchNullable(address) as unknown as Pool
+  }
+
+  async fetchWhitelist(address: Address) {
+    return await this.program.account.whitelist.fetchNullable(address) as unknown as Whitelist
   }
 
   async createGlobalPool(props: CreateGlobalPoolProps) {
@@ -60,10 +69,6 @@ export class OmnisolClient {
       poolAuthority,
       bump,
     }
-  }
-
-  async fetchGlobalPool(address: Address) {
-    return await this.program.account.pool.fetchNullable(address) as unknown as Pool
   }
 
   async closeGlobalPool(props: CloseGlobalPoolProps) {
@@ -184,78 +189,76 @@ export class OmnisolClient {
     }
   }
 
-  async fetchWhitelist(address: Address) {
-    return await this.program.account.whitelist.fetchNullable(address) as unknown as Whitelist
+  async depositLPToken(props: DepositLPTokenProps) {
+    const payer = this.wallet.publicKey
+    const [poolAuthority] = await this.pda.poolAuthority(props.pool)
+    const [user] = await this.pda.user(payer)
+    const [whitelist] = await this.pda.whitelist(props.lpToken)
+    const [collateral] = await this.pda.collateral(props.pool, props.lpToken, user)
+    const instruction = createDepositLpInstruction(
+      {
+        authority: payer,
+        clock: OmnisolClient.clock,
+        collateral,
+        destination: props.destination,
+        lpToken: props.lpToken,
+        pool: props.pool,
+        poolAuthority,
+        source: props.source,
+        user,
+        whitelist,
+      },
+      {
+        amount: props.amount,
+      },
+    )
+    const transaction = new Transaction().add(instruction)
+
+    return {
+      transaction,
+    }
   }
 
   async depositStake(props: DepositStakeProps) {
     const payer = this.wallet.publicKey
     const [poolAuthority] = await this.pda.poolAuthority(props.pool)
-    const [collateral] = await this.pda.collateral(props.pool, props.sourceStake)
+    const [user] = await this.pda.user(payer)
+    const [collateral] = await this.pda.collateral(props.pool, props.sourceStake, user)
     const instruction = createDepositStakeInstruction(
       {
-        pool: props.pool,
-        poolMint: props.poolMint,
-        poolAuthority,
+        authority: payer,
+        clock: OmnisolClient.clock,
         collateral,
+        pool: props.pool,
+        poolAuthority,
+        sourceStake: props.sourceStake,
+        stakeProgram: OmnisolClient.stakeProgram,
+        user,
+      },
+    )
+    const transaction = new Transaction().add(instruction)
+
+    return {
+      transaction,
+    }
+  }
+
+  async mintPoolTokens(props: MintPoolTokens) {
+    const payer = this.wallet.publicKey
+    const [poolAuthority] = await this.pda.poolAuthority(props.pool)
+    const [user] = await this.pda.user(payer)
+    const [collateral] = await this.pda.collateral(props.pool, props.stakedAddress, user)
+    const instruction = createMintPoolTokenInstruction(
+      {
+        authority: payer,
+        clock: OmnisolClient.clock,
+        collateral,
+        pool: props.pool,
+        poolAuthority,
+        poolMint: props.poolMint,
+        stakedAddress: props.stakedAddress,
+        user,
         userPoolToken: props.userPoolToken,
-        sourceStake: props.sourceStake,
-        splitStake: props.splitStake,
-        authority: payer,
-        clock: props.clock,
-        stakeProgram: props.stakeProgram,
-      },
-      {
-        amount: props.amount,
-      },
-    )
-    const transaction = new Transaction().add(instruction)
-
-    return {
-      transaction,
-    }
-  }
-
-  async withdrawStake(props: WithdrawStakeProps) {
-    const payer = this.wallet.publicKey
-    const instruction = createWithdrawStakeInstruction(
-      {
-        pool: props.pool,
-        poolMint: props.poolMint,
-        poolAuthority: props.poolAuthority,
-        collateral: props.collateral,
-        destinationStake: props.destinationStake,
-        sourceStake: props.sourceStake,
-        splitStake: props.splitStake,
-        sourceTokenAccount: props.sourceTokenAccount,
-        stakeAuthority: props.stakeAuthority,
-        authority: payer,
-        clock: props.clock,
-        stakeHistory: props.stakeHistory,
-        stakeProgram: props.stakeProgram,
-      },
-      {
-        amount: props.amount,
-      },
-    )
-    const transaction = new Transaction().add(instruction)
-
-    return {
-      transaction,
-    }
-  }
-
-  async withdrawSol(props: WithdrawSolProps) {
-    const payer = this.wallet.publicKey
-    const instruction = createWithdrawSolInstruction(
-      {
-        pool: props.pool,
-        poolMint: props.poolMint,
-        poolAuthority: props.poolAuthority,
-        sourceTokenAccount: props.sourceTokenAccount,
-        authority: payer,
-        clock: props.clock,
-        stakeProgram: props.stakeProgram,
       },
       {
         amount: props.amount,
@@ -284,9 +287,9 @@ class OmnisolPDA {
     new web3.PublicKey(user_wallet).toBuffer(),
   ])
 
-  collateral = (pool: Address, sourceStake: Address) => this.pda([
+  collateral = (pool: Address, sourceStake: Address, user: Address) => this.pda([
     Buffer.from(COLLATERAL_SEED_PREFIX),
-    new web3.PublicKey(pool).toBuffer(),
+    new web3.PublicKey(user).toBuffer(),
     new web3.PublicKey(sourceStake).toBuffer(),
   ])
 
@@ -343,40 +346,24 @@ interface UnblockUserProps {
   user_wallet: PublicKey
 }
 
+interface DepositLPTokenProps {
+  pool: PublicKey
+  lpToken: PublicKey
+  source: PublicKey
+  destination: PublicKey
+  amount: BN
+}
+
 interface DepositStakeProps {
   pool: PublicKey
-  poolMint: PublicKey
-  userPoolToken: PublicKey // TODO check
   sourceStake: PublicKey
-  splitStake: PublicKey
-  authority: PublicKey
-  clock: PublicKey // TODO check
-  stakeProgram: PublicKey
   amount: BN
 }
 
-interface WithdrawStakeProps {
+interface MintPoolTokens {
   pool: PublicKey
   poolMint: PublicKey
-  poolAuthority: PublicKey
-  collateral: PublicKey
-  destinationStake: PublicKey
-  sourceStake: PublicKey
-  splitStake: PublicKey
-  sourceTokenAccount: PublicKey
-  stakeAuthority: PublicKey
-  clock: PublicKey
-  stakeHistory: PublicKey
-  stakeProgram: PublicKey
-  amount: BN
-}
-
-interface WithdrawSolProps {
-  pool: PublicKey
-  poolMint: PublicKey
-  poolAuthority: PublicKey
-  sourceTokenAccount: PublicKey
-  clock: PublicKey
-  stakeProgram: PublicKey
+  userPoolToken: PublicKey
+  stakedAddress: PublicKey
   amount: BN
 }
