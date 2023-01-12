@@ -212,10 +212,10 @@ export class OmnisolClient {
         amount: props.amount,
       },
     )
-    const transaction = new Transaction().add(instruction)
+    const tx = new Transaction().add(instruction)
 
     return {
-      transaction,
+      tx,
     }
   }
 

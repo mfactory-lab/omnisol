@@ -47,6 +47,7 @@ pub fn handle(ctx: Context<MintPoolToken>, amount: u64) -> Result<()> {
     )?;
 
     collateral.amount += amount;
+    user.rate -= amount;
 
     emit!(MintPoolTokensEvent {
         pool: pool.key(),

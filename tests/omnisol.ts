@@ -152,6 +152,28 @@ describe('omnisol', () => {
     }
   })
 
+  // it('can deposit lp tokens', async () => {
+  //   const { tx } = await client.depositLPToken({
+  //     amount: undefined,
+  //     destination: undefined,
+  //     lpToken: undefined,
+  //     source: undefined,
+  //     pool,
+  //   })
+  //
+  //   try {
+  //     await provider.sendAndConfirm(tx)
+  //   } catch (e) {
+  //     console.log(e)
+  //     throw e
+  //   }
+  //
+  //   const poolData = await client.fetchGlobalPool(pool)
+  //   if (poolData) {
+  //     throw new Error('Pool is not closed')
+  //   }
+  // })
+
   // it('can deposit stake', async () => {
   //   const { tx } = await client.depositStake({
   //     pool,
