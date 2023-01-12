@@ -323,6 +323,72 @@ export interface Omnisol {
       'args': []
     },
     {
+      'name': 'mintPoolToken'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'poolMint'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'poolAuthority'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'user'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'collateral'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'userPoolToken'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'stakedAddress'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'clock'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'tokenProgram'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'systemProgram'
+          'isMut': false
+          'isSigner': false
+        },
+      ]
+      'args': [
+        {
+          'name': 'amount'
+          'type': 'u64'
+        },
+      ]
+    },
+    {
       'name': 'withdrawStake'
       'accounts': [
         {
@@ -719,6 +785,36 @@ export interface Omnisol {
         },
       ]
     },
+    {
+      'name': 'MintPoolTokensEvent'
+      'fields': [
+        {
+          'name': 'pool'
+          'type': 'publicKey'
+          'index': true
+        },
+        {
+          'name': 'user'
+          'type': 'publicKey'
+          'index': true
+        },
+        {
+          'name': 'collateral'
+          'type': 'publicKey'
+          'index': true
+        },
+        {
+          'name': 'amount'
+          'type': 'u64'
+          'index': false
+        },
+        {
+          'name': 'timestamp'
+          'type': 'i64'
+          'index': false
+        },
+      ]
+    },
   ]
   'errors': [
     {
@@ -1082,6 +1178,72 @@ export const IDL: Omnisol = {
         },
       ],
       args: [],
+    },
+    {
+      name: 'mintPoolToken',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'poolMint',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'poolAuthority',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'user',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'collateral',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'userPoolToken',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'stakedAddress',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'clock',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: 'amount',
+          type: 'u64',
+        },
+      ],
     },
     {
       name: 'withdrawStake',
@@ -1477,6 +1639,36 @@ export const IDL: Omnisol = {
           name: 'user',
           type: 'publicKey',
           index: true,
+        },
+      ],
+    },
+    {
+      name: 'MintPoolTokensEvent',
+      fields: [
+        {
+          name: 'pool',
+          type: 'publicKey',
+          index: true,
+        },
+        {
+          name: 'user',
+          type: 'publicKey',
+          index: true,
+        },
+        {
+          name: 'collateral',
+          type: 'publicKey',
+          index: true,
+        },
+        {
+          name: 'amount',
+          type: 'u64',
+          index: false,
+        },
+        {
+          name: 'timestamp',
+          type: 'i64',
+          index: false,
         },
       ],
     },

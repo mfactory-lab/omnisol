@@ -53,6 +53,10 @@ pub mod omnisol {
         deposit_stake::handle(ctx)
     }
 
+    pub fn mint_pool_token(ctx: Context<MintPoolToken>, amount: u64) -> Result<()> {
+        mint_pool_token::handle(ctx, amount)
+    }
+
     pub fn withdraw_stake(ctx: Context<WithdrawStake>, amount: u64) -> Result<()> {
         withdraw_stake::handle(ctx, amount)
     }

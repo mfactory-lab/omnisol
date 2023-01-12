@@ -10,6 +10,7 @@ pub mod remove_from_whitelist;
 pub mod block_user;
 pub mod unblock_user;
 pub mod deposit_lp_tokens;
+pub mod mint_pool_token;
 
 pub use add_to_whitelist::*;
 pub use close_pool::*;
@@ -23,3 +24,4 @@ pub use remove_from_whitelist::*;
 pub use block_user::*;
 pub use unblock_user::*;
 pub use deposit_lp_tokens::*;
+pub use mint_pool_token::*;

@@ -38,3 +38,15 @@ pub struct RegisterUserEvent {
     #[index]
     pub user: Pubkey,
 }
+
+#[event]
+pub struct MintPoolTokensEvent {
+    #[index]
+    pub pool: Pubkey,
+    #[index]
+    pub user: Pubkey,
+    #[index]
+    pub collateral: Pubkey,
+    pub amount: u64,
+    pub timestamp: i64,
+}
