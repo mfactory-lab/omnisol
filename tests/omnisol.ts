@@ -92,7 +92,22 @@ describe('omnisol', () => {
       console.log(e)
       throw e
     }
+  })
 
+  it('can not call manager instruction from non-manager account', async () => {
+    const { tx } = await client.pauseGlobalPool({
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, '')
+    }
+  })
+
+  it('can pause pool', async () => {
     const { tx: tx1 } = await client.addManager({
       pool,
       manager_wallet: provider.wallet.publicKey,
@@ -104,9 +119,6 @@ describe('omnisol', () => {
       console.log(e)
       throw e
     }
-  })
-
-  it('can pause pool', async () => {
     const { tx } = await client.pauseGlobalPool({
       pool,
     })
