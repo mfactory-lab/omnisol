@@ -2,7 +2,7 @@ import type { Address, BN, Program } from '@project-serum/anchor'
 import type { PublicKey } from '@solana/web3.js'
 import { Transaction } from '@solana/web3.js'
 import { web3 } from '@project-serum/anchor'
-import type { Pool, Whitelist } from './generated'
+import type { Collateral, Pool, User, Whitelist } from './generated'
 import {
   PROGRAM_ID,
   createAddToWhitelistInstruction,
@@ -11,10 +11,10 @@ import {
   createDepositLpInstruction,
   createDepositStakeInstruction,
   createInitPoolInstruction,
+  createMintPoolTokenInstruction,
   createPausePoolInstruction,
   createRemoveFromWhitelistInstruction,
-  createResumePoolInstruction,
-  createUnblockUserInstruction, createMintPoolTokenInstruction,
+  createResumePoolInstruction, createUnblockUserInstruction,
 } from './generated'
 import { IDL } from './idl/omnisol'
 
@@ -48,6 +48,14 @@ export class OmnisolClient {
 
   async fetchWhitelist(address: Address) {
     return await this.program.account.whitelist.fetchNullable(address) as unknown as Whitelist
+  }
+
+  async fetchUser(address: Address) {
+    return await this.program.account.user.fetchNullable(address) as unknown as User
+  }
+
+  async fetchCollateral(address: Address) {
+    return await this.program.account.collateral.fetchNullable(address) as unknown as Collateral
   }
 
   async createGlobalPool(props: CreateGlobalPoolProps) {
@@ -168,6 +176,7 @@ export class OmnisolClient {
 
     return {
       tx,
+      user,
     }
   }
 
@@ -186,6 +195,7 @@ export class OmnisolClient {
 
     return {
       tx,
+      user,
     }
   }
 
@@ -194,7 +204,7 @@ export class OmnisolClient {
     const [poolAuthority] = await this.pda.poolAuthority(props.pool)
     const [user] = await this.pda.user(payer)
     const [whitelist] = await this.pda.whitelist(props.lpToken)
-    const [collateral] = await this.pda.collateral(props.pool, props.lpToken, user)
+    const [collateral, bump] = await this.pda.collateral(props.pool, props.lpToken, user)
     const instruction = createDepositLpInstruction(
       {
         authority: payer,
@@ -216,6 +226,9 @@ export class OmnisolClient {
 
     return {
       tx,
+      collateral,
+      user,
+      bump,
     }
   }
 
@@ -296,6 +309,10 @@ class OmnisolPDA {
   private async pda(seeds: Array<Buffer | Uint8Array>) {
     return await web3.PublicKey.findProgramAddress(seeds, OmnisolClient.programId)
   }
+
+  // private async pdaByUser(seeds: Array<Buffer | Uint8Array>, user: Address) {
+  //   return await web3.PublicKey.findProgramAddress(seeds, new web3.PublicKey(user))
+  // }
 }
 
 export interface Wallet {

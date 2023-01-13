@@ -109,7 +109,6 @@ pub struct DepositLPTokens<'info> {
     seeds = [Collateral::SEED, user.key().as_ref(), lp_token.key().as_ref()],
     bump,
     payer = authority,
-    owner = user.key(),
     space = Collateral::SIZE,
     )]
     pub collateral: Account<'info, Collateral>,
@@ -124,7 +123,7 @@ pub struct DepositLPTokens<'info> {
     #[account(
     mut,
     associated_token::mint = lp_token,
-    associated_token::authority = pool_authority,
+    associated_token::authority = pool,
     )]
     pub destination: Account<'info, token::TokenAccount>,
 
