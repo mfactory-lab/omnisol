@@ -1,7 +1,9 @@
 use anchor_lang::prelude::*;
 
-use crate::{state::Pool, ErrorCode};
-use crate::state::User;
+use crate::{
+    state::{Pool, User},
+    ErrorCode,
+};
 
 pub fn handle(ctx: Context<UnblockUser>) -> Result<()> {
     let user = &mut ctx.accounts.user;

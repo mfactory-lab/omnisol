@@ -8,7 +8,6 @@ import { assert } from 'chai'
 import { OmnisolClient } from '../packages/sdk'
 
 const payerKeypair = web3.Keypair.generate()
-const userKeypair = web3.Keypair.generate()
 const opts = AnchorProvider.defaultOptions()
 const provider = new AnchorProvider(
   new web3.Connection('http://localhost:8899', opts.preflightCommitment),
@@ -25,7 +24,6 @@ describe('omnisol', () => {
   let pool: web3.PublicKey
   let poolMint: web3.PublicKey
   let lpToken: web3.PublicKey
-  let userA: web3.PublicKey
 
   before(async () => {
     await provider.connection.confirmTransaction(
@@ -128,10 +126,6 @@ describe('omnisol', () => {
   })
 
   it('can deposit lp tokens', async () => {
-    userA = userKeypair.publicKey
-    await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(userA, 10 * web3.LAMPORTS_PER_SOL),
-    )
     lpToken = await createMint(provider.connection, payerKeypair, provider.wallet.publicKey, null, 1, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
     await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], null, TOKEN_PROGRAM_ID)
@@ -367,6 +361,141 @@ describe('omnisol', () => {
   //     throw new Error('Pool is not closed')
   //   }
   // })
+
+  it('can mint pool tokens', async () => {
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+    const { transaction, user, collateral } = await client.mintPoolTokens({
+      amount: new BN(100),
+      pool,
+      poolMint,
+      stakedAddress: lpToken,
+      userPoolToken: userPoolToken.address,
+    })
+
+    try {
+      await provider.sendAndConfirm(transaction)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const poolData = await client.fetchGlobalPool(pool)
+    const userData = await client.fetchUser(user)
+    const collateralData = await client.fetchCollateral(collateral)
+
+    assert.equal(poolData.depositAmount, 200)
+    assert.equal(userData.rate, 100)
+    assert.equal(collateralData.amount, 100)
+    assert.equal(collateralData.delegationStake, 200)
+  })
+
+  it('can not mint greater than was delegated', async () => {
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+    const { transaction, user, collateral } = await client.mintPoolTokens({
+      amount: new BN(101),
+      pool,
+      poolMint,
+      stakedAddress: lpToken,
+      userPoolToken: userPoolToken.address,
+    })
+
+    try {
+      await provider.sendAndConfirm(transaction)
+      assert.ok(false)
+    } catch (e: any) {
+      const poolData = await client.fetchGlobalPool(pool)
+      const userData = await client.fetchUser(user)
+      const collateralData = await client.fetchCollateral(collateral)
+
+      assert.equal(poolData.depositAmount, 200)
+      assert.equal(userData.rate, 100)
+      assert.equal(collateralData.amount, 100)
+      assert.equal(collateralData.delegationStake, 200)
+      assertErrorCode(e, 'InsufficientAmount')
+    }
+  })
+
+  it('can not mint when pool paused', async () => {
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+    const { transaction } = await client.mintPoolTokens({
+      amount: new BN(100),
+      pool,
+      poolMint,
+      stakedAddress: lpToken,
+      userPoolToken: userPoolToken.address,
+    })
+
+    const { tx: tx1 } = await client.pauseGlobalPool({
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx1)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    try {
+      await provider.sendAndConfirm(transaction)
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, 'PoolAlreadyPaused')
+    }
+
+    const { tx: tx2 } = await client.resumeGlobalPool({
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx2)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+  })
+
+  it('can not mint when user blocked', async () => {
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+    const { transaction } = await client.mintPoolTokens({
+      amount: new BN(100),
+      pool,
+      poolMint,
+      stakedAddress: lpToken,
+      userPoolToken: userPoolToken.address,
+    })
+
+    const { tx } = await client.blockUser({
+      pool,
+      user_wallet: provider.wallet.publicKey,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    try {
+      await provider.sendAndConfirm(transaction)
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, 'UserBlocked')
+    }
+
+    const { tx: tx1 } = await client.unblockUser({
+      pool,
+      user_wallet: provider.wallet.publicKey,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx1)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+  })
 
   it('can close global pool', async () => {
     const { tx } = await client.closeGlobalPool({

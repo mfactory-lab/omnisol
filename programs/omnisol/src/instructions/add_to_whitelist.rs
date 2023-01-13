@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::state::Whitelist;
-use crate::state::Pool;
+use crate::state::{Pool, Whitelist};
 
 pub fn handle(ctx: Context<AddToWhitelist>) -> Result<()> {
     let whitelist = &mut ctx.accounts.whitelist;

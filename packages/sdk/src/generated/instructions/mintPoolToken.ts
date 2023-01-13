@@ -37,7 +37,7 @@ export const mintPoolTokenStruct = new beet.BeetArgsStruct<
  * Accounts required by the _mintPoolToken_ instruction
  *
  * @property [_writable_] pool
- * @property [] poolMint
+ * @property [_writable_] poolMint
  * @property [] poolAuthority
  * @property [_writable_] user
  * @property [_writable_] collateral
@@ -95,7 +95,7 @@ export function createMintPoolTokenInstruction(
     },
     {
       pubkey: accounts.poolMint,
-      isWritable: false,
+      isWritable: true,
       isSigner: false,
     },
     {

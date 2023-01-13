@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::state::Whitelist;
-use crate::state::Pool;
+use crate::state::{Pool, Whitelist};
 
 pub fn handle(_ctx: Context<RemoveFromWhitelist>) -> Result<()> {
     Ok(())

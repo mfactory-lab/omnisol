@@ -281,6 +281,8 @@ export class OmnisolClient {
 
     return {
       transaction,
+      user,
+      collateral,
     }
   }
 }

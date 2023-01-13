@@ -332,7 +332,7 @@
         },
         {
           "name": "poolMint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {

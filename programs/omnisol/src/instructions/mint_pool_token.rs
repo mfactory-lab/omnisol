@@ -3,11 +3,10 @@ use anchor_spl::token;
 
 use crate::{
     events::*,
-    state::{Collateral, Pool},
+    state::{Collateral, Pool, User},
     utils::stake,
     ErrorCode,
 };
-use crate::state::User;
 
 /// The user can use their deposit to mint omniSOL.
 /// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
@@ -66,7 +65,7 @@ pub struct MintPoolToken<'info> {
     pub pool: Box<Account<'info, Pool>>,
 
     /// CHECK:
-    #[account(address = pool.pool_mint)]
+    #[account(mut, address = pool.pool_mint)]
     pub pool_mint: AccountInfo<'info>,
 
     /// CHECK: no needs to check, only for signing

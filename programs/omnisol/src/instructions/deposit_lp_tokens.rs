@@ -3,10 +3,9 @@ use anchor_spl::token;
 
 use crate::{
     events::*,
-    state::{Collateral, Pool},
+    state::{Collateral, Pool, User, Whitelist},
     ErrorCode,
 };
-use crate::state::{User, Whitelist};
 
 /// The user can use their deposit as collateral and mint omniSOL.
 /// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
@@ -33,7 +32,7 @@ pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
                 from: ctx.accounts.source.to_account_info(),
                 to: ctx.accounts.destination.to_account_info(),
                 authority: ctx.accounts.authority.to_account_info(),
-            }
+            },
         ),
         amount,
     )?;
