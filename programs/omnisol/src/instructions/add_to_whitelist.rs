@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::state::{Pool, Whitelist};
+use crate::state::{Manager, Pool, Whitelist};
 
 pub fn handle(ctx: Context<AddToWhitelist>) -> Result<()> {
     let whitelist = &mut ctx.accounts.whitelist;
@@ -13,9 +13,6 @@ pub fn handle(ctx: Context<AddToWhitelist>) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct AddToWhitelist<'info> {
-    #[account(has_one = authority)]
-    pub pool: Box<Account<'info, Pool>>,
-
     #[account(mut)]
     pub authority: Signer<'info>,
 
@@ -31,6 +28,14 @@ pub struct AddToWhitelist<'info> {
         payer = authority,
         space = Whitelist::SIZE)]
     pub whitelist: Box<Account<'info, Whitelist>>,
+
+    #[account(mut,
+    seeds = [
+    Manager::SEED,
+    authority.key().as_ref(),
+    ],
+    bump,)]
+    pub manager: Box<Account<'info, Manager>>,
 
     pub system_program: Program<'info, System>,
 }

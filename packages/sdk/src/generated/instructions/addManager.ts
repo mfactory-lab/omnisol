@@ -10,68 +10,68 @@ import * as web3 from '@solana/web3.js'
 
 /**
  * @category Instructions
- * @category AddToWhitelist
+ * @category AddManager
  * @category generated
  */
-export const addToWhitelistStruct = new beet.BeetArgsStruct<{
+export const addManagerStruct = new beet.BeetArgsStruct<{
   instructionDiscriminator: number[] /* size: 8 */
 }>(
   [['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)]],
-  'AddToWhitelistInstructionArgs',
+  'AddManagerInstructionArgs',
 )
 /**
- * Accounts required by the _addToWhitelist_ instruction
+ * Accounts required by the _addManager_ instruction
  *
+ * @property [] pool
  * @property [_writable_, **signer**] authority
- * @property [] addressToWhitelist
- * @property [_writable_] whitelist
+ * @property [] managerWallet
  * @property [_writable_] manager
  * @category Instructions
- * @category AddToWhitelist
+ * @category AddManager
  * @category generated
  */
-export interface AddToWhitelistInstructionAccounts {
+export interface AddManagerInstructionAccounts {
+  pool: web3.PublicKey
   authority: web3.PublicKey
-  addressToWhitelist: web3.PublicKey
-  whitelist: web3.PublicKey
+  managerWallet: web3.PublicKey
   manager: web3.PublicKey
   systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
-export const addToWhitelistInstructionDiscriminator = [
-  157, 211, 52, 54, 144, 81, 5, 55,
+export const addManagerInstructionDiscriminator = [
+  125, 38, 192, 212, 101, 91, 179, 16,
 ]
 
 /**
- * Creates a _AddToWhitelist_ instruction.
+ * Creates a _AddManager_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
  * @category Instructions
- * @category AddToWhitelist
+ * @category AddManager
  * @category generated
  */
-export function createAddToWhitelistInstruction(
-  accounts: AddToWhitelistInstructionAccounts,
+export function createAddManagerInstruction(
+  accounts: AddManagerInstructionAccounts,
   programId = new web3.PublicKey('9SfbhzHrx5xczfoiTo2VVpG5oukcS5Schgy2ppLH3zQd'),
 ) {
-  const [data] = addToWhitelistStruct.serialize({
-    instructionDiscriminator: addToWhitelistInstructionDiscriminator,
+  const [data] = addManagerStruct.serialize({
+    instructionDiscriminator: addManagerInstructionDiscriminator,
   })
   const keys: web3.AccountMeta[] = [
+    {
+      pubkey: accounts.pool,
+      isWritable: false,
+      isSigner: false,
+    },
     {
       pubkey: accounts.authority,
       isWritable: true,
       isSigner: true,
     },
     {
-      pubkey: accounts.addressToWhitelist,
+      pubkey: accounts.managerWallet,
       isWritable: false,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.whitelist,
-      isWritable: true,
       isSigner: false,
     },
     {

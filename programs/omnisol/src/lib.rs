@@ -17,6 +17,14 @@ pub mod omnisol {
         init_pool::handle(ctx)
     }
 
+    pub fn add_manager(ctx: Context<AddManager>) -> Result<()> {
+        add_manager::handle(ctx)
+    }
+
+    pub fn remove_manager(ctx: Context<RemoveMnager>) -> Result<()> {
+        remove_manager::handle(ctx)
+    }
+
     pub fn pause_pool(ctx: Context<PausePool>) -> Result<()> {
         pause_pool::handle(ctx)
     }

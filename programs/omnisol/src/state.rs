@@ -55,6 +55,17 @@ impl Whitelist {
 }
 
 #[account]
+pub struct Manager {
+    /// Manager wallet address
+    pub manager: Pubkey,
+}
+
+impl Manager {
+    pub const SEED: &'static [u8] = b"manager";
+    pub const SIZE: usize = 8 + 32;
+}
+
+#[account]
 pub struct User {
     /// Wallet of registered user
     pub wallet: Pubkey,

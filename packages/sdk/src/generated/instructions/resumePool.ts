@@ -23,6 +23,7 @@ export const resumePoolStruct = new beet.BeetArgsStruct<{
  * Accounts required by the _resumePool_ instruction
  *
  * @property [_writable_] pool
+ * @property [_writable_] manager
  * @property [_writable_, **signer**] authority
  * @category Instructions
  * @category ResumePool
@@ -30,6 +31,7 @@ export const resumePoolStruct = new beet.BeetArgsStruct<{
  */
 export interface ResumePoolInstructionAccounts {
   pool: web3.PublicKey
+  manager: web3.PublicKey
   authority: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
@@ -56,6 +58,11 @@ export function createResumePoolInstruction(
   const keys: web3.AccountMeta[] = [
     {
       pubkey: accounts.pool,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.manager,
       isWritable: true,
       isSigner: false,
     },

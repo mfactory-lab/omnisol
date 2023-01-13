@@ -22,18 +22,18 @@ export const removeFromWhitelistStruct = new beet.BeetArgsStruct<{
 /**
  * Accounts required by the _removeFromWhitelist_ instruction
  *
- * @property [] pool
  * @property [_writable_, **signer**] authority
  * @property [_writable_] whitelist
+ * @property [_writable_] manager
  * @property [] addressToWhitelist
  * @category Instructions
  * @category RemoveFromWhitelist
  * @category generated
  */
 export interface RemoveFromWhitelistInstructionAccounts {
-  pool: web3.PublicKey
   authority: web3.PublicKey
   whitelist: web3.PublicKey
+  manager: web3.PublicKey
   addressToWhitelist: web3.PublicKey
   systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
@@ -60,17 +60,17 @@ export function createRemoveFromWhitelistInstruction(
   })
   const keys: web3.AccountMeta[] = [
     {
-      pubkey: accounts.pool,
-      isWritable: false,
-      isSigner: false,
-    },
-    {
       pubkey: accounts.authority,
       isWritable: true,
       isSigner: true,
     },
     {
       pubkey: accounts.whitelist,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.manager,
       isWritable: true,
       isSigner: false,
     },

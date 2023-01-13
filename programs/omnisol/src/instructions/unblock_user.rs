@@ -4,6 +4,7 @@ use crate::{
     state::{Pool, User},
     ErrorCode,
 };
+use crate::state::Manager;
 
 pub fn handle(ctx: Context<UnblockUser>) -> Result<()> {
     let user = &mut ctx.accounts.user;
@@ -19,8 +20,13 @@ pub fn handle(ctx: Context<UnblockUser>) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct UnblockUser<'info> {
-    #[account(has_one = authority)]
-    pub pool: Box<Account<'info, Pool>>,
+    #[account(mut,
+    seeds = [
+    Manager::SEED,
+    authority.key().as_ref(),
+    ],
+    bump,)]
+    pub manager: Box<Account<'info, Manager>>,
 
     #[account(mut)]
     pub authority: Signer<'info>,

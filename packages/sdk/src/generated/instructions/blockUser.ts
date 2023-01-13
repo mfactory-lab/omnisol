@@ -22,8 +22,8 @@ export const blockUserStruct = new beet.BeetArgsStruct<{
 /**
  * Accounts required by the _blockUser_ instruction
  *
- * @property [] pool
  * @property [_writable_, **signer**] authority
+ * @property [_writable_] manager
  * @property [_writable_] user
  * @property [] userWallet
  * @category Instructions
@@ -31,8 +31,8 @@ export const blockUserStruct = new beet.BeetArgsStruct<{
  * @category generated
  */
 export interface BlockUserInstructionAccounts {
-  pool: web3.PublicKey
   authority: web3.PublicKey
+  manager: web3.PublicKey
   user: web3.PublicKey
   userWallet: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
@@ -59,14 +59,14 @@ export function createBlockUserInstruction(
   })
   const keys: web3.AccountMeta[] = [
     {
-      pubkey: accounts.pool,
-      isWritable: false,
-      isSigner: false,
-    },
-    {
       pubkey: accounts.authority,
       isWritable: true,
       isSigner: true,
+    },
+    {
+      pubkey: accounts.manager,
+      isWritable: true,
+      isSigner: false,
     },
     {
       pubkey: accounts.user,

@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::{state::Pool, ErrorCode};
+use crate::state::Manager;
 
 pub fn handle(ctx: Context<ResumePool>) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
@@ -16,8 +17,16 @@ pub fn handle(ctx: Context<ResumePool>) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct ResumePool<'info> {
-    #[account(mut, has_one = authority)]
+    #[account(mut)]
     pub pool: Box<Account<'info, Pool>>,
+
+    #[account(mut,
+    seeds = [
+    Manager::SEED,
+    authority.key().as_ref(),
+    ],
+    bump,)]
+    pub manager: Box<Account<'info, Manager>>,
 
     #[account(mut)]
     pub authority: Signer<'info>,

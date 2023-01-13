@@ -63,6 +63,49 @@ describe('omnisol', () => {
     assert.equal(poolData.isActive, true)
   })
 
+  it('can add manager', async () => {
+    const { tx, manager } = await client.addManager({
+      pool,
+      manager_wallet: provider.wallet.publicKey,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const managerData = await client.fetchManager(manager)
+    assert.equal(managerData.manager.equals(provider.wallet.publicKey), true)
+  })
+
+  it('can remove manager', async () => {
+    const { tx } = await client.removeManager({
+      pool,
+      manager_wallet: provider.wallet.publicKey,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const { tx: tx1 } = await client.addManager({
+      pool,
+      manager_wallet: provider.wallet.publicKey,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx1)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+  })
+
   it('can pause pool', async () => {
     const { tx } = await client.pauseGlobalPool({
       pool,

@@ -34,10 +34,77 @@
       "args": []
     },
     {
+      "name": "addManager",
+      "accounts": [
+        {
+          "name": "pool",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "managerWallet",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "removeManager",
+      "accounts": [
+        {
+          "name": "pool",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "managerWallet",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "pausePool",
       "accounts": [
         {
           "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
           "isMut": true,
           "isSigner": false
         },
@@ -58,6 +125,11 @@
           "isSigner": false
         },
         {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "authority",
           "isMut": true,
           "isSigner": true
@@ -68,11 +140,6 @@
     {
       "name": "addToWhitelist",
       "accounts": [
-        {
-          "name": "pool",
-          "isMut": false,
-          "isSigner": false
-        },
         {
           "name": "authority",
           "isMut": true,
@@ -89,6 +156,11 @@
           "isSigner": false
         },
         {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -100,17 +172,17 @@
       "name": "removeFromWhitelist",
       "accounts": [
         {
-          "name": "pool",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "authority",
           "isMut": true,
           "isSigner": true
         },
         {
           "name": "whitelist",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
           "isMut": true,
           "isSigner": false
         },
@@ -131,14 +203,14 @@
       "name": "blockUser",
       "accounts": [
         {
-          "name": "pool",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "authority",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "user",
@@ -157,8 +229,8 @@
       "name": "unblockUser",
       "accounts": [
         {
-          "name": "pool",
-          "isMut": false,
+          "name": "manager",
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -648,6 +720,21 @@
             "name": "whitelistedToken",
             "docs": [
               "Token mint address that is whitelisted to the pool"
+            ],
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Manager",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "manager",
+            "docs": [
+              "Manager wallet address"
             ],
             "type": "publicKey"
           }

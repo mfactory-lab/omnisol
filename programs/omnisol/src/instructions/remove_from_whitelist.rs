@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::state::{Pool, Whitelist};
+use crate::state::{Manager, Pool, Whitelist};
 
 pub fn handle(_ctx: Context<RemoveFromWhitelist>) -> Result<()> {
     Ok(())
@@ -8,9 +8,6 @@ pub fn handle(_ctx: Context<RemoveFromWhitelist>) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct RemoveFromWhitelist<'info> {
-    #[account(has_one = authority)]
-    pub pool: Box<Account<'info, Pool>>,
-
     #[account(mut)]
     pub authority: Signer<'info>,
 
@@ -22,6 +19,14 @@ pub struct RemoveFromWhitelist<'info> {
     bump,
     close = authority)]
     pub whitelist: Box<Account<'info, Whitelist>>,
+
+    #[account(mut,
+    seeds = [
+    Manager::SEED,
+    authority.key().as_ref(),
+    ],
+    bump,)]
+    pub manager: Box<Account<'info, Manager>>,
 
     /// CHECK: Address of LP token to whitelist it
     pub address_to_whitelist: AccountInfo<'info>,
