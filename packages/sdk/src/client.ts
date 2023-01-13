@@ -236,7 +236,7 @@ export class OmnisolClient {
     const payer = this.wallet.publicKey
     const [poolAuthority] = await this.pda.poolAuthority(props.pool)
     const [user] = await this.pda.user(payer)
-    const [collateral] = await this.pda.collateral(props.pool, props.sourceStake, user)
+    const [collateral, bump] = await this.pda.collateral(props.pool, props.sourceStake, user)
     const instruction = createDepositStakeInstruction(
       {
         authority: payer,
@@ -253,6 +253,9 @@ export class OmnisolClient {
 
     return {
       transaction,
+      user,
+      collateral,
+      bump,
     }
   }
 
@@ -311,10 +314,6 @@ class OmnisolPDA {
   private async pda(seeds: Array<Buffer | Uint8Array>) {
     return await web3.PublicKey.findProgramAddress(seeds, OmnisolClient.programId)
   }
-
-  // private async pdaByUser(seeds: Array<Buffer | Uint8Array>, user: Address) {
-  //   return await web3.PublicKey.findProgramAddress(seeds, new web3.PublicKey(user))
-  // }
 }
 
 export interface Wallet {

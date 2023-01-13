@@ -115,7 +115,6 @@ pub struct DepositStake<'info> {
     seeds = [Collateral::SEED, user.key().as_ref(), source_stake.key().as_ref()],
     bump,
     payer = authority,
-    owner = user.key(),
     space = Collateral::SIZE,
     )]
     pub collateral: Account<'info, Collateral>,

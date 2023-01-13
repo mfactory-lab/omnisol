@@ -24,6 +24,7 @@ describe('omnisol', () => {
   let pool: web3.PublicKey
   let poolMint: web3.PublicKey
   let lpToken: web3.PublicKey
+  let stakeAccount: web3.PublicKey
 
   before(async () => {
     await provider.connection.confirmTransaction(
@@ -344,25 +345,85 @@ describe('omnisol', () => {
     }
   })
 
-  // it('can deposit stake', async () => {
-  //   const { tx } = await client.depositStake({
-  //     pool,
-  //   })
-  //
-  //   try {
-  //     await provider.sendAndConfirm(tx)
-  //   } catch (e) {
-  //     console.log(e)
-  //     throw e
-  //   }
-  //
-  //   const poolData = await client.fetchGlobalPool(pool)
-  //   if (poolData) {
-  //     throw new Error('Pool is not closed')
-  //   }
-  // })
+  it('can deposit stake', async () => {
+    const stakeKeypair = web3.Keypair.generate()
+    stakeAccount = stakeKeypair.publicKey
+    const lamportsForStakeAccount
+      = (await provider.connection.getMinimumBalanceForRentExemption(
+        web3.StakeProgram.space,
+      )) + 50
 
-  it('can mint pool tokens', async () => {
+    const createAccountTransaction = web3.StakeProgram.createAccount({
+      fromPubkey: provider.wallet.publicKey,
+      authorized: new web3.Authorized(
+        provider.wallet.publicKey,
+        provider.wallet.publicKey,
+      ),
+      lamports: lamportsForStakeAccount,
+      lockup: new web3.Lockup(0, 0, provider.wallet.publicKey),
+      stakePubkey: stakeAccount,
+    })
+    await provider.sendAndConfirm(createAccountTransaction, [payerKeypair, stakeKeypair])
+
+    // const delegateTransaction = web3.StakeProgram.delegate({
+    //   stakePubkey: stakeAccount,
+    //   authorizedPubkey: provider.wallet.publicKey,
+    //   votePubkey: pool,
+    // })
+    //
+    // await provider.sendAndConfirm(delegateTransaction, [payerKeypair, payerKeypair])
+
+    const { transaction, user, collateral, bump } = await client.depositStake({
+      amount: new BN(0),
+      sourceStake: stakeAccount,
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(transaction)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const poolData = await client.fetchGlobalPool(pool)
+    const userData = await client.fetchUser(user)
+    const collateralData = await client.fetchCollateral(collateral)
+
+    assert.equal(poolData.depositAmount, 300)
+    assert.equal(userData.wallet.equals(provider.wallet.publicKey), true)
+    assert.equal(userData.rate, 100)
+    assert.equal(userData.isBlocked, false)
+    assert.equal(collateralData.user.equals(user), true)
+    assert.equal(collateralData.pool.equals(pool), true)
+    assert.equal(collateralData.bump, bump)
+    assert.equal(collateralData.amount, 0)
+    assert.equal(collateralData.delegationStake, 100)
+    assert.equal(collateralData.isNative, false)
+    assert.equal(collateralData.sourceStake.equals(lpToken), true)
+  })
+
+  it('can not deposit stake if it is not delegated', async () => {
+
+  })
+
+  it('can not deposit stake if delegated amount = 0', async () => {
+
+  })
+
+  it('can not deposit stake if pool paused', async () => {
+
+  })
+
+  it('can not deposit stake if user blocked', async () => {
+
+  })
+
+  it('can mint pool tokens from stake collateral', async () => {
+
+  })
+
+  it('can mint pool tokens from lp collateral', async () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
     const { transaction, user, collateral } = await client.mintPoolTokens({
       amount: new BN(100),
