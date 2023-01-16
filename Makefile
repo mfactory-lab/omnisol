@@ -36,6 +36,10 @@ verify:
 test: ## Test program
 	anchor test --skip-lint --provider.cluster localnet
 
+.PHONY: test-amman
+test-amman: ## Test program with amman
+	anchor test --skip-lint --skip-local-validator --provider.cluster localnet
+
 .PHONY: upgrade
 upgrade: build ## Upgrade program
 	anchor upgrade -p $(program_id) --provider.cluster $(cluster) ./target/deploy/$(program).so
