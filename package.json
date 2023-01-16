@@ -5,8 +5,8 @@
     "api:gen": "pnpm --filter=sdk run api:gen && eslint --fix --ext .ts ./packages/sdk/src/**",
     "ui:dev": "pnpm --filter=ui run dev",
     "lint:fix": "eslint --cache --fix --ext .js,.vue,.ts ./packages/**",
-    "amman:start": "CI=1 DEBUG='amman:(error|info|debug)*' ./node_modules/.bin/amman start",
-    "amman:stop": "./node_modules/.bin/amman stop",
+    "amman:start": "CI=1 DEBUG='amman:(error|info|debug)*' amman start",
+    "amman:stop": "amman stop",
     "test": "CI=1 node tests/omnisol.ts"
   },
   "dependencies": {
