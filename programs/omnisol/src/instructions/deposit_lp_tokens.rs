@@ -10,19 +10,18 @@ use crate::{
 /// The user can use their deposit as collateral and mint omniSOL.
 /// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
 pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
+    if amount == 0 {
+        return Err(ErrorCode::InsufficientAmount.into());
+    }
+
     let pool = &mut ctx.accounts.pool;
-
-    let pool_key = pool.key();
-    let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
-    let clock = &ctx.accounts.clock;
-
     if !pool.is_active {
         return Err(ErrorCode::PoolAlreadyPaused.into());
     }
 
-    if amount == 0 {
-        return Err(ErrorCode::InsufficientAmount.into());
-    }
+    let pool_key = pool.key();
+    let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
+    let clock = &ctx.accounts.clock;
 
     // Transfer LP tokens to the pool
     token::transfer(
@@ -38,7 +37,6 @@ pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
     )?;
 
     let user = &mut ctx.accounts.user;
-    let collateral = &mut ctx.accounts.collateral;
 
     if user.wallet != ctx.accounts.authority.key() {
         user.wallet = ctx.accounts.authority.key();
@@ -46,6 +44,11 @@ pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
         user.is_blocked = false;
     }
 
+    if user.is_blocked {
+        return Err(ErrorCode::UserBlocked.into());
+    }
+
+    let collateral = &mut ctx.accounts.collateral;
     if collateral.user != user.key() {
         collateral.user = user.key();
         collateral.pool = pool_key;
@@ -57,13 +60,10 @@ pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
         collateral.is_native = false;
     }
 
-    if user.is_blocked {
-        return Err(ErrorCode::UserBlocked.into());
-    }
-
     user.rate += amount;
     collateral.delegation_stake += amount;
 
+    // TODO: how about checked_add ?
     pool.deposit_amount = pool.deposit_amount.saturating_add(amount);
 
     emit!(RegisterUserEvent {
@@ -92,46 +92,40 @@ pub struct DepositLPTokens<'info> {
     pub pool_authority: AccountInfo<'info>,
 
     #[account(
-    init_if_needed,
-    seeds = [
-    User::SEED,
-    authority.key().as_ref(),
-    ],
-    bump,
-    payer = authority,
-    space = User::SIZE,
+        init_if_needed,
+        seeds = [User::SEED, authority.key().as_ref()],
+        bump,
+        payer = authority,
+        space = User::SIZE,
     )]
     pub user: Box<Account<'info, User>>,
 
     #[account(
-    init_if_needed,
-    seeds = [Collateral::SEED, user.key().as_ref(), lp_token.key().as_ref()],
-    bump,
-    payer = authority,
-    space = Collateral::SIZE,
+        init_if_needed,
+        seeds = [Collateral::SEED, user.key().as_ref(), lp_token.key().as_ref()],
+        bump,
+        payer = authority,
+        space = Collateral::SIZE,
     )]
     pub collateral: Account<'info, Collateral>,
 
     #[account(
-    mut,
-    associated_token::mint = lp_token,
-    associated_token::authority = authority,
+        mut,
+        associated_token::mint = lp_token,
+        associated_token::authority = authority,
     )]
     pub source: Account<'info, token::TokenAccount>,
 
     #[account(
-    mut,
-    associated_token::mint = lp_token,
-    associated_token::authority = pool,
+        mut,
+        associated_token::mint = lp_token,
+        associated_token::authority = pool,
     )]
     pub destination: Account<'info, token::TokenAccount>,
 
     #[account(
-    seeds = [
-    Whitelist::SEED,
-    lp_token.key().as_ref(),
-    ],
-    bump,
+        seeds = [Whitelist::SEED, lp_token.key().as_ref()],
+        bump,
     )]
     pub whitelist: Box<Account<'info, Whitelist>>,
 

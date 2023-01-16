@@ -1,10 +1,9 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    state::{Pool, User},
+    state::{Manager, User},
     ErrorCode,
 };
-use crate::state::Manager;
 
 pub fn handle(ctx: Context<UnblockUser>) -> Result<()> {
     let user = &mut ctx.accounts.user;
@@ -21,22 +20,24 @@ pub fn handle(ctx: Context<UnblockUser>) -> Result<()> {
 #[derive(Accounts)]
 pub struct UnblockUser<'info> {
     #[account(mut,
-    seeds = [
-    Manager::SEED,
-    authority.key().as_ref(),
-    ],
-    bump,)]
+        seeds = [
+            Manager::SEED,
+            authority.key().as_ref(),
+        ],
+        bump,
+    )]
     pub manager: Box<Account<'info, Manager>>,
 
     #[account(mut)]
     pub authority: Signer<'info>,
 
     #[account(mut,
-    seeds = [
-    User::SEED,
-    user_wallet.key().as_ref(),
-    ],
-    bump)]
+        seeds = [
+            User::SEED,
+            user_wallet.key().as_ref(),
+        ],
+        bump
+    )]
     pub user: Box<Account<'info, User>>,
 
     /// CHECK: Address of user wallet to block it

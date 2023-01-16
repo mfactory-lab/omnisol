@@ -99,23 +99,20 @@ pub struct DepositStake<'info> {
     pub pool_authority: AccountInfo<'info>,
 
     #[account(
-    init_if_needed,
-    seeds = [
-    User::SEED,
-    authority.key().as_ref(),
-    ],
-    bump,
-    payer = authority,
-    space = User::SIZE,
+        init_if_needed,
+        seeds = [User::SEED, authority.key().as_ref()],
+        bump,
+        payer = authority,
+        space = User::SIZE,
     )]
     pub user: Box<Account<'info, User>>,
 
     #[account(
-    init,
-    seeds = [Collateral::SEED, user.key().as_ref(), source_stake.key().as_ref()],
-    bump,
-    payer = authority,
-    space = Collateral::SIZE,
+        init,
+        seeds = [Collateral::SEED, user.key().as_ref(), source_stake.key().as_ref()],
+        bump,
+        payer = authority,
+        space = Collateral::SIZE,
     )]
     pub collateral: Account<'info, Collateral>,
 

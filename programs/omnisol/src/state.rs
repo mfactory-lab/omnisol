@@ -40,7 +40,7 @@ pub struct Collateral {
 
 impl Collateral {
     pub const SEED: &'static [u8] = b"collateral";
-    pub const SIZE: usize = 8 + 32 + 32 + 32 + 32 + 8 + 8 + 8 + 1;
+    pub const SIZE: usize = 8 + 32 + 32 + 32 + 8 + 8 + 8 + 1 + 1;
 }
 
 #[account]

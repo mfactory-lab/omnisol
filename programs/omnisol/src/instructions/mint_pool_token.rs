@@ -1,10 +1,9 @@
-use anchor_lang::{prelude::*, solana_program::stake::state::StakeAuthorize};
+use anchor_lang::prelude::*;
 use anchor_spl::token;
 
 use crate::{
     events::*,
     state::{Collateral, Pool, User},
-    utils::stake,
     ErrorCode,
 };
 
@@ -12,24 +11,24 @@ use crate::{
 /// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
 pub fn handle(ctx: Context<MintPoolToken>, amount: u64) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
-    let user = &mut ctx.accounts.user;
-    let collateral = &mut ctx.accounts.collateral;
-
     if !pool.is_active {
         return Err(ErrorCode::PoolAlreadyPaused.into());
+    }
+
+    let user = &mut ctx.accounts.user;
+    if user.is_blocked {
+        return Err(ErrorCode::UserBlocked.into());
+    }
+
+    let collateral = &mut ctx.accounts.collateral;
+
+    if amount > collateral.delegation_stake - collateral.amount {
+        return Err(ErrorCode::InsufficientAmount.into());
     }
 
     let pool_key = pool.key();
     let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
     let clock = &ctx.accounts.clock;
-
-    if user.is_blocked {
-        return Err(ErrorCode::UserBlocked.into());
-    }
-
-    if amount > collateral.delegation_stake - collateral.amount {
-        return Err(ErrorCode::InsufficientAmount.into());
-    }
 
     // Mint new pool tokens equals to `amount`
     token::mint_to(
@@ -73,26 +72,23 @@ pub struct MintPoolToken<'info> {
     pub pool_authority: AccountInfo<'info>,
 
     #[account(
-    mut,
-    seeds = [
-    User::SEED,
-    authority.key().as_ref(),
-    ],
-    bump,
+        mut,
+        seeds = [User::SEED, authority.key().as_ref()],
+        bump,
     )]
     pub user: Box<Account<'info, User>>,
 
     #[account(
-    mut,
-    seeds = [Collateral::SEED, user.key().as_ref(), staked_address.key().as_ref()],
-    bump,
+        mut,
+        seeds = [Collateral::SEED, user.key().as_ref(), staked_address.key().as_ref()],
+        bump,
     )]
     pub collateral: Box<Account<'info, Collateral>>,
 
     #[account(
-    mut,
-    associated_token::mint = pool_mint,
-    associated_token::authority = authority,
+        mut,
+        associated_token::mint = pool_mint,
+        associated_token::authority = authority,
     )]
     pub user_pool_token: Account<'info, token::TokenAccount>,
 

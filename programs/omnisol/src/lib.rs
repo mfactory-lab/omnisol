@@ -21,7 +21,7 @@ pub mod omnisol {
         add_manager::handle(ctx)
     }
 
-    pub fn remove_manager(ctx: Context<RemoveMnager>) -> Result<()> {
+    pub fn remove_manager(ctx: Context<RemoveManager>) -> Result<()> {
         remove_manager::handle(ctx)
     }
 

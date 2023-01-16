@@ -23,13 +23,11 @@ pub struct AddManager<'info> {
     pub manager_wallet: AccountInfo<'info>,
 
     #[account(init,
-    seeds = [
-    Manager::SEED,
-    manager_wallet.key().as_ref(),
-    ],
-    bump,
-    payer = authority,
-    space = Manager::SIZE)]
+        seeds = [Manager::SEED, manager_wallet.key().as_ref()],
+        bump,
+        payer = authority,
+        space = Manager::SIZE
+    )]
     pub manager: Box<Account<'info, Manager>>,
 
     pub system_program: Program<'info, System>,
