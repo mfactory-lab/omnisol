@@ -63,8 +63,7 @@ pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
     user.rate += amount;
     collateral.delegation_stake += amount;
 
-    // TODO: how about checked_add ?
-    pool.deposit_amount = pool.deposit_amount.saturating_add(amount);
+    pool.deposit_amount = pool.deposit_amount.checked_add(amount).ok_or(ErrorCode::TypeOverflow)?;
 
     emit!(RegisterUserEvent {
         pool: pool_key,
