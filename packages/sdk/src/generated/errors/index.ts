@@ -78,13 +78,33 @@ createErrorFromNameLookup.set(
 )
 
 /**
+ * TypeOverflow: 'Type overflow'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class TypeOverflowError extends Error {
+  readonly code: number = 0x1773
+  readonly name: string = 'TypeOverflow'
+  constructor() {
+    super('Type overflow')
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, TypeOverflowError)
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1773, () => new TypeOverflowError())
+createErrorFromNameLookup.set('TypeOverflow', () => new TypeOverflowError())
+
+/**
  * PoolAlreadyPaused: 'Pool is already paused'
  *
  * @category Errors
  * @category generated
  */
 export class PoolAlreadyPausedError extends Error {
-  readonly code: number = 0x1773
+  readonly code: number = 0x1774
   readonly name: string = 'PoolAlreadyPaused'
   constructor() {
     super('Pool is already paused')
@@ -94,7 +114,7 @@ export class PoolAlreadyPausedError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1773, () => new PoolAlreadyPausedError())
+createErrorFromCodeLookup.set(0x1774, () => new PoolAlreadyPausedError())
 createErrorFromNameLookup.set(
   'PoolAlreadyPaused',
   () => new PoolAlreadyPausedError(),
@@ -107,7 +127,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class PoolAlreadyResumedError extends Error {
-  readonly code: number = 0x1774
+  readonly code: number = 0x1775
   readonly name: string = 'PoolAlreadyResumed'
   constructor() {
     super('Pool is already resumed')
@@ -117,7 +137,7 @@ export class PoolAlreadyResumedError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1774, () => new PoolAlreadyResumedError())
+createErrorFromCodeLookup.set(0x1775, () => new PoolAlreadyResumedError())
 createErrorFromNameLookup.set(
   'PoolAlreadyResumed',
   () => new PoolAlreadyResumedError(),
@@ -130,7 +150,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class UserBlockedError extends Error {
-  readonly code: number = 0x1775
+  readonly code: number = 0x1776
   readonly name: string = 'UserBlocked'
   constructor() {
     super('User is blocked')
@@ -140,7 +160,7 @@ export class UserBlockedError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1775, () => new UserBlockedError())
+createErrorFromCodeLookup.set(0x1776, () => new UserBlockedError())
 createErrorFromNameLookup.set('UserBlocked', () => new UserBlockedError())
 
 /**
@@ -150,7 +170,7 @@ createErrorFromNameLookup.set('UserBlocked', () => new UserBlockedError())
  * @category generated
  */
 export class UserNotBlockedError extends Error {
-  readonly code: number = 0x1776
+  readonly code: number = 0x1777
   readonly name: string = 'UserNotBlocked'
   constructor() {
     super('User is not blocked')
@@ -160,7 +180,7 @@ export class UserNotBlockedError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1776, () => new UserNotBlockedError())
+createErrorFromCodeLookup.set(0x1777, () => new UserNotBlockedError())
 createErrorFromNameLookup.set('UserNotBlocked', () => new UserNotBlockedError())
 
 /**

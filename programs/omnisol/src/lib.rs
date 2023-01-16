@@ -65,6 +65,10 @@ pub mod omnisol {
         mint_pool_token::handle(ctx, amount)
     }
 
+    pub fn withdraw_lp_tokens(ctx: Context<WithdrawLPTokens>, amount: u64) -> Result<()> {
+        withdraw_lp_tokens::handle(ctx, amount)
+    }
+
     pub fn withdraw_stake(ctx: Context<WithdrawStake>, amount: u64) -> Result<()> {
         withdraw_stake::handle(ctx, amount)
     }
@@ -82,6 +86,8 @@ pub enum ErrorCode {
     InvalidStakeAccount,
     #[msg("Insufficient amount")]
     InsufficientAmount,
+    #[msg("Type overflow")]
+    TypeOverflow,
     #[msg("Pool is already paused")]
     PoolAlreadyPaused,
     #[msg("Pool is already resumed")]

@@ -461,6 +461,82 @@
       ]
     },
     {
+      "name": "withdrawLpTokens",
+      "accounts": [
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "poolAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "source",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destination",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lpToken",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "poolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userPoolToken",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "withdrawStake",
       "accounts": [
         {
@@ -921,21 +997,26 @@
     },
     {
       "code": 6003,
+      "name": "TypeOverflow",
+      "msg": "Type overflow"
+    },
+    {
+      "code": 6004,
       "name": "PoolAlreadyPaused",
       "msg": "Pool is already paused"
     },
     {
-      "code": 6004,
+      "code": 6005,
       "name": "PoolAlreadyResumed",
       "msg": "Pool is already resumed"
     },
     {
-      "code": 6005,
+      "code": 6006,
       "name": "UserBlocked",
       "msg": "User is blocked"
     },
     {
-      "code": 6006,
+      "code": 6007,
       "name": "UserNotBlocked",
       "msg": "User is not blocked"
     }

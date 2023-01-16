@@ -13,6 +13,7 @@ pub mod withdraw_sol;
 pub mod withdraw_stake;
 pub mod add_manager;
 pub mod remove_manager;
+pub mod withdraw_lp_tokens;
 
 pub use add_to_whitelist::*;
 pub use block_user::*;
@@ -29,3 +30,4 @@ pub use withdraw_sol::*;
 pub use withdraw_stake::*;
 pub use add_manager::*;
 pub use remove_manager::*;
+pub use withdraw_lp_tokens::*;
