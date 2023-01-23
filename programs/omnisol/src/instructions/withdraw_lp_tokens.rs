@@ -26,7 +26,7 @@ pub fn handle(ctx: Context<WithdrawLPTokens>, amount: u64) -> Result<()> {
 
     let rest_amount = collateral.delegation_stake - collateral.liquidated_amount;
 
-    if amount == 0 || amount > rest_amount {
+    if amount == 0 || amount > collateral.amount || amount > rest_amount {
         return Err(ErrorCode::InsufficientAmount.into());
     }
 
@@ -77,7 +77,7 @@ pub fn handle(ctx: Context<WithdrawLPTokens>, amount: u64) -> Result<()> {
         pool: pool.key(),
         collateral: collateral.key(),
         amount,
-        rest_amount: collateral.delegation_stake,
+        rest_amount: collateral.delegation_stake - collateral.liquidated_amount,
         timestamp: clock.unix_timestamp,
     });
 
@@ -102,7 +102,6 @@ pub struct WithdrawLPTokens<'info> {
 
     #[account(
     mut,
-    constraint = collateral.is_native == false,
     seeds = [Collateral::SEED, user.key().as_ref(), lp_token.key().as_ref()],
     bump,
     )]
