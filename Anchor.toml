@@ -13,3 +13,7 @@ wallet = "~/.config/solana/id.json"
 
 [programs.localnet]
 omnisol = "9SfbhzHrx5xczfoiTo2VVpG5oukcS5Schgy2ppLH3zQd"
+
+[[test.genesis]]
+address = "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
+program = "target/deploy/stake_pool.so"

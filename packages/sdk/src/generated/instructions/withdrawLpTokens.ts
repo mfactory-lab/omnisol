@@ -64,7 +64,6 @@ export interface WithdrawLpTokensInstructionAccounts {
   authority: web3.PublicKey
   clock: web3.PublicKey
   tokenProgram?: web3.PublicKey
-  systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
@@ -149,11 +148,6 @@ export function createWithdrawLpTokensInstruction(
     },
     {
       pubkey: accounts.tokenProgram ?? splToken.TOKEN_PROGRAM_ID,
-      isWritable: false,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.systemProgram ?? web3.SystemProgram.programId,
       isWritable: false,
       isSigner: false,
     },

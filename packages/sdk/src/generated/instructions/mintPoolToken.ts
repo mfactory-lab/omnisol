@@ -60,7 +60,6 @@ export interface MintPoolTokenInstructionAccounts {
   authority: web3.PublicKey
   clock: web3.PublicKey
   tokenProgram?: web3.PublicKey
-  systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
@@ -135,11 +134,6 @@ export function createMintPoolTokenInstruction(
     },
     {
       pubkey: accounts.tokenProgram ?? splToken.TOKEN_PROGRAM_ID,
-      isWritable: false,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.systemProgram ?? web3.SystemProgram.programId,
       isWritable: false,
       isSigner: false,
     },

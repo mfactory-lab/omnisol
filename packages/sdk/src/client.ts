@@ -106,7 +106,7 @@ export class OmnisolClient {
     }
   }
 
-  async removeManager(props: AddManager) {
+  async removeManager(props: RemoveManager) {
     const payer = this.wallet.publicKey
     const [manager] = await this.pda.manager(props.manager_wallet)
     const instruction = createRemoveManagerInstruction(
@@ -434,7 +434,6 @@ interface DepositLPTokenProps {
 interface DepositStakeProps {
   pool: PublicKey
   sourceStake: PublicKey
-  amount: BN
 }
 
 interface MintPoolTokens {

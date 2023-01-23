@@ -5,7 +5,7 @@ import {
 } from '@solana/spl-token'
 import { AnchorProvider, BN, Program, Wallet, web3 } from '@project-serum/anchor'
 import { assert } from 'chai'
-import { OmnisolClient } from '../packages/sdk'
+import { OmnisolClient } from '@omnisol/sdk'
 
 const payerKeypair = web3.Keypair.generate()
 const opts = AnchorProvider.defaultOptions()
@@ -24,19 +24,21 @@ describe('omnisol', () => {
   let pool: web3.PublicKey
   let poolMint: web3.PublicKey
   let lpToken: web3.PublicKey
+  let poolAuthority: web3.PublicKey
   let stakeAccount: web3.PublicKey
 
   before(async () => {
     await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(client.wallet.publicKey, 10 * web3.LAMPORTS_PER_SOL),
+      await provider.connection.requestAirdrop(client.wallet.publicKey, 1000 * web3.LAMPORTS_PER_SOL),
     )
   })
 
   it('can create global pool', async () => {
     const poolKeypair = web3.Keypair.generate()
     pool = poolKeypair.publicKey
-    const [poolAuthority, bump] = await client.pda.poolAuthority(pool)
-    poolMint = await createMint(provider.connection, payerKeypair, poolAuthority, null, 1, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
+    const [authority, bump] = await client.pda.poolAuthority(pool)
+    poolAuthority = authority
+    poolMint = await createMint(provider.connection, payerKeypair, authority, null, 9, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
     const { tx } = await client.createGlobalPool({
       pool,
       mint: poolMint,
@@ -182,7 +184,7 @@ describe('omnisol', () => {
   })
 
   it('can deposit lp tokens', async () => {
-    lpToken = await createMint(provider.connection, payerKeypair, provider.wallet.publicKey, null, 1, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
+    lpToken = await createMint(provider.connection, payerKeypair, provider.wallet.publicKey, null, 9, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
     await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], null, TOKEN_PROGRAM_ID)
     let sourceBalance = await provider.connection.getTokenAccountBalance(source.address)
@@ -199,7 +201,7 @@ describe('omnisol', () => {
       console.log(e)
       throw e
     }
-    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, pool)
+    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
     let destinationBalance = await provider.connection.getTokenAccountBalance(destination.address)
 
     assert.equal(destinationBalance.value.amount, 0)
@@ -238,6 +240,7 @@ describe('omnisol', () => {
     assert.equal(collateralData.bump, bump)
     assert.equal(collateralData.amount, 0)
     assert.equal(collateralData.delegationStake, 100)
+    assert.equal(collateralData.liquidatedAmount, 0)
     assert.equal(collateralData.isNative, false)
     assert.equal(collateralData.sourceStake.equals(lpToken), true)
   })
@@ -245,7 +248,7 @@ describe('omnisol', () => {
   it('can deposit lp tokens twice', async () => {
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
     await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], null, TOKEN_PROGRAM_ID)
-    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, pool)
+    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
     let sourceBalance = await provider.connection.getTokenAccountBalance(source.address)
     let destinationBalance = await provider.connection.getTokenAccountBalance(destination.address)
 
@@ -286,6 +289,7 @@ describe('omnisol', () => {
     assert.equal(collateralData.bump, bump)
     assert.equal(collateralData.amount, 0)
     assert.equal(collateralData.delegationStake, 200)
+    assert.equal(collateralData.liquidatedAmount, 0)
     assert.equal(collateralData.isNative, false)
     assert.equal(collateralData.sourceStake.equals(lpToken), true)
   })
@@ -294,7 +298,7 @@ describe('omnisol', () => {
     const someToken = await createMint(provider.connection, payerKeypair, provider.wallet.publicKey, null, 1, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, someToken, provider.wallet.publicKey)
     await mintTo(provider.connection, payerKeypair, someToken, source.address, provider.wallet.publicKey, 100, [], null, TOKEN_PROGRAM_ID)
-    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, someToken, pool)
+    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, someToken, poolAuthority, true)
     const { tx } = await client.depositLPToken({
       amount: new BN(100),
       destination: destination.address,
@@ -331,7 +335,7 @@ describe('omnisol', () => {
   it('can not deposit if user blocked', async () => {
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
     await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], null, TOKEN_PROGRAM_ID)
-    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, pool)
+    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
     const { tx } = await client.depositLPToken({
       amount: new BN(100),
       destination: destination.address,
@@ -367,7 +371,7 @@ describe('omnisol', () => {
 
   it('can not deposit if amount is 0', async () => {
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
-    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, pool)
+    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
     const { tx } = await client.depositLPToken({
       amount: new BN(0),
       destination: destination.address,
@@ -387,7 +391,7 @@ describe('omnisol', () => {
   it('can not deposit if pool paused', async () => {
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
     await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], null, TOKEN_PROGRAM_ID)
-    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, pool)
+    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
     const { tx } = await client.depositLPToken({
       amount: new BN(100),
       destination: destination.address,
@@ -427,84 +431,171 @@ describe('omnisol', () => {
   })
 
   it('can deposit stake', async () => {
-    // const stakeKeypair = web3.Keypair.generate()
-    // stakeAccount = stakeKeypair.publicKey
-    // const lamportsForStakeAccount
-    //   = (await provider.connection.getMinimumBalanceForRentExemption(
-    //     web3.StakeProgram.space,
-    //   )) + 50
-    //
-    // const createAccountTransaction = web3.StakeProgram.createAccount({
-    //   fromPubkey: provider.wallet.publicKey,
-    //   authorized: new web3.Authorized(
-    //     provider.wallet.publicKey,
-    //     provider.wallet.publicKey,
-    //   ),
-    //   lamports: lamportsForStakeAccount,
-    //   lockup: new web3.Lockup(0, 0, provider.wallet.publicKey),
-    //   stakePubkey: stakeAccount,
-    // })
-    // await provider.sendAndConfirm(createAccountTransaction, [payerKeypair, stakeKeypair])
-    //
-    // const delegateTransaction = web3.StakeProgram.delegate({
-    //   stakePubkey: stakeAccount,
-    //   authorizedPubkey: provider.wallet.publicKey,
-    //   votePubkey: pool,
-    // })
-    //
-    // await provider.sendAndConfirm(delegateTransaction, [payerKeypair, payerKeypair])
-    //
-    // const { transaction, user, collateral, bump } = await client.depositStake({
-    //   amount: new BN(0),
-    //   sourceStake: stakeAccount,
-    //   pool,
-    // })
-    //
-    // try {
-    //   await provider.sendAndConfirm(transaction)
-    // } catch (e) {
-    //   console.log(e)
-    //   throw e
-    // }
-    //
-    // const poolData = await client.fetchGlobalPool(pool)
-    // const userData = await client.fetchUser(user)
-    // const collateralData = await client.fetchCollateral(collateral)
-    //
-    // assert.equal(poolData.depositAmount, 300)
-    // assert.equal(userData.wallet.equals(provider.wallet.publicKey), true)
-    // assert.equal(userData.rate, 100)
-    // assert.equal(userData.isBlocked, false)
-    // assert.equal(collateralData.user.equals(user), true)
-    // assert.equal(collateralData.pool.equals(pool), true)
-    // assert.equal(collateralData.bump, bump)
-    // assert.equal(collateralData.amount, 0)
-    // assert.equal(collateralData.delegationStake, 100)
-    // assert.equal(collateralData.isNative, false)
-    // assert.equal(collateralData.sourceStake.equals(lpToken), true)
+    const stakeKeypair = web3.Keypair.generate()
+    stakeAccount = stakeKeypair.publicKey
+
+    const lamportsForStakeAccount
+      = (await provider.connection.getMinimumBalanceForRentExemption(
+        web3.StakeProgram.space,
+      ))
+
+    const createAccountTransaction = web3.StakeProgram.createAccount({
+      fromPubkey: provider.wallet.publicKey,
+      authorized: new web3.Authorized(
+        provider.wallet.publicKey,
+        provider.wallet.publicKey,
+      ),
+      lamports: lamportsForStakeAccount + 10 * web3.LAMPORTS_PER_SOL,
+      lockup: new web3.Lockup(0, 0, provider.wallet.publicKey),
+      stakePubkey: stakeAccount,
+    })
+    await provider.sendAndConfirm(createAccountTransaction, [payerKeypair, stakeKeypair])
+
+    const validators = await provider.connection.getVoteAccounts()
+    const selectedValidator = validators.current[0]
+    const selectedValidatorPubkey = new web3.PublicKey(selectedValidator.votePubkey)
+
+    const delegateTransaction = web3.StakeProgram.delegate({
+      stakePubkey: stakeAccount,
+      authorizedPubkey: provider.wallet.publicKey,
+      votePubkey: selectedValidatorPubkey,
+    })
+
+    await provider.sendAndConfirm(delegateTransaction, [payerKeypair, payerKeypair])
+
+    const { transaction, user, collateral, bump } = await client.depositStake({
+      sourceStake: stakeAccount,
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(transaction)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const poolData = await client.fetchGlobalPool(pool)
+    const userData = await client.fetchUser(user)
+    const collateralData = await client.fetchCollateral(collateral)
+
+    assert.equal(poolData.depositAmount.toString(), '10000000200')
+    assert.equal(userData.wallet.equals(provider.wallet.publicKey), true)
+    assert.equal(userData.rate.toString(), '10000000200')
+    assert.equal(userData.isBlocked, false)
+    assert.equal(collateralData.user.equals(user), true)
+    assert.equal(collateralData.pool.equals(pool), true)
+    assert.equal(collateralData.bump, bump)
+    assert.equal(collateralData.amount, 0)
+    assert.equal(collateralData.delegationStake.toString(), '10000000000')
+    assert.equal(collateralData.liquidatedAmount.toString(), '0')
+    assert.equal(collateralData.isNative, true)
+    assert.equal(collateralData.sourceStake.equals(stakeAccount), true)
   })
 
   it('can not deposit stake if it is not delegated', async () => {
+    const stakeKeypair = web3.Keypair.generate()
+    const stakeAccount = stakeKeypair.publicKey
 
-  })
+    const lamportsForStakeAccount
+      = (await provider.connection.getMinimumBalanceForRentExemption(
+        web3.StakeProgram.space,
+      ))
 
-  it('can not deposit stake if delegated amount = 0', async () => {
+    const createAccountTransaction = web3.StakeProgram.createAccount({
+      fromPubkey: provider.wallet.publicKey,
+      authorized: new web3.Authorized(
+        provider.wallet.publicKey,
+        provider.wallet.publicKey,
+      ),
+      lamports: lamportsForStakeAccount + 10 * web3.LAMPORTS_PER_SOL,
+      lockup: new web3.Lockup(0, 0, provider.wallet.publicKey),
+      stakePubkey: stakeAccount,
+    })
+    await provider.sendAndConfirm(createAccountTransaction, [payerKeypair, stakeKeypair])
 
+    const { transaction } = await client.depositStake({
+      sourceStake: stakeAccount,
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(transaction)
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, '')
+    }
   })
 
   it('can not deposit stake if pool paused', async () => {
+    const stakeKeypair = web3.Keypair.generate()
+    const stakeAccount = stakeKeypair.publicKey
 
-  })
+    const lamportsForStakeAccount
+      = (await provider.connection.getMinimumBalanceForRentExemption(
+        web3.StakeProgram.space,
+      ))
 
-  it('can not deposit stake if user blocked', async () => {
+    const createAccountTransaction = web3.StakeProgram.createAccount({
+      fromPubkey: provider.wallet.publicKey,
+      authorized: new web3.Authorized(
+        provider.wallet.publicKey,
+        provider.wallet.publicKey,
+      ),
+      lamports: lamportsForStakeAccount + 10 * web3.LAMPORTS_PER_SOL,
+      lockup: new web3.Lockup(0, 0, provider.wallet.publicKey),
+      stakePubkey: stakeAccount,
+    })
+    await provider.sendAndConfirm(createAccountTransaction, [payerKeypair, stakeKeypair])
 
+    const validators = await provider.connection.getVoteAccounts()
+    const selectedValidator = validators.current[0]
+    const selectedValidatorPubkey = new web3.PublicKey(selectedValidator.votePubkey)
+
+    const delegateTransaction = web3.StakeProgram.delegate({
+      stakePubkey: stakeAccount,
+      authorizedPubkey: provider.wallet.publicKey,
+      votePubkey: selectedValidatorPubkey,
+    })
+
+    await provider.sendAndConfirm(delegateTransaction, [payerKeypair, payerKeypair])
+
+    const { tx: tx1 } = await client.pauseGlobalPool({
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx1)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const { transaction } = await client.depositStake({
+      sourceStake: stakeAccount,
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(transaction)
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, 'PoolAlreadyPaused')
+    }
+
+    const { tx: tx2 } = await client.resumeGlobalPool({
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx2)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
   })
 
   it('can mint pool tokens from stake collateral', async () => {
-
-  })
-
-  it('can mint pool tokens from lp collateral', async () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
     let userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
 
@@ -514,7 +605,7 @@ describe('omnisol', () => {
       amount: new BN(100),
       pool,
       poolMint,
-      stakedAddress: lpToken,
+      stakedAddress: stakeAccount,
       userPoolToken: userPoolToken.address,
     })
 
@@ -533,10 +624,45 @@ describe('omnisol', () => {
     const userData = await client.fetchUser(user)
     const collateralData = await client.fetchCollateral(collateral)
 
-    assert.equal(poolData.depositAmount, 200)
-    assert.equal(userData.rate, 100)
-    assert.equal(collateralData.amount, 100)
-    assert.equal(collateralData.delegationStake, 200)
+    assert.equal(poolData.depositAmount.toString(), '10000000200')
+    assert.equal(userData.rate.toString(), '10000000100')
+    assert.equal(collateralData.amount.toString(), '100')
+    assert.equal(collateralData.delegationStake.toString(), '10000000000')
+  })
+
+  it('can mint pool tokens from lp collateral', async () => {
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+    let userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
+
+    assert.equal(userPoolBalance.value.amount, 100)
+
+    const { transaction, user, collateral } = await client.mintPoolTokens({
+      amount: new BN(100),
+      pool,
+      poolMint,
+      stakedAddress: lpToken,
+      userPoolToken: userPoolToken.address,
+    })
+
+    try {
+      await provider.sendAndConfirm(transaction)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
+
+    assert.equal(userPoolBalance.value.amount, 200)
+
+    const poolData = await client.fetchGlobalPool(pool)
+    const userData = await client.fetchUser(user)
+    const collateralData = await client.fetchCollateral(collateral)
+
+    assert.equal(poolData.depositAmount.toString(), '10000000200')
+    assert.equal(userData.rate.toString(), '10000000000')
+    assert.equal(collateralData.amount.toString(), '100')
+    assert.equal(collateralData.delegationStake.toString(), '200')
   })
 
   it('can not mint greater than was delegated', async () => {
@@ -557,10 +683,10 @@ describe('omnisol', () => {
       const userData = await client.fetchUser(user)
       const collateralData = await client.fetchCollateral(collateral)
 
-      assert.equal(poolData.depositAmount, 200)
-      assert.equal(userData.rate, 100)
-      assert.equal(collateralData.amount, 100)
-      assert.equal(collateralData.delegationStake, 200)
+      assert.equal(poolData.depositAmount.toString(), '10000000200')
+      assert.equal(userData.rate.toString(), '10000000000')
+      assert.equal(collateralData.amount.toString(), '100')
+      assert.equal(collateralData.delegationStake.toString(), '200')
       assertErrorCode(e, 'InsufficientAmount')
     }
   })

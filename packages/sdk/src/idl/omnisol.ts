@@ -447,11 +447,6 @@ export interface Omnisol {
           'isMut': false
           'isSigner': false
         },
-        {
-          'name': 'systemProgram'
-          'isMut': false
-          'isSigner': false
-        },
       ]
       'args': [
         {
@@ -523,11 +518,6 @@ export interface Omnisol {
           'isMut': false
           'isSigner': false
         },
-        {
-          'name': 'systemProgram'
-          'isMut': false
-          'isSigner': false
-        },
       ]
       'args': [
         {
@@ -545,13 +535,13 @@ export interface Omnisol {
           'isSigner': false
         },
         {
-          'name': 'poolMint'
+          'name': 'poolAuthority'
           'isMut': false
           'isSigner': false
         },
         {
-          'name': 'poolAuthority'
-          'isMut': false
+          'name': 'user'
+          'isMut': true
           'isSigner': false
         },
         {
@@ -560,7 +550,7 @@ export interface Omnisol {
           'isSigner': false
         },
         {
-          'name': 'destinationStake'
+          'name': 'poolMint'
           'isMut': true
           'isSigner': false
         },
@@ -575,14 +565,9 @@ export interface Omnisol {
           'isSigner': false
         },
         {
-          'name': 'sourceTokenAccount'
+          'name': 'userPoolToken'
           'isMut': true
           'isSigner': false
-        },
-        {
-          'name': 'stakeAuthority'
-          'isMut': false
-          'isSigner': true
         },
         {
           'name': 'authority'
@@ -760,6 +745,13 @@ export interface Omnisol {
             'name': 'amount'
             'docs': [
               'An amount of minted pool tokens',
+            ]
+            'type': 'u64'
+          },
+          {
+            'name': 'liquidatedAmount'
+            'docs': [
+              'An amount of "liquidated" staked tokens',
             ]
             'type': 'u64'
           },
@@ -1472,11 +1464,6 @@ export const IDL: Omnisol = {
           isMut: false,
           isSigner: false,
         },
-        {
-          name: 'systemProgram',
-          isMut: false,
-          isSigner: false,
-        },
       ],
       args: [
         {
@@ -1548,11 +1535,6 @@ export const IDL: Omnisol = {
           isMut: false,
           isSigner: false,
         },
-        {
-          name: 'systemProgram',
-          isMut: false,
-          isSigner: false,
-        },
       ],
       args: [
         {
@@ -1570,13 +1552,13 @@ export const IDL: Omnisol = {
           isSigner: false,
         },
         {
-          name: 'poolMint',
+          name: 'poolAuthority',
           isMut: false,
           isSigner: false,
         },
         {
-          name: 'poolAuthority',
-          isMut: false,
+          name: 'user',
+          isMut: true,
           isSigner: false,
         },
         {
@@ -1585,7 +1567,7 @@ export const IDL: Omnisol = {
           isSigner: false,
         },
         {
-          name: 'destinationStake',
+          name: 'poolMint',
           isMut: true,
           isSigner: false,
         },
@@ -1600,14 +1582,9 @@ export const IDL: Omnisol = {
           isSigner: false,
         },
         {
-          name: 'sourceTokenAccount',
+          name: 'userPoolToken',
           isMut: true,
           isSigner: false,
-        },
-        {
-          name: 'stakeAuthority',
-          isMut: false,
-          isSigner: true,
         },
         {
           name: 'authority',
@@ -1785,6 +1762,13 @@ export const IDL: Omnisol = {
             name: 'amount',
             docs: [
               'An amount of minted pool tokens',
+            ],
+            type: 'u64',
+          },
+          {
+            name: 'liquidatedAmount',
+            docs: [
+              'An amount of "liquidated" staked tokens',
             ],
             type: 'u64',
           },

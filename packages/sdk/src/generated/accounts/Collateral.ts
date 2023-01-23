@@ -20,6 +20,7 @@ export interface CollateralArgs {
   sourceStake: web3.PublicKey
   delegationStake: beet.bignum
   amount: beet.bignum
+  liquidatedAmount: beet.bignum
   createdAt: beet.bignum
   bump: number
   isNative: boolean
@@ -40,6 +41,7 @@ export class Collateral implements CollateralArgs {
     readonly sourceStake: web3.PublicKey,
     readonly delegationStake: beet.bignum,
     readonly amount: beet.bignum,
+    readonly liquidatedAmount: beet.bignum,
     readonly createdAt: beet.bignum,
     readonly bump: number,
     readonly isNative: boolean,
@@ -55,6 +57,7 @@ export class Collateral implements CollateralArgs {
       args.sourceStake,
       args.delegationStake,
       args.amount,
+      args.liquidatedAmount,
       args.createdAt,
       args.bump,
       args.isNative,
@@ -189,6 +192,17 @@ export class Collateral implements CollateralArgs {
         }
         return x
       })(),
+      liquidatedAmount: (() => {
+        const x = <{ toNumber: () => number }> this.liquidatedAmount
+        if (typeof x.toNumber === 'function') {
+          try {
+            return x.toNumber()
+          } catch (_) {
+            return x
+          }
+        }
+        return x
+      })(),
       createdAt: (() => {
         const x = <{ toNumber: () => number }> this.createdAt
         if (typeof x.toNumber === 'function') {
@@ -223,6 +237,7 @@ export const collateralBeet = new beet.BeetStruct<
     ['sourceStake', beetSolana.publicKey],
     ['delegationStake', beet.u64],
     ['amount', beet.u64],
+    ['liquidatedAmount', beet.u64],
     ['createdAt', beet.i64],
     ['bump', beet.u8],
     ['isNative', beet.bool],

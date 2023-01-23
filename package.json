@@ -7,13 +7,13 @@
     "lint:fix": "eslint --cache --fix --ext .js,.vue,.ts ./packages/**",
     "amman:start": "CI=1 DEBUG='amman:(error|info|debug)*' amman start",
     "amman:stop": "amman stop",
-    "test": "CI=1 node tests/omnisol.ts"
+    "test": "CI=1 ts-node-esm tests/omnisol.ts"
   },
   "dependencies": {
-    "@project-serum/anchor": "^0.25.0"
+    "@project-serum/anchor": "^0.25.0",
+    "@omnisol/sdk": "*"
   },
   "devDependencies": {
-    "@metaplex-foundation/amman": "^0.12.1",
     "@antfu/eslint-config-vue": "^0.34.0",
     "@types/bn.js": "^5.1.0",
     "@types/bs58": "^4.0.1",

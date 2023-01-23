@@ -37,14 +37,13 @@ export const withdrawStakeStruct = new beet.BeetArgsStruct<
  * Accounts required by the _withdrawStake_ instruction
  *
  * @property [_writable_] pool
- * @property [] poolMint
  * @property [] poolAuthority
+ * @property [_writable_] user
  * @property [_writable_] collateral
- * @property [_writable_] destinationStake
+ * @property [_writable_] poolMint
  * @property [_writable_] sourceStake
  * @property [_writable_] splitStake
- * @property [_writable_] sourceTokenAccount
- * @property [**signer**] stakeAuthority
+ * @property [_writable_] userPoolToken
  * @property [_writable_, **signer**] authority
  * @property [] clock
  * @property [] stakeHistory
@@ -55,14 +54,13 @@ export const withdrawStakeStruct = new beet.BeetArgsStruct<
  */
 export interface WithdrawStakeInstructionAccounts {
   pool: web3.PublicKey
-  poolMint: web3.PublicKey
   poolAuthority: web3.PublicKey
+  user: web3.PublicKey
   collateral: web3.PublicKey
-  destinationStake: web3.PublicKey
+  poolMint: web3.PublicKey
   sourceStake: web3.PublicKey
   splitStake: web3.PublicKey
-  sourceTokenAccount: web3.PublicKey
-  stakeAuthority: web3.PublicKey
+  userPoolToken: web3.PublicKey
   authority: web3.PublicKey
   clock: web3.PublicKey
   stakeHistory: web3.PublicKey
@@ -102,13 +100,13 @@ export function createWithdrawStakeInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.poolMint,
+      pubkey: accounts.poolAuthority,
       isWritable: false,
       isSigner: false,
     },
     {
-      pubkey: accounts.poolAuthority,
-      isWritable: false,
+      pubkey: accounts.user,
+      isWritable: true,
       isSigner: false,
     },
     {
@@ -117,7 +115,7 @@ export function createWithdrawStakeInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.destinationStake,
+      pubkey: accounts.poolMint,
       isWritable: true,
       isSigner: false,
     },
@@ -132,14 +130,9 @@ export function createWithdrawStakeInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.sourceTokenAccount,
+      pubkey: accounts.userPoolToken,
       isWritable: true,
       isSigner: false,
-    },
-    {
-      pubkey: accounts.stakeAuthority,
-      isWritable: false,
-      isSigner: true,
     },
     {
       pubkey: accounts.authority,
