@@ -20,7 +20,6 @@ pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
     }
 
     let pool_key = pool.key();
-    let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
     let clock = &ctx.accounts.clock;
 
     // Transfer LP tokens to the pool
@@ -55,6 +54,7 @@ pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
         collateral.source_stake = ctx.accounts.lp_token.key();
         collateral.delegation_stake = 0;
         collateral.amount = 0;
+        collateral.liquidated_amount = 0;
         collateral.created_at = clock.unix_timestamp;
         collateral.bump = ctx.bumps["collateral"];
         collateral.is_native = false;
@@ -118,7 +118,7 @@ pub struct DepositLPTokens<'info> {
     #[account(
         mut,
         associated_token::mint = lp_token,
-        associated_token::authority = pool,
+        associated_token::authority = pool_authority,
     )]
     pub destination: Account<'info, token::TokenAccount>,
 

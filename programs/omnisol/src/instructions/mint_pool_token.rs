@@ -100,5 +100,4 @@ pub struct MintPoolToken<'info> {
 
     pub clock: Sysvar<'info, Clock>,
     pub token_program: Program<'info, token::Token>,
-    pub system_program: Program<'info, System>,
 }

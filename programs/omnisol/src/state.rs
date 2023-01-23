@@ -30,6 +30,8 @@ pub struct Collateral {
     pub delegation_stake: u64,
     /// An amount of minted pool tokens
     pub amount: u64,
+    /// An amount of "liquidated" staked tokens
+    pub liquidated_amount: u64,
     /// Time of collateral's creation
     pub created_at: i64,
     /// Signer bump seed for deriving PDA seeds
@@ -40,7 +42,7 @@ pub struct Collateral {
 
 impl Collateral {
     pub const SEED: &'static [u8] = b"collateral";
-    pub const SIZE: usize = 8 + 32 + 32 + 32 + 8 + 8 + 8 + 1 + 1;
+    pub const SIZE: usize = 8 + 32 + 32 + 32 + 8 + 8 + 8 + 8 + 1 + 1;
 }
 
 #[account]

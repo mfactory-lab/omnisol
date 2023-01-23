@@ -3,7 +3,7 @@ use anchor_spl::token;
 
 use crate::{
     events::*,
-    state::{Collateral, Pool},
+    state::{Collateral, Pool, User},
     utils::{self, stake},
     ErrorCode,
 };
@@ -45,14 +45,14 @@ pub fn handle(ctx: Context<WithdrawStake>, amount: u64) -> Result<()> {
         ctx.accounts.source_stake.to_account_info()
     };
 
-    if source_stake.key() == ctx.accounts.destination_stake.key() {
+    if source_stake.key() == ctx.accounts.source_stake.key() {
         stake::authorize(
             CpiContext::new_with_signer(
                 ctx.accounts.stake_program.to_account_info(),
                 stake::Authorize {
                     stake: source_stake,
                     authority: ctx.accounts.pool_authority.to_account_info(),
-                    new_authority: ctx.accounts.stake_authority.to_account_info(),
+                    new_authority: ctx.accounts.authority.to_account_info(),
                     clock: clock.to_account_info(),
                 },
                 &[&pool_authority_seeds],
@@ -65,7 +65,7 @@ pub fn handle(ctx: Context<WithdrawStake>, amount: u64) -> Result<()> {
             ctx.accounts.stake_program.to_account_info(),
             stake::Merge {
                 source_stake,
-                destination_stake: ctx.accounts.destination_stake.to_account_info(),
+                destination_stake: ctx.accounts.source_stake.to_account_info(),
                 authority: ctx.accounts.pool_authority.to_account_info(),
                 stake_history: ctx.accounts.stake_history.to_account_info(),
                 clock: clock.to_account_info(),
@@ -80,7 +80,7 @@ pub fn handle(ctx: Context<WithdrawStake>, amount: u64) -> Result<()> {
             ctx.accounts.token_program.to_account_info(),
             token::Burn {
                 mint: ctx.accounts.pool_mint.to_account_info(),
-                from: ctx.accounts.source_token_account.to_account_info(),
+                from: ctx.accounts.user_pool_token.to_account_info(),
                 authority: ctx.accounts.authority.to_account_info(),
             },
         ),
@@ -110,21 +110,30 @@ pub struct WithdrawStake<'info> {
     #[account(mut)]
     pub pool: Box<Account<'info, Pool>>,
 
-    #[account(address = pool.pool_mint)]
-    pub pool_mint: Account<'info, token::Mint>,
-
     /// CHECK: no needs to check, only for signing
     #[account(seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
     pub pool_authority: AccountInfo<'info>,
-    // , has_one = user
-    #[account(mut, has_one = pool)]
-    pub collateral: Box<Account<'info, Collateral>>,
 
-    #[account(mut, constraint = collateral.source_stake == destination_stake.key())]
-    pub destination_stake: Box<Account<'info, stake::StakeAccount>>,
+    #[account(
+    mut,
+    seeds = [User::SEED, authority.key().as_ref()],
+    bump,
+    )]
+    pub user: Box<Account<'info, User>>,
+
+    #[account(
+    mut,
+    seeds = [Collateral::SEED, user.key().as_ref(), source_stake.key().as_ref()],
+    bump,
+    )]
+    pub collateral: Account<'info, Collateral>,
+
+    /// CHECK:
+    #[account(mut, address = pool.pool_mint)]
+    pub pool_mint: AccountInfo<'info>,
 
     #[account(mut, constraint = collateral.source_stake == source_stake.key())]
-    pub source_stake: Account<'info, stake::StakeAccount>,
+    pub source_stake: Box<Account<'info, stake::StakeAccount>>,
 
     /// CHECK:
     #[account(mut)]
@@ -135,9 +144,7 @@ pub struct WithdrawStake<'info> {
         associated_token::mint = pool_mint,
         associated_token::authority = authority,
     )]
-    pub source_token_account: Account<'info, token::TokenAccount>,
-
-    pub stake_authority: Signer<'info>,
+    pub user_pool_token: Account<'info, token::TokenAccount>,
 
     #[account(mut)]
     pub authority: Signer<'info>,

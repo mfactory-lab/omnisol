@@ -1,4 +1,4 @@
-use anchor_lang::{prelude::*, solana_program::stake::state::StakeAuthorize};
+use anchor_lang::{prelude::*, solana_program::{stake::state::StakeAuthorize, native_token::LAMPORTS_PER_SOL}};
 
 use crate::{
     events::*,
@@ -27,10 +27,6 @@ pub fn handle(ctx: Context<DepositStake>) -> Result<()> {
     let pool_key = pool.key();
     let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
     let clock = &ctx.accounts.clock;
-
-    if delegation.stake == 0 {
-        return Err(ErrorCode::InsufficientAmount.into());
-    }
 
     // Authorize to `withdraw` the stake for the program
     stake::authorize(
@@ -67,6 +63,7 @@ pub fn handle(ctx: Context<DepositStake>) -> Result<()> {
     collateral.source_stake = ctx.accounts.source_stake.key();
     collateral.delegation_stake = delegation.stake;
     collateral.amount = 0;
+    collateral.liquidated_amount = 0;
     collateral.created_at = clock.unix_timestamp;
     collateral.bump = ctx.bumps["collateral"];
     collateral.is_native = true;

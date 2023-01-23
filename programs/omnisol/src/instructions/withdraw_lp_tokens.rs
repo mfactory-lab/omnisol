@@ -1,7 +1,11 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 
-use crate::{events::*, state::{Collateral, Pool, User, Whitelist}, ErrorCode, utils};
+use crate::{
+    events::*,
+    state::{Collateral, Pool, User},
+    utils, ErrorCode,
+};
 
 /// The user can use their deposit as collateral and mint omniSOL.
 /// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
@@ -45,7 +49,10 @@ pub fn handle(ctx: Context<WithdrawLPTokens>, amount: u64) -> Result<()> {
     collateral.amount -= amount;
     collateral.delegation_stake -= amount;
 
-    pool.deposit_amount = pool.deposit_amount.checked_sub(amount).ok_or(ErrorCode::InsufficientAmount)?;
+    pool.deposit_amount = pool
+        .deposit_amount
+        .checked_sub(amount)
+        .ok_or(ErrorCode::InsufficientAmount)?;
 
     token::burn(
         CpiContext::new(
@@ -101,7 +108,7 @@ pub struct WithdrawLPTokens<'info> {
     #[account(
     mut,
     associated_token::mint = lp_token,
-    associated_token::authority = pool,
+    associated_token::authority = pool_authority,
     )]
     pub source: Account<'info, token::TokenAccount>,
 
@@ -131,5 +138,4 @@ pub struct WithdrawLPTokens<'info> {
 
     pub clock: Sysvar<'info, Clock>,
     pub token_program: Program<'info, token::Token>,
-    pub system_program: Program<'info, System>,
 }
