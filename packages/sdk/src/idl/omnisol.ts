@@ -658,6 +658,37 @@ export interface Omnisol {
         },
       ]
     },
+    {
+      'name': 'initOracle'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'oracle'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'oracleAuthority'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'systemProgram'
+          'isMut': false
+          'isSigner': false
+        },
+      ]
+      'args': []
+    },
   ]
   'accounts': [
     {
@@ -699,6 +730,32 @@ export interface Omnisol {
               'Flag that indicates that the pool is running or paused',
             ]
             'type': 'bool'
+          },
+        ]
+      }
+    },
+    {
+      'name': 'oracle'
+      'type': {
+        'kind': 'struct'
+        'fields': [
+          {
+            'name': 'authority'
+            'docs': [
+              'Oracle wallet that can manage oracle info',
+            ]
+            'type': 'publicKey'
+          },
+          {
+            'name': 'priorityQueue'
+            'docs': [
+              'Priority queue with collaterals by users rate in ascending order',
+            ]
+            'type': {
+              'vec': {
+                'defined': 'QueueMember'
+              }
+            }
           },
         ]
       }
@@ -829,6 +886,24 @@ export interface Omnisol {
               'Flag that indicates that the user is blocked or not',
             ]
             'type': 'bool'
+          },
+        ]
+      }
+    },
+  ]
+  'types': [
+    {
+      'name': 'QueueMember'
+      'type': {
+        'kind': 'struct'
+        'fields': [
+          {
+            'name': 'collateral'
+            'type': 'publicKey'
+          },
+          {
+            'name': 'amount'
+            'type': 'u64'
           },
         ]
       }
@@ -1670,6 +1745,37 @@ export const IDL: Omnisol = {
         },
       ],
     },
+    {
+      name: 'initOracle',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'oracle',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'oracleAuthority',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
   ],
   accounts: [
     {
@@ -1711,6 +1817,32 @@ export const IDL: Omnisol = {
               'Flag that indicates that the pool is running or paused',
             ],
             type: 'bool',
+          },
+        ],
+      },
+    },
+    {
+      name: 'oracle',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'authority',
+            docs: [
+              'Oracle wallet that can manage oracle info',
+            ],
+            type: 'publicKey',
+          },
+          {
+            name: 'priorityQueue',
+            docs: [
+              'Priority queue with collaterals by users rate in ascending order',
+            ],
+            type: {
+              vec: {
+                defined: 'QueueMember',
+              },
+            },
           },
         ],
       },
@@ -1841,6 +1973,24 @@ export const IDL: Omnisol = {
               'Flag that indicates that the user is blocked or not',
             ],
             type: 'bool',
+          },
+        ],
+      },
+    },
+  ],
+  types: [
+    {
+      name: 'QueueMember',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'collateral',
+            type: 'publicKey',
+          },
+          {
+            name: 'amount',
+            type: 'u64',
           },
         ],
       },

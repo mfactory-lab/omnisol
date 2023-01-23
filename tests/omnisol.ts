@@ -26,6 +26,7 @@ describe('omnisol', () => {
   let lpToken: web3.PublicKey
   let poolAuthority: web3.PublicKey
   let stakeAccount: web3.PublicKey
+  let oracle: web3.PublicKey
 
   before(async () => {
     await provider.connection.confirmTransaction(
@@ -80,6 +81,28 @@ describe('omnisol', () => {
 
     const managerData = await client.fetchManager(manager)
     assert.equal(managerData.manager.equals(provider.wallet.publicKey), true)
+  })
+
+  it('can init oracle', async () => {
+    const oraclePair = web3.Keypair.generate()
+    oracle = oraclePair.publicKey
+
+    const { tx } = await client.initOracle({
+      pool,
+      oracleAuthority: provider.wallet.publicKey,
+      oracle,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx, [oraclePair])
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const oracleData = await client.fetchOracle(oracle)
+    assert.equal(oracleData.authority.equals(provider.wallet.publicKey), true)
+    assert.equal(oracleData.priorityQueue.toString(), [].toString())
   })
 
   it('can remove manager', async () => {

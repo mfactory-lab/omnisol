@@ -19,6 +19,24 @@ impl Pool {
 }
 
 #[account]
+pub struct Oracle {
+    /// Oracle wallet that can manage oracle info
+    pub authority: Pubkey,
+    /// Priority queue with collaterals by users rate in ascending order
+    pub priority_queue: Vec<QueueMember>,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub struct QueueMember {
+    pub collateral: Pubkey,
+    pub amount: u64,
+}
+
+impl Oracle {
+    pub const SIZE: usize = 10240;
+}
+
+#[account]
 pub struct Collateral {
     /// User PDA with wallet that has authority of the staking pool
     pub user: Pubkey,

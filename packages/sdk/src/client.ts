@@ -2,7 +2,7 @@ import type { Address, BN, Program } from '@project-serum/anchor'
 import type { PublicKey } from '@solana/web3.js'
 import { Transaction } from '@solana/web3.js'
 import { web3 } from '@project-serum/anchor'
-import type { Collateral, Manager, Pool, User, Whitelist } from './generated'
+import type { Collateral, Manager, Oracle, Pool, User, Whitelist } from './generated'
 import {
   PROGRAM_ID,
   createAddManagerInstruction,
@@ -11,13 +11,16 @@ import {
   createClosePoolInstruction,
   createDepositLpInstruction,
   createDepositStakeInstruction,
+  createInitOracleInstruction,
   createInitPoolInstruction,
   createMintPoolTokenInstruction,
   createPausePoolInstruction,
   createRemoveFromWhitelistInstruction,
   createRemoveManagerInstruction,
   createResumePoolInstruction,
-  createUnblockUserInstruction, createWithdrawLpTokensInstruction, createWithdrawStakeInstruction,
+  createUnblockUserInstruction,
+  createWithdrawLpTokensInstruction,
+  createWithdrawStakeInstruction,
 } from './generated'
 import { IDL } from './idl/omnisol'
 
@@ -64,6 +67,10 @@ export class OmnisolClient {
 
   async fetchManager(address: Address) {
     return await this.program.account.manager.fetchNullable(address) as unknown as Manager
+  }
+
+  async fetchOracle(address: Address) {
+    return await this.program.account.oracle.fetchNullable(address) as unknown as Oracle
   }
 
   async createGlobalPool(props: CreateGlobalPoolProps) {
@@ -406,6 +413,24 @@ export class OmnisolClient {
       collateral,
     }
   }
+
+  async initOracle(props: InitOracleProps) {
+    const payer = this.wallet.publicKey
+    const pool = props.pool
+    const ix = createInitOracleInstruction(
+      {
+        authority: payer,
+        oracle: props.oracle,
+        oracleAuthority: props.oracleAuthority,
+        pool,
+      },
+    )
+    const tx = new Transaction().add(ix)
+
+    return {
+      tx,
+    }
+  }
 }
 
 class OmnisolPDA {
@@ -536,4 +561,10 @@ interface WithdrawStakeProps {
   splitStake: PublicKey
   stakeProgram: PublicKey
   amount: BN
+}
+
+interface InitOracleProps {
+  pool: PublicKey
+  oracle: PublicKey
+  oracleAuthority: PublicKey
 }
