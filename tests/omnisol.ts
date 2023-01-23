@@ -491,6 +491,20 @@ describe('omnisol', () => {
     assert.equal(collateralData.liquidatedAmount.toString(), '0')
     assert.equal(collateralData.isNative, true)
     assert.equal(collateralData.sourceStake.equals(stakeAccount), true)
+
+    const withdrawTransaction = web3.StakeProgram.withdraw({
+      stakePubkey: stakeAccount,
+      authorizedPubkey: provider.wallet.publicKey,
+      toPubkey: provider.wallet.publicKey,
+      lamports: lamportsForStakeAccount + 10 * web3.LAMPORTS_PER_SOL,
+    })
+
+    try {
+      await provider.sendAndConfirm(withdrawTransaction, [payerKeypair, stakeKeypair])
+      assert.ok(false)
+    } catch (e: any) {
+      assert.ok(true)
+    }
   })
 
   it('can not deposit stake if it is not delegated', async () => {
@@ -771,6 +785,74 @@ describe('omnisol', () => {
       console.log(e)
       throw e
     }
+  })
+
+  it('can withdraw lp tokens', async () => {
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+    let userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
+
+    assert.equal(userPoolBalance.value.amount, 200)
+
+    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
+    let destinationBalance = await provider.connection.getTokenAccountBalance(destination.address)
+
+    assert.equal(destinationBalance.value.amount, 200)
+
+    const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
+    let sourceBalance = await provider.connection.getTokenAccountBalance(source.address)
+
+    assert.equal(sourceBalance.value.amount, 200)
+
+    const { transaction, user, collateral } = await client.withdrawLPTokens({
+      amount: new BN(50),
+      destination: destination.address,
+      lpToken,
+      pool,
+      poolMint,
+      source: source.address,
+      userPoolToken: userPoolToken.address,
+    })
+
+    try {
+      await provider.sendAndConfirm(transaction)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    sourceBalance = await provider.connection.getTokenAccountBalance(source.address)
+    destinationBalance = await provider.connection.getTokenAccountBalance(destination.address)
+    userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
+
+    assert.equal(sourceBalance.value.amount, 150)
+    assert.equal(destinationBalance.value.amount, 250)
+    assert.equal(userPoolBalance.value.amount, 150)
+
+    const poolData = await client.fetchGlobalPool(pool)
+    const userData = await client.fetchUser(user)
+    const collateralData = await client.fetchCollateral(collateral)
+
+    assert.equal(poolData.depositAmount.toString(), '10000000150')
+    assert.equal(userData.rate.toString(), '10000000000')
+    assert.equal(collateralData.amount, 50)
+    assert.equal(collateralData.delegationStake, 150)
+    assert.equal(collateralData.liquidatedAmount, 0)
+  })
+
+  it('can not withdraw lp tokens if pool paused', async () => {
+
+  })
+
+  it('can not withdraw lp tokens if user blocked', async () => {
+
+  })
+
+  it('can not withdraw lp tokens more than user can', async () => {
+
+  })
+
+  it('should close collateral if delegated amount become 0', async () => {
+
   })
 
   it('can close global pool', async () => {

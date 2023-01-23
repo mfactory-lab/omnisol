@@ -10,22 +10,24 @@ use crate::{
 /// The user can use their deposit as collateral and mint omniSOL.
 /// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
 pub fn handle(ctx: Context<WithdrawLPTokens>, amount: u64) -> Result<()> {
-    let collateral = &mut ctx.accounts.collateral;
-
-    let rest_amount = collateral.delegation_stake - collateral.amount;
-
-    if amount == 0 || amount > rest_amount {
-        return Err(ErrorCode::InsufficientAmount.into());
-    }
-
     let pool = &mut ctx.accounts.pool;
+
     if !pool.is_active {
         return Err(ErrorCode::PoolAlreadyPaused.into());
     }
 
     let user = &mut ctx.accounts.user;
+
     if user.is_blocked {
         return Err(ErrorCode::UserBlocked.into());
+    }
+
+    let collateral = &mut ctx.accounts.collateral;
+
+    let rest_amount = collateral.delegation_stake - collateral.liquidated_amount;
+
+    if amount == 0 || amount > rest_amount {
+        return Err(ErrorCode::InsufficientAmount.into());
     }
 
     let pool_key = pool.key();
@@ -66,7 +68,7 @@ pub fn handle(ctx: Context<WithdrawLPTokens>, amount: u64) -> Result<()> {
         amount,
     )?;
 
-    if collateral.delegation_stake == 0 {
+    if collateral.delegation_stake - collateral.liquidated_amount == 0 {
         // close the collateral account
         utils::close(collateral.to_account_info(), ctx.accounts.authority.to_account_info())?;
     }
@@ -100,6 +102,7 @@ pub struct WithdrawLPTokens<'info> {
 
     #[account(
     mut,
+    constraint = collateral.is_native == false,
     seeds = [Collateral::SEED, user.key().as_ref(), lp_token.key().as_ref()],
     bump,
     )]

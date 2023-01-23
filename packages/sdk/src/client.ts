@@ -17,7 +17,7 @@ import {
   createRemoveFromWhitelistInstruction,
   createRemoveManagerInstruction,
   createResumePoolInstruction,
-  createUnblockUserInstruction,
+  createUnblockUserInstruction, createWithdrawLpTokensInstruction,
 } from './generated'
 import { IDL } from './idl/omnisol'
 
@@ -87,7 +87,7 @@ export class OmnisolClient {
     }
   }
 
-  async addManager(props: AddManager) {
+  async addManager(props: AddManagerProps) {
     const payer = this.wallet.publicKey
     const [manager] = await this.pda.manager(props.manager_wallet)
     const instruction = createAddManagerInstruction(
@@ -106,7 +106,7 @@ export class OmnisolClient {
     }
   }
 
-  async removeManager(props: RemoveManager) {
+  async removeManager(props: RemoveManagerProps) {
     const payer = this.wallet.publicKey
     const [manager] = await this.pda.manager(props.manager_wallet)
     const instruction = createRemoveManagerInstruction(
@@ -313,7 +313,7 @@ export class OmnisolClient {
     }
   }
 
-  async mintPoolTokens(props: MintPoolTokens) {
+  async mintPoolTokens(props: MintPoolTokensProps) {
     const payer = this.wallet.publicKey
     const [poolAuthority] = await this.pda.poolAuthority(props.pool)
     const [user] = await this.pda.user(payer)
@@ -327,6 +327,38 @@ export class OmnisolClient {
         poolAuthority,
         poolMint: props.poolMint,
         stakedAddress: props.stakedAddress,
+        user,
+        userPoolToken: props.userPoolToken,
+      },
+      {
+        amount: props.amount,
+      },
+    )
+    const transaction = new Transaction().add(instruction)
+
+    return {
+      transaction,
+      user,
+      collateral,
+    }
+  }
+
+  async withdrawLPTokens(props: WithdrawLPProps) {
+    const payer = this.wallet.publicKey
+    const [poolAuthority] = await this.pda.poolAuthority(props.pool)
+    const [user] = await this.pda.user(payer)
+    const [collateral] = await this.pda.collateral(props.lpToken, user)
+    const instruction = createWithdrawLpTokensInstruction(
+      {
+        destination: props.destination,
+        source: props.source,
+        authority: payer,
+        clock: OmnisolClient.clock,
+        collateral,
+        pool: props.pool,
+        poolAuthority,
+        poolMint: props.poolMint,
+        lpToken: props.lpToken,
         user,
         userPoolToken: props.userPoolToken,
       },
@@ -436,7 +468,7 @@ interface DepositStakeProps {
   sourceStake: PublicKey
 }
 
-interface MintPoolTokens {
+interface MintPoolTokensProps {
   pool: PublicKey
   poolMint: PublicKey
   userPoolToken: PublicKey
@@ -444,12 +476,22 @@ interface MintPoolTokens {
   amount: BN
 }
 
-interface AddManager {
+interface AddManagerProps {
   pool: PublicKey
   manager_wallet: PublicKey
 }
 
-interface RemoveManager {
+interface RemoveManagerProps {
   pool: PublicKey
   manager_wallet: PublicKey
+}
+
+interface WithdrawLPProps {
+  pool: PublicKey
+  poolMint: PublicKey
+  userPoolToken: PublicKey
+  lpToken: PublicKey
+  source: PublicKey
+  destination: PublicKey
+  amount: BN
 }
