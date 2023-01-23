@@ -562,7 +562,7 @@ export interface Omnisol {
         {
           'name': 'splitStake'
           'isMut': true
-          'isSigner': false
+          'isSigner': true
         },
         {
           'name': 'userPoolToken'
@@ -576,11 +576,6 @@ export interface Omnisol {
         },
         {
           'name': 'clock'
-          'isMut': false
-          'isSigner': false
-        },
-        {
-          'name': 'stakeHistory'
           'isMut': false
           'isSigner': false
         },
@@ -1579,7 +1574,7 @@ export const IDL: Omnisol = {
         {
           name: 'splitStake',
           isMut: true,
-          isSigner: false,
+          isSigner: true,
         },
         {
           name: 'userPoolToken',
@@ -1593,11 +1588,6 @@ export const IDL: Omnisol = {
         },
         {
           name: 'clock',
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: 'stakeHistory',
           isMut: false,
           isSigner: false,
         },

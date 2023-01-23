@@ -17,7 +17,7 @@ import {
   createRemoveFromWhitelistInstruction,
   createRemoveManagerInstruction,
   createResumePoolInstruction,
-  createUnblockUserInstruction, createWithdrawLpTokensInstruction,
+  createUnblockUserInstruction, createWithdrawLpTokensInstruction, createWithdrawStakeInstruction,
 } from './generated'
 import { IDL } from './idl/omnisol'
 
@@ -374,6 +374,38 @@ export class OmnisolClient {
       collateral,
     }
   }
+
+  async withdrawStake(props: WithdrawStakeProps) {
+    const payer = this.wallet.publicKey
+    const [poolAuthority] = await this.pda.poolAuthority(props.pool)
+    const [user] = await this.pda.user(payer)
+    const [collateral] = await this.pda.collateral(props.stakeAccount, user)
+    const instruction = createWithdrawStakeInstruction(
+      {
+        authority: payer,
+        clock: OmnisolClient.clock,
+        collateral,
+        pool: props.pool,
+        poolAuthority,
+        poolMint: props.poolMint,
+        sourceStake: props.stakeAccount,
+        splitStake: props.splitStake,
+        stakeProgram: props.stakeProgram,
+        user,
+        userPoolToken: props.userPoolToken,
+      },
+      {
+        amount: props.amount,
+      },
+    )
+    const transaction = new Transaction().add(instruction)
+
+    return {
+      transaction,
+      user,
+      collateral,
+    }
+  }
 }
 
 class OmnisolPDA {
@@ -493,5 +525,15 @@ interface WithdrawLPProps {
   lpToken: PublicKey
   source: PublicKey
   destination: PublicKey
+  amount: BN
+}
+
+interface WithdrawStakeProps {
+  pool: PublicKey
+  poolMint: PublicKey
+  userPoolToken: PublicKey
+  stakeAccount: PublicKey
+  splitStake: PublicKey
+  stakeProgram: PublicKey
   amount: BN
 }

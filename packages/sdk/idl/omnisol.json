@@ -562,7 +562,7 @@
         {
           "name": "splitStake",
           "isMut": true,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "userPoolToken",
@@ -576,11 +576,6 @@
         },
         {
           "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "stakeHistory",
           "isMut": false,
           "isSigner": false
         },
