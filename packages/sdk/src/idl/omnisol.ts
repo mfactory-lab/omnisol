@@ -151,6 +151,11 @@ export interface Omnisol {
           'isSigner': false
         },
         {
+          'name': 'pool'
+          'isMut': false
+          'isSigner': false
+        },
+        {
           'name': 'whitelist'
           'isMut': true
           'isSigner': false
@@ -903,6 +908,13 @@ export interface Omnisol {
             ]
             'type': 'publicKey'
           },
+          {
+            'name': 'pool'
+            'docs': [
+              'Pool address',
+            ]
+            'type': 'publicKey'
+          },
         ]
       }
     },
@@ -1299,6 +1311,11 @@ export const IDL: Omnisol = {
         },
         {
           name: 'addressToWhitelist',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'pool',
           isMut: false,
           isSigner: false,
         },
@@ -2052,6 +2069,13 @@ export const IDL: Omnisol = {
             name: 'whitelistedToken',
             docs: [
               'Token mint address that is whitelisted to the pool',
+            ],
+            type: 'publicKey',
+          },
+          {
+            name: 'pool',
+            docs: [
+              'Pool address',
             ],
             type: 'publicKey',
           },

@@ -67,11 +67,13 @@ impl Collateral {
 pub struct Whitelist {
     /// Token mint address that is whitelisted to the pool
     pub whitelisted_token: Pubkey,
+    /// Pool address
+    pub pool: Pubkey,
 }
 
 impl Whitelist {
     pub const SEED: &'static [u8] = b"whitelist";
-    pub const SIZE: usize = 8 + 32;
+    pub const SIZE: usize = 8 + 32 + 32;
 }
 
 #[account]

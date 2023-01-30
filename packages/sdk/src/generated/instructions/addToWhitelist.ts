@@ -24,6 +24,7 @@ export const addToWhitelistStruct = new beet.BeetArgsStruct<{
  *
  * @property [_writable_, **signer**] authority
  * @property [] addressToWhitelist
+ * @property [] pool
  * @property [_writable_] whitelist
  * @property [_writable_] manager
  * @category Instructions
@@ -33,6 +34,7 @@ export const addToWhitelistStruct = new beet.BeetArgsStruct<{
 export interface AddToWhitelistInstructionAccounts {
   authority: web3.PublicKey
   addressToWhitelist: web3.PublicKey
+  pool: web3.PublicKey
   whitelist: web3.PublicKey
   manager: web3.PublicKey
   systemProgram?: web3.PublicKey
@@ -66,6 +68,11 @@ export function createAddToWhitelistInstruction(
     },
     {
       pubkey: accounts.addressToWhitelist,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.pool,
       isWritable: false,
       isSigner: false,
     },

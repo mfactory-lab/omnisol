@@ -193,6 +193,7 @@ export class OmnisolClient {
         authority: payer,
         manager,
         whitelist,
+        pool: props.token_pool,
       },
     )
     const tx = new Transaction().add(instruction)
@@ -532,6 +533,7 @@ interface ResumeGlobalPoolProps {
 
 interface AddToWhitelistProps {
   pool: PublicKey
+  token_pool: PublicKey
   token: PublicKey
 }
 

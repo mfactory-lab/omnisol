@@ -1,12 +1,9 @@
-import {
-  TOKEN_PROGRAM_ID,
-  createMint,
-  getOrCreateAssociatedTokenAccount, mintTo,
-} from '@solana/spl-token'
+// @ts-expect-error "no-error"
+import { TOKEN_PROGRAM_ID, createMint, getOrCreateAssociatedTokenAccount, mintTo } from '@solana/spl-token'
 import { AnchorProvider, BN, Program, Wallet, web3 } from '@project-serum/anchor'
-import {PublicKey} from "@solana/web3.js";
 import { assert } from 'chai'
 import { OmnisolClient } from '@omnisol/sdk'
+import { STAKE_POOL_PROGRAM_ID } from '@solana/spl-stake-pool'
 
 const payerKeypair = web3.Keypair.generate()
 const opts = AnchorProvider.defaultOptions()
@@ -107,7 +104,7 @@ describe('omnisol', () => {
   })
 
   it('can update oracle info', async () => {
-    const addresses = [PublicKey.unique(), PublicKey.unique()]
+    const addresses = [web3.PublicKey.unique(), web3.PublicKey.unique()]
     const values = [new BN(100), new BN(200)]
     const { tx } = await client.updateOracleInfo({
       oracle,
@@ -200,6 +197,7 @@ describe('omnisol', () => {
     const { tx, whitelist } = await client.addToWhitelist({
       pool,
       token: poolMint,
+      token_pool: STAKE_POOL_PROGRAM_ID,
     })
 
     try {
@@ -238,6 +236,7 @@ describe('omnisol', () => {
     const { tx: transaction } = await client.addToWhitelist({
       pool,
       token: lpToken,
+      token_pool: STAKE_POOL_PROGRAM_ID,
     })
     try {
       await provider.sendAndConfirm(transaction)

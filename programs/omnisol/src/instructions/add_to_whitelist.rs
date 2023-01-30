@@ -5,8 +5,10 @@ use crate::state::{Manager, Whitelist};
 pub fn handle(ctx: Context<AddToWhitelist>) -> Result<()> {
     let whitelist = &mut ctx.accounts.whitelist;
     let address_to_whitelist = ctx.accounts.address_to_whitelist.key();
+    let pool = ctx.accounts.pool.key();
 
     whitelist.whitelisted_token = address_to_whitelist;
+    whitelist.pool = pool;
 
     Ok(())
 }
@@ -18,6 +20,9 @@ pub struct AddToWhitelist<'info> {
 
     /// CHECK: Address of LP token to whitelist it
     pub address_to_whitelist: AccountInfo<'info>,
+
+    /// CHECK: Address of LP token's pool
+    pub pool: AccountInfo<'info>,
 
     #[account(init,
         seeds = [Whitelist::SEED, address_to_whitelist.key().as_ref()],
