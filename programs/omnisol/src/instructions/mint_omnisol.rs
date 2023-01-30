@@ -9,7 +9,7 @@ use crate::{
 
 /// The user can use their deposit to mint omniSOL.
 /// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
-pub fn handle(ctx: Context<MintPoolToken>, amount: u64) -> Result<()> {
+pub fn handle(ctx: Context<MintOmnisol>, amount: u64) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
     if !pool.is_active {
         return Err(ErrorCode::PoolAlreadyPaused.into());
@@ -59,7 +59,7 @@ pub fn handle(ctx: Context<MintPoolToken>, amount: u64) -> Result<()> {
 }
 
 #[derive(Accounts)]
-pub struct MintPoolToken<'info> {
+pub struct MintOmnisol<'info> {
     #[account(mut)]
     pub pool: Box<Account<'info, Pool>>,
 

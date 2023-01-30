@@ -13,14 +13,13 @@ import {
   createDepositStakeInstruction,
   createInitOracleInstruction,
   createInitPoolInstruction,
-  createMintPoolTokenInstruction,
   createPausePoolInstruction,
   createRemoveFromWhitelistInstruction,
   createRemoveManagerInstruction,
   createResumePoolInstruction,
   createUnblockUserInstruction,
   createWithdrawLpTokensInstruction,
-  createWithdrawStakeInstruction,
+  createWithdrawStakeInstruction, createMintOmnisolInstruction,
 } from './generated'
 import { IDL } from './idl/omnisol'
 
@@ -320,12 +319,12 @@ export class OmnisolClient {
     }
   }
 
-  async mintPoolTokens(props: MintPoolTokensProps) {
+  async mintOmnisol(props: MintOmnisolProps) {
     const payer = this.wallet.publicKey
     const [poolAuthority] = await this.pda.poolAuthority(props.pool)
     const [user] = await this.pda.user(payer)
     const [collateral] = await this.pda.collateral(props.stakedAddress, user)
-    const instruction = createMintPoolTokenInstruction(
+    const instruction = createMintOmnisolInstruction(
       {
         authority: payer,
         clock: OmnisolClient.clock,
@@ -525,7 +524,7 @@ interface DepositStakeProps {
   sourceStake: PublicKey
 }
 
-interface MintPoolTokensProps {
+interface MintOmnisolProps {
   pool: PublicKey
   poolMint: PublicKey
   userPoolToken: PublicKey

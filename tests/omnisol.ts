@@ -632,13 +632,13 @@ describe('omnisol', () => {
     }
   })
 
-  it('can mint pool tokens from stake collateral', async () => {
+  it('can mint omnisol from stake collateral', async () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
     let userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
 
     assert.equal(userPoolBalance.value.amount, 0)
 
-    const { transaction, user, collateral } = await client.mintPoolTokens({
+    const { transaction, user, collateral } = await client.mintOmnisol({
       amount: new BN(10000000000),
       pool,
       poolMint,
@@ -667,13 +667,13 @@ describe('omnisol', () => {
     assert.equal(collateralData.delegationStake.toString(), '10000000000')
   })
 
-  it('can mint pool tokens from lp collateral', async () => {
+  it('can mint omnisol from lp collateral', async () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
     let userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
 
     assert.equal(userPoolBalance.value.amount, 10000000000)
 
-    const { transaction, user, collateral } = await client.mintPoolTokens({
+    const { transaction, user, collateral } = await client.mintOmnisol({
       amount: new BN(100),
       pool,
       poolMint,
@@ -704,7 +704,7 @@ describe('omnisol', () => {
 
   it('can not mint greater than was delegated', async () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
-    const { transaction } = await client.mintPoolTokens({
+    const { transaction } = await client.mintOmnisol({
       amount: new BN(101),
       pool,
       poolMint,
@@ -722,7 +722,7 @@ describe('omnisol', () => {
 
   it('can not mint when pool paused', async () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
-    const { transaction } = await client.mintPoolTokens({
+    const { transaction } = await client.mintOmnisol({
       amount: new BN(100),
       pool,
       poolMint,
@@ -762,7 +762,7 @@ describe('omnisol', () => {
 
   it('can not mint when user blocked', async () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
-    const { transaction } = await client.mintPoolTokens({
+    const { transaction } = await client.mintOmnisol({
       amount: new BN(100),
       pool,
       poolMint,
@@ -1132,7 +1132,7 @@ describe('omnisol', () => {
 
     assert.equal(userPoolBalance.value.amount, 50)
 
-    const { transaction } = await client.mintPoolTokens({
+    const { transaction } = await client.mintOmnisol({
       amount: new BN(100),
       pool,
       poolMint,

@@ -11,19 +11,19 @@ import * as web3 from '@solana/web3.js'
 
 /**
  * @category Instructions
- * @category MintPoolToken
+ * @category MintOmnisol
  * @category generated
  */
-export interface MintPoolTokenInstructionArgs {
+export interface MintOmnisolInstructionArgs {
   amount: beet.bignum
 }
 /**
  * @category Instructions
- * @category MintPoolToken
+ * @category MintOmnisol
  * @category generated
  */
-export const mintPoolTokenStruct = new beet.BeetArgsStruct<
-  MintPoolTokenInstructionArgs & {
+export const mintOmnisolStruct = new beet.BeetArgsStruct<
+  MintOmnisolInstructionArgs & {
     instructionDiscriminator: number[] /* size: 8 */
   }
 >(
@@ -31,10 +31,10 @@ export const mintPoolTokenStruct = new beet.BeetArgsStruct<
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
     ['amount', beet.u64],
   ],
-  'MintPoolTokenInstructionArgs',
+  'MintOmnisolInstructionArgs',
 )
 /**
- * Accounts required by the _mintPoolToken_ instruction
+ * Accounts required by the _mintOmnisol_ instruction
  *
  * @property [_writable_] pool
  * @property [_writable_] poolMint
@@ -46,10 +46,10 @@ export const mintPoolTokenStruct = new beet.BeetArgsStruct<
  * @property [_writable_, **signer**] authority
  * @property [] clock
  * @category Instructions
- * @category MintPoolToken
+ * @category MintOmnisol
  * @category generated
  */
-export interface MintPoolTokenInstructionAccounts {
+export interface MintOmnisolInstructionAccounts {
   pool: web3.PublicKey
   poolMint: web3.PublicKey
   poolAuthority: web3.PublicKey
@@ -63,27 +63,27 @@ export interface MintPoolTokenInstructionAccounts {
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
-export const mintPoolTokenInstructionDiscriminator = [
-  248, 243, 45, 237, 10, 43, 1, 99,
+export const mintOmnisolInstructionDiscriminator = [
+  105, 36, 86, 59, 230, 159, 93, 12,
 ]
 
 /**
- * Creates a _MintPoolToken_ instruction.
+ * Creates a _MintOmnisol_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
  * @param args to provide as instruction data to the program
  *
  * @category Instructions
- * @category MintPoolToken
+ * @category MintOmnisol
  * @category generated
  */
-export function createMintPoolTokenInstruction(
-  accounts: MintPoolTokenInstructionAccounts,
-  args: MintPoolTokenInstructionArgs,
+export function createMintOmnisolInstruction(
+  accounts: MintOmnisolInstructionAccounts,
+  args: MintOmnisolInstructionArgs,
   programId = new web3.PublicKey('9SfbhzHrx5xczfoiTo2VVpG5oukcS5Schgy2ppLH3zQd'),
 ) {
-  const [data] = mintPoolTokenStruct.serialize({
-    instructionDiscriminator: mintPoolTokenInstructionDiscriminator,
+  const [data] = mintOmnisolStruct.serialize({
+    instructionDiscriminator: mintOmnisolInstructionDiscriminator,
     ...args,
   })
   const keys: web3.AccountMeta[] = [

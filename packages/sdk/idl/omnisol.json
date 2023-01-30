@@ -395,7 +395,7 @@
       "args": []
     },
     {
-      "name": "mintPoolToken",
+      "name": "mintOmnisol",
       "accounts": [
         {
           "name": "pool",

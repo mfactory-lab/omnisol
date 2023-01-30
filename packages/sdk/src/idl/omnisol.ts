@@ -395,7 +395,7 @@ export interface Omnisol {
       'args': []
     },
     {
-      'name': 'mintPoolToken'
+      'name': 'mintOmnisol'
       'accounts': [
         {
           'name': 'pool'
@@ -1482,7 +1482,7 @@ export const IDL: Omnisol = {
       args: [],
     },
     {
-      name: 'mintPoolToken',
+      name: 'mintOmnisol',
       accounts: [
         {
           name: 'pool',
