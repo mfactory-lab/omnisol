@@ -276,6 +276,7 @@ export class OmnisolClient {
         collateral,
         destination: props.destination,
         lpToken: props.lpToken,
+        stakingPool: props.stakePool,
         pool: props.pool,
         poolAuthority,
         source: props.source,
@@ -555,6 +556,7 @@ interface UnblockUserProps {
 interface DepositLPTokenProps {
   pool: PublicKey
   lpToken: PublicKey
+  stakePool: PublicKey
   source: PublicKey
   destination: PublicKey
   amount: BN

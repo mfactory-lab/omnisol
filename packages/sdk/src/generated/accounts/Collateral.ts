@@ -18,6 +18,7 @@ export interface CollateralArgs {
   user: web3.PublicKey
   pool: web3.PublicKey
   sourceStake: web3.PublicKey
+  stakingPool: web3.PublicKey
   delegationStake: beet.bignum
   amount: beet.bignum
   liquidatedAmount: beet.bignum
@@ -39,6 +40,7 @@ export class Collateral implements CollateralArgs {
     readonly user: web3.PublicKey,
     readonly pool: web3.PublicKey,
     readonly sourceStake: web3.PublicKey,
+    readonly stakingPool: web3.PublicKey,
     readonly delegationStake: beet.bignum,
     readonly amount: beet.bignum,
     readonly liquidatedAmount: beet.bignum,
@@ -55,6 +57,7 @@ export class Collateral implements CollateralArgs {
       args.user,
       args.pool,
       args.sourceStake,
+      args.stakingPool,
       args.delegationStake,
       args.amount,
       args.liquidatedAmount,
@@ -170,6 +173,7 @@ export class Collateral implements CollateralArgs {
       user: this.user.toBase58(),
       pool: this.pool.toBase58(),
       sourceStake: this.sourceStake.toBase58(),
+      stakingPool: this.stakingPool.toBase58(),
       delegationStake: (() => {
         const x = <{ toNumber: () => number }> this.delegationStake
         if (typeof x.toNumber === 'function') {
@@ -235,6 +239,7 @@ export const collateralBeet = new beet.BeetStruct<
     ['user', beetSolana.publicKey],
     ['pool', beetSolana.publicKey],
     ['sourceStake', beetSolana.publicKey],
+    ['stakingPool', beetSolana.publicKey],
     ['delegationStake', beet.u64],
     ['amount', beet.u64],
     ['liquidatedAmount', beet.u64],

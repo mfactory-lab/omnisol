@@ -321,6 +321,11 @@ export interface Omnisol {
           'isSigner': false
         },
         {
+          'name': 'stakingPool'
+          'isMut': false
+          'isSigner': false
+        },
+        {
           'name': 'authority'
           'isMut': true
           'isSigner': true
@@ -848,6 +853,13 @@ export interface Omnisol {
             'name': 'sourceStake'
             'docs': [
               'An account of staking pool or LP token',
+            ]
+            'type': 'publicKey'
+          },
+          {
+            'name': 'stakingPool'
+            'docs': [
+              'LP tokens` pool (default for native stake)',
             ]
             'type': 'publicKey'
           },
@@ -1485,6 +1497,11 @@ export const IDL: Omnisol = {
           isSigner: false,
         },
         {
+          name: 'stakingPool',
+          isMut: false,
+          isSigner: false,
+        },
+        {
           name: 'authority',
           isMut: true,
           isSigner: true,
@@ -2012,6 +2029,13 @@ export const IDL: Omnisol = {
             name: 'sourceStake',
             docs: [
               'An account of staking pool or LP token',
+            ],
+            type: 'publicKey',
+          },
+          {
+            name: 'stakingPool',
+            docs: [
+              'LP tokens` pool (default for native stake)',
             ],
             type: 'publicKey',
           },

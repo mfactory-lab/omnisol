@@ -16,5 +16,6 @@ default = []
 
 [dependencies]
 anchor-lang = { version = "0.25.0", features = ["init-if-needed"]}
+spl-stake-pool = { version = "0.6.4", features = [ "no-entrypoint" ] }
 anchor-spl = "0.25.0"
 rust_decimal = "1.26"
