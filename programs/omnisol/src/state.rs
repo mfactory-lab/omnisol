@@ -44,8 +44,6 @@ pub struct Collateral {
     pub pool: Pubkey,
     /// An account of staking pool or LP token
     pub source_stake: Pubkey,
-    /// LP tokens` pool (default for native stake)
-    pub staking_pool: Pubkey,
     /// An amount of delegated staked tokens
     pub delegation_stake: u64,
     /// An amount of minted pool tokens
@@ -62,20 +60,22 @@ pub struct Collateral {
 
 impl Collateral {
     pub const SEED: &'static [u8] = b"collateral";
-    pub const SIZE: usize = 8 + 32 + 32 + 32 + 32 + 8 + 8 + 8 + 8 + 1 + 1;
+    pub const SIZE: usize = 8 + 32 + 32 + 32 + 8 + 8 + 8 + 8 + 1 + 1;
 }
 
 #[account]
 pub struct Whitelist {
     /// Token mint address that is whitelisted to the pool
     pub whitelisted_token: Pubkey,
-    /// Pool address
+    /// Global pool address
     pub pool: Pubkey,
+    /// LP tokens` pool (default for native stake)
+    pub staking_pool: Pubkey,
 }
 
 impl Whitelist {
     pub const SEED: &'static [u8] = b"whitelist";
-    pub const SIZE: usize = 8 + 32 + 32;
+    pub const SIZE: usize = 8 + 32 + 32 + 32;
 }
 
 #[account]

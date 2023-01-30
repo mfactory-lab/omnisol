@@ -156,6 +156,11 @@
           "isSigner": false
         },
         {
+          "name": "stakingPool",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "whitelist",
           "isMut": true,
           "isSigner": false
@@ -317,11 +322,6 @@
         },
         {
           "name": "lpToken",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "stakingPool",
           "isMut": false,
           "isSigner": false
         },
@@ -857,13 +857,6 @@
             "type": "publicKey"
           },
           {
-            "name": "stakingPool",
-            "docs": [
-              "LP tokens` pool (default for native stake)"
-            ],
-            "type": "publicKey"
-          },
-          {
             "name": "delegationStake",
             "docs": [
               "An amount of delegated staked tokens"
@@ -923,7 +916,14 @@
           {
             "name": "pool",
             "docs": [
-              "Pool address"
+              "Global pool address"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "stakingPool",
+            "docs": [
+              "LP tokens` pool (default for native stake)"
             ],
             "type": "publicKey"
           }

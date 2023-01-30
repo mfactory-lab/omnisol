@@ -98,12 +98,12 @@ export class OmnisolClient {
 
   async addManager(props: AddManagerProps) {
     const payer = this.wallet.publicKey
-    const [manager] = await this.pda.manager(props.manager_wallet)
+    const [manager] = await this.pda.manager(props.managerWallet)
     const instruction = createAddManagerInstruction(
       {
         authority: payer,
         manager,
-        managerWallet: props.manager_wallet,
+        managerWallet: props.managerWallet,
         pool: props.pool,
       },
     )
@@ -117,12 +117,12 @@ export class OmnisolClient {
 
   async removeManager(props: RemoveManagerProps) {
     const payer = this.wallet.publicKey
-    const [manager] = await this.pda.manager(props.manager_wallet)
+    const [manager] = await this.pda.manager(props.managerWallet)
     const instruction = createRemoveManagerInstruction(
       {
         authority: payer,
         manager,
-        managerWallet: props.manager_wallet,
+        managerWallet: props.managerWallet,
         pool: props.pool,
       },
     )
@@ -193,7 +193,8 @@ export class OmnisolClient {
         authority: payer,
         manager,
         whitelist,
-        pool: props.token_pool,
+        pool: props.tokenPool,
+        stakingPool: props.stakePool,
       },
     )
     const tx = new Transaction().add(instruction)
@@ -225,14 +226,14 @@ export class OmnisolClient {
 
   async blockUser(props: BlockUserProps) {
     const payer = this.wallet.publicKey
-    const [user] = await this.pda.user(props.user_wallet)
+    const [user] = await this.pda.user(props.userWallet)
     const [manager] = await this.pda.manager(payer)
     const instruction = createBlockUserInstruction(
       {
         authority: payer,
         manager,
         user,
-        userWallet: props.user_wallet,
+        userWallet: props.userWallet,
       },
     )
     const tx = new Transaction().add(instruction)
@@ -245,14 +246,14 @@ export class OmnisolClient {
 
   async unblockUser(props: UnblockUserProps) {
     const payer = this.wallet.publicKey
-    const [user] = await this.pda.user(props.user_wallet)
+    const [user] = await this.pda.user(props.userWallet)
     const [manager] = await this.pda.manager(payer)
     const instruction = createUnblockUserInstruction(
       {
         authority: payer,
         manager,
         user,
-        userWallet: props.user_wallet,
+        userWallet: props.userWallet,
       },
     )
     const tx = new Transaction().add(instruction)
@@ -276,7 +277,6 @@ export class OmnisolClient {
         collateral,
         destination: props.destination,
         lpToken: props.lpToken,
-        stakingPool: props.stakePool,
         pool: props.pool,
         poolAuthority,
         source: props.source,
@@ -534,7 +534,8 @@ interface ResumeGlobalPoolProps {
 
 interface AddToWhitelistProps {
   pool: PublicKey
-  token_pool: PublicKey
+  tokenPool: PublicKey
+  stakePool: PublicKey
   token: PublicKey
 }
 
@@ -545,18 +546,17 @@ interface RemoveFromWhitelistProps {
 
 interface BlockUserProps {
   pool: PublicKey
-  user_wallet: PublicKey
+  userWallet: PublicKey
 }
 
 interface UnblockUserProps {
   pool: PublicKey
-  user_wallet: PublicKey
+  userWallet: PublicKey
 }
 
 interface DepositLPTokenProps {
   pool: PublicKey
   lpToken: PublicKey
-  stakePool: PublicKey
   source: PublicKey
   destination: PublicKey
   amount: BN
@@ -577,12 +577,12 @@ interface MintOmnisolProps {
 
 interface AddManagerProps {
   pool: PublicKey
-  manager_wallet: PublicKey
+  managerWallet: PublicKey
 }
 
 interface RemoveManagerProps {
   pool: PublicKey
-  manager_wallet: PublicKey
+  managerWallet: PublicKey
 }
 
 interface WithdrawLPProps {

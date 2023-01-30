@@ -156,6 +156,11 @@ export interface Omnisol {
           'isSigner': false
         },
         {
+          'name': 'stakingPool'
+          'isMut': false
+          'isSigner': false
+        },
+        {
           'name': 'whitelist'
           'isMut': true
           'isSigner': false
@@ -317,11 +322,6 @@ export interface Omnisol {
         },
         {
           'name': 'lpToken'
-          'isMut': false
-          'isSigner': false
-        },
-        {
-          'name': 'stakingPool'
           'isMut': false
           'isSigner': false
         },
@@ -857,13 +857,6 @@ export interface Omnisol {
             'type': 'publicKey'
           },
           {
-            'name': 'stakingPool'
-            'docs': [
-              'LP tokens` pool (default for native stake)',
-            ]
-            'type': 'publicKey'
-          },
-          {
             'name': 'delegationStake'
             'docs': [
               'An amount of delegated staked tokens',
@@ -923,7 +916,14 @@ export interface Omnisol {
           {
             'name': 'pool'
             'docs': [
-              'Pool address',
+              'Global pool address',
+            ]
+            'type': 'publicKey'
+          },
+          {
+            'name': 'stakingPool'
+            'docs': [
+              'LP tokens` pool (default for native stake)',
             ]
             'type': 'publicKey'
           },
@@ -1332,6 +1332,11 @@ export const IDL: Omnisol = {
           isSigner: false,
         },
         {
+          name: 'stakingPool',
+          isMut: false,
+          isSigner: false,
+        },
+        {
           name: 'whitelist',
           isMut: true,
           isSigner: false,
@@ -1493,11 +1498,6 @@ export const IDL: Omnisol = {
         },
         {
           name: 'lpToken',
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: 'stakingPool',
           isMut: false,
           isSigner: false,
         },
@@ -2033,13 +2033,6 @@ export const IDL: Omnisol = {
             type: 'publicKey',
           },
           {
-            name: 'stakingPool',
-            docs: [
-              'LP tokens` pool (default for native stake)',
-            ],
-            type: 'publicKey',
-          },
-          {
             name: 'delegationStake',
             docs: [
               'An amount of delegated staked tokens',
@@ -2099,7 +2092,14 @@ export const IDL: Omnisol = {
           {
             name: 'pool',
             docs: [
-              'Pool address',
+              'Global pool address',
+            ],
+            type: 'publicKey',
+          },
+          {
+            name: 'stakingPool',
+            docs: [
+              'LP tokens` pool (default for native stake)',
             ],
             type: 'publicKey',
           },

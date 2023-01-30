@@ -44,7 +44,6 @@ export const depositLpStruct = new beet.BeetArgsStruct<
  * @property [_writable_] destination
  * @property [] whitelist
  * @property [] lpToken
- * @property [] stakingPool
  * @property [_writable_, **signer**] authority
  * @property [] clock
  * @category Instructions
@@ -60,7 +59,6 @@ export interface DepositLpInstructionAccounts {
   destination: web3.PublicKey
   whitelist: web3.PublicKey
   lpToken: web3.PublicKey
-  stakingPool: web3.PublicKey
   authority: web3.PublicKey
   clock: web3.PublicKey
   tokenProgram?: web3.PublicKey
@@ -129,11 +127,6 @@ export function createDepositLpInstruction(
     },
     {
       pubkey: accounts.lpToken,
-      isWritable: false,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.stakingPool,
       isWritable: false,
       isSigner: false,
     },

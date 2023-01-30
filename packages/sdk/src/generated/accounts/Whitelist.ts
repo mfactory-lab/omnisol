@@ -17,6 +17,7 @@ import * as beet from '@metaplex-foundation/beet'
 export interface WhitelistArgs {
   whitelistedToken: web3.PublicKey
   pool: web3.PublicKey
+  stakingPool: web3.PublicKey
 }
 
 export const whitelistDiscriminator = [204, 176, 52, 79, 146, 121, 54, 247]
@@ -31,13 +32,14 @@ export class Whitelist implements WhitelistArgs {
   private constructor(
     readonly whitelistedToken: web3.PublicKey,
     readonly pool: web3.PublicKey,
+    readonly stakingPool: web3.PublicKey,
   ) {}
 
   /**
    * Creates a {@link Whitelist} instance from the provided args.
    */
   static fromArgs(args: WhitelistArgs) {
-    return new Whitelist(args.whitelistedToken, args.pool)
+    return new Whitelist(args.whitelistedToken, args.pool, args.stakingPool)
   }
 
   /**
@@ -145,6 +147,7 @@ export class Whitelist implements WhitelistArgs {
     return {
       whitelistedToken: this.whitelistedToken.toBase58(),
       pool: this.pool.toBase58(),
+      stakingPool: this.stakingPool.toBase58(),
     }
   }
 }
@@ -163,6 +166,7 @@ export const whitelistBeet = new beet.BeetStruct<
     ['accountDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
     ['whitelistedToken', beetSolana.publicKey],
     ['pool', beetSolana.publicKey],
+    ['stakingPool', beetSolana.publicKey],
   ],
   Whitelist.fromArgs,
   'Whitelist',

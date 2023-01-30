@@ -1,8 +1,5 @@
-use std::borrow::BorrowMut;
-use std::ops::DerefMut;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
-use spl_stake_pool::state::StakePool;
 
 use crate::{
     events::*,
@@ -15,13 +12,6 @@ use crate::{
 pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
     if amount == 0 {
         return Err(ErrorCode::InsufficientAmount.into());
-    }
-
-    let mut stake_pool_data = &mut &**ctx.accounts.staking_pool.try_borrow_data()?;
-    let stake_pool = StakePool::deserialize(stake_pool_data)?;
-
-    if stake_pool.pool_mint != ctx.accounts.lp_token.key() {
-        return Err(ErrorCode::WrongData.into());
     }
 
     let pool = &mut ctx.accounts.pool;
@@ -62,7 +52,6 @@ pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
         collateral.user = user.key();
         collateral.pool = pool_key;
         collateral.source_stake = ctx.accounts.lp_token.key();
-        collateral.staking_pool = ctx.accounts.staking_pool.key();
         collateral.delegation_stake = 0;
         collateral.amount = 0;
         collateral.liquidated_amount = 0;
@@ -142,9 +131,6 @@ pub struct DepositLPTokens<'info> {
     /// CHECK: Address of a token, will be checked via whitelist
     #[account(address = whitelist.whitelisted_token)]
     pub lp_token: AccountInfo<'info>,
-
-    /// CHECK: Stake pool with 'lp_token' mint address
-    pub staking_pool: AccountInfo<'info>,
 
     #[account(mut)]
     pub authority: Signer<'info>,

@@ -61,7 +61,6 @@ pub fn handle(ctx: Context<DepositStake>) -> Result<()> {
     collateral.user = ctx.accounts.user.key();
     collateral.pool = pool_key;
     collateral.source_stake = ctx.accounts.source_stake.key();
-    collateral.staking_pool = Pubkey::default();
     collateral.delegation_stake = delegation.stake;
     collateral.amount = 0;
     collateral.liquidated_amount = 0;
