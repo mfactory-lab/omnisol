@@ -1232,6 +1232,39 @@ describe('omnisol', () => {
     assert.equal(oracleData, null)
   })
 
+  it('can not update oracle info with non-oracle authority', async () => {
+    const oraclePair = web3.Keypair.generate()
+    oracle = oraclePair.publicKey
+
+    const { tx } = await client.initOracle({
+      pool,
+      oracleAuthority: web3.PublicKey.unique(),
+      oracle,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx, [oraclePair])
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const addresses = [web3.PublicKey.unique(), web3.PublicKey.unique()]
+    const values = [new BN(100), new BN(200)]
+    const { tx: tx1 } = await client.updateOracleInfo({
+      oracle,
+      addresses,
+      values,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx1)
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, '')
+    }
+  })
+
   it('can close global pool', async () => {
     const { tx } = await client.closeGlobalPool({
       pool,
