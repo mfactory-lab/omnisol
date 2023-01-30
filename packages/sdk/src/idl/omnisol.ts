@@ -689,6 +689,32 @@ export interface Omnisol {
       ]
       'args': []
     },
+    {
+      'name': 'closeOracle'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'oracle'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'systemProgram'
+          'isMut': false
+          'isSigner': false
+        },
+      ]
+      'args': []
+    },
   ]
   'accounts': [
     {
@@ -1766,6 +1792,32 @@ export const IDL: Omnisol = {
         {
           name: 'oracleAuthority',
           isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: 'closeOracle',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'oracle',
+          isMut: true,
           isSigner: false,
         },
         {

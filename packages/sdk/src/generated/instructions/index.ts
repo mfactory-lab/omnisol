@@ -1,6 +1,7 @@
 export * from './addManager'
 export * from './addToWhitelist'
 export * from './blockUser'
+export * from './closeOracle'
 export * from './closePool'
 export * from './depositLp'
 export * from './depositStake'

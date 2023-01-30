@@ -80,6 +80,10 @@ pub mod omnisol {
     pub fn init_oracle<'info>(ctx: Context<InitOracle>) -> Result<()> {
         init_oracle::handle(ctx)
     }
+
+    pub fn close_oracle<'info>(ctx: Context<CloseOracle>) -> Result<()> {
+        close_oracle::handle(ctx)
+    }
 }
 
 #[error_code]

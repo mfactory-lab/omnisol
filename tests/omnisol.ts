@@ -1195,6 +1195,23 @@ describe('omnisol', () => {
     assert.equal(collateralData, null)
   })
 
+  it('can close oracle', async () => {
+    const { tx } = await client.closeOracle({
+      pool,
+      oracle,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const oracleData = await client.fetchOracle(oracle)
+    assert.equal(oracleData, null)
+  })
+
   it('can close global pool', async () => {
     const { tx } = await client.closeGlobalPool({
       pool,
