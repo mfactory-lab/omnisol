@@ -1,6 +1,6 @@
-mod events;
-mod instructions;
-mod state;
+pub mod events;
+pub mod instructions;
+pub mod state;
 mod utils;
 
 use anchor_lang::prelude::*;
@@ -84,6 +84,10 @@ pub mod omnisol {
     pub fn close_oracle<'info>(ctx: Context<CloseOracle>) -> Result<()> {
         close_oracle::handle(ctx)
     }
+
+    pub fn update_oracle_info<'info>(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>) -> Result<()> {
+        update_oracle_info::handle(ctx, addresses, values)
+    }
 }
 
 #[error_code]
@@ -104,4 +108,6 @@ pub enum ErrorCode {
     UserBlocked,
     #[msg("User is not blocked")]
     UserNotBlocked,
+    #[msg("Wrong input data")]
+    WrongData,
 }

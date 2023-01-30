@@ -4,6 +4,7 @@ import {
   getOrCreateAssociatedTokenAccount, mintTo,
 } from '@solana/spl-token'
 import { AnchorProvider, BN, Program, Wallet, web3 } from '@project-serum/anchor'
+import {PublicKey} from "@solana/web3.js";
 import { assert } from 'chai'
 import { OmnisolClient } from '@omnisol/sdk'
 
@@ -103,6 +104,26 @@ describe('omnisol', () => {
     const oracleData = await client.fetchOracle(oracle)
     assert.equal(oracleData.authority.equals(provider.wallet.publicKey), true)
     assert.equal(oracleData.priorityQueue.toString(), [].toString())
+  })
+
+  it('can update oracle info', async () => {
+    const addresses = [PublicKey.unique(), PublicKey.unique()]
+    const values = [new BN(100), new BN(200)]
+    const { tx } = await client.updateOracleInfo({
+      oracle,
+      addresses,
+      values,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const oracleData = await client.fetchOracle(oracle)
+    assert.equal(oracleData.priorityQueue.toString(), [{ collateral: addresses[0], amount: values[0] }, { collateral: addresses[1], amount: values[1] }].toString())
   })
 
   it('can remove manager', async () => {

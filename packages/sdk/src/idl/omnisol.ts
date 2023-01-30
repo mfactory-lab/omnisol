@@ -715,6 +715,40 @@ export interface Omnisol {
       ]
       'args': []
     },
+    {
+      'name': 'updateOracleInfo'
+      'accounts': [
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'oracle'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'systemProgram'
+          'isMut': false
+          'isSigner': false
+        },
+      ]
+      'args': [
+        {
+          'name': 'addresses'
+          'type': {
+            'vec': 'publicKey'
+          }
+        },
+        {
+          'name': 'values'
+          'type': {
+            'vec': 'u64'
+          }
+        },
+      ]
+    },
   ]
   'accounts': [
     {
@@ -1107,6 +1141,11 @@ export interface Omnisol {
       'code': 6007
       'name': 'UserNotBlocked'
       'msg': 'User is not blocked'
+    },
+    {
+      'code': 6008
+      'name': 'WrongData'
+      'msg': 'Wrong input data'
     },
   ]
 }
@@ -1828,6 +1867,40 @@ export const IDL: Omnisol = {
       ],
       args: [],
     },
+    {
+      name: 'updateOracleInfo',
+      accounts: [
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'oracle',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: 'addresses',
+          type: {
+            vec: 'publicKey',
+          },
+        },
+        {
+          name: 'values',
+          type: {
+            vec: 'u64',
+          },
+        },
+      ],
+    },
   ],
   accounts: [
     {
@@ -2220,6 +2293,11 @@ export const IDL: Omnisol = {
       code: 6007,
       name: 'UserNotBlocked',
       msg: 'User is not blocked',
+    },
+    {
+      code: 6008,
+      name: 'WrongData',
+      msg: 'Wrong input data',
     },
   ],
 }

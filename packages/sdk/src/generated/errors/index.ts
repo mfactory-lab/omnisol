@@ -184,6 +184,26 @@ createErrorFromCodeLookup.set(0x1777, () => new UserNotBlockedError())
 createErrorFromNameLookup.set('UserNotBlocked', () => new UserNotBlockedError())
 
 /**
+ * WrongData: 'Wrong input data'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class WrongDataError extends Error {
+  readonly code: number = 0x1778
+  readonly name: string = 'WrongData'
+  constructor() {
+    super('Wrong input data')
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, WrongDataError)
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1778, () => new WrongDataError())
+createErrorFromNameLookup.set('WrongData', () => new WrongDataError())
+
+/**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors
  * @category generated

@@ -8,6 +8,7 @@ import {
   createAddManagerInstruction,
   createAddToWhitelistInstruction,
   createBlockUserInstruction,
+  createCloseOracleInstruction,
   createClosePoolInstruction,
   createDepositLpInstruction,
   createDepositStakeInstruction,
@@ -19,7 +20,9 @@ import {
   createRemoveManagerInstruction,
   createResumePoolInstruction,
   createUnblockUserInstruction,
-  createWithdrawLpTokensInstruction, createWithdrawStakeInstruction, createCloseOracleInstruction,
+  createUpdateOracleInfoInstruction,
+  createWithdrawLpTokensInstruction,
+  createWithdrawStakeInstruction,
 } from './generated'
 import { IDL } from './idl/omnisol'
 
@@ -447,6 +450,25 @@ export class OmnisolClient {
       tx,
     }
   }
+
+  async updateOracleInfo(props: UpdateOracleInfoProps) {
+    const payer = this.wallet.publicKey
+    const ix = createUpdateOracleInfoInstruction(
+      {
+        authority: payer,
+        oracle: props.oracle,
+      },
+      {
+        addresses: props.addresses,
+        values: props.values,
+      },
+    )
+    const tx = new Transaction().add(ix)
+
+    return {
+      tx,
+    }
+  }
 }
 
 class OmnisolPDA {
@@ -588,4 +610,10 @@ interface InitOracleProps {
 interface CloseOracleProps {
   pool: PublicKey
   oracle: PublicKey
+}
+
+interface UpdateOracleInfoProps {
+  oracle: PublicKey
+  addresses: PublicKey[]
+  values: BN[]
 }
