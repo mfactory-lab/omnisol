@@ -6,13 +6,13 @@ use crate::{
     state::Pool,
     utils::{stake, unstake_it, unstake_it::Unstake},
 };
+use crate::state::{Collateral, Oracle, User};
 
 /// Withdraw a given amount of omniSOL (without an account).
 /// Caller provides some [amount] of omni-lamports that are to be burned in
 ///
 /// TODO: get account from priority queue
 /// TODO: liquidate the account
-/// TODO: transfer sol or split stake?
 pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, WithdrawSol<'info>>, amount: u64) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 
@@ -95,6 +95,24 @@ pub struct WithdrawSol<'info> {
 
     #[account(mut)]
     pub authority: Signer<'info>,
+
+    #[account(
+    init_if_needed,
+    seeds = [User::SEED, authority.key().as_ref()],
+    bump,
+    payer = authority,
+    space = User::SIZE,
+    )]
+    pub user: Box<Account<'info, User>>,
+
+    #[account(
+    mut,
+    address = oracle.priority_queue.first().unwrap().collateral,
+    )]
+    pub collateral: Account<'info, Collateral>,
+
+    #[account(mut, address = pool.oracle)]
+    pub oracle: Box<Account<'info, Oracle>>,
 
     pub clock: Sysvar<'info, Clock>,
     pub stake_program: Program<'info, stake::Stake>,

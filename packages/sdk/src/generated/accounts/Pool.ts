@@ -17,6 +17,7 @@ import * as beetSolana from '@metaplex-foundation/beet-solana'
 export interface PoolArgs {
   poolMint: web3.PublicKey
   authority: web3.PublicKey
+  oracle: web3.PublicKey
   depositAmount: beet.bignum
   authorityBump: number
   isActive: boolean
@@ -34,6 +35,7 @@ export class Pool implements PoolArgs {
   private constructor(
     readonly poolMint: web3.PublicKey,
     readonly authority: web3.PublicKey,
+    readonly oracle: web3.PublicKey,
     readonly depositAmount: beet.bignum,
     readonly authorityBump: number,
     readonly isActive: boolean,
@@ -46,6 +48,7 @@ export class Pool implements PoolArgs {
     return new Pool(
       args.poolMint,
       args.authority,
+      args.oracle,
       args.depositAmount,
       args.authorityBump,
       args.isActive,
@@ -157,6 +160,7 @@ export class Pool implements PoolArgs {
     return {
       poolMint: this.poolMint.toBase58(),
       authority: this.authority.toBase58(),
+      oracle: this.oracle.toBase58(),
       depositAmount: (() => {
         const x = <{ toNumber: () => number }> this.depositAmount
         if (typeof x.toNumber === 'function') {
@@ -188,6 +192,7 @@ export const poolBeet = new beet.BeetStruct<
     ['accountDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
     ['poolMint', beetSolana.publicKey],
     ['authority', beetSolana.publicKey],
+    ['oracle', beetSolana.publicKey],
     ['depositAmount', beet.u64],
     ['authorityBump', beet.u8],
     ['isActive', beet.bool],

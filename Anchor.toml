@@ -19,5 +19,5 @@ address = "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
 program = "target/deploy/stake_pool.so"
 
 [[test.genesis]]
-address = "5ocnV1qiCgaQR8Jb8xWnVbApfaygJ8tNoZfgPwsgx9kx"
+address = "stk9ApL5HeVAwPLr3TLhDXdZS8ptVu7zp6ov8HFDuMi"
 program = "target/deploy/stake_pool_address.so"

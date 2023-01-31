@@ -47,7 +47,7 @@ pub fn handle(ctx: Context<MintOmnisol>, amount: u64) -> Result<()> {
     collateral.amount += amount;
     user.rate -= amount;
 
-    emit!(MintPoolTokensEvent {
+    emit!(MintOmnisolEvent {
         pool: pool.key(),
         user: user.key(),
         collateral: collateral.key(),

@@ -641,6 +641,21 @@ export interface Omnisol {
           'isSigner': true
         },
         {
+          'name': 'user'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'collateral'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'oracle'
+          'isMut': true
+          'isSigner': false
+        },
+        {
           'name': 'clock'
           'isMut': false
           'isSigner': false
@@ -777,6 +792,13 @@ export interface Omnisol {
             'name': 'authority'
             'docs': [
               'An account with authority that can manage and close the pool.',
+            ]
+            'type': 'publicKey'
+          },
+          {
+            'name': 'oracle'
+            'docs': [
+              'Oracle address for clarification',
             ]
             'type': 'publicKey'
           },
@@ -1095,7 +1117,7 @@ export interface Omnisol {
       ]
     },
     {
-      'name': 'MintPoolTokensEvent'
+      'name': 'MintOmnisolEvent'
       'fields': [
         {
           'name': 'pool'
@@ -1817,6 +1839,21 @@ export const IDL: Omnisol = {
           isSigner: true,
         },
         {
+          name: 'user',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'collateral',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'oracle',
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: 'clock',
           isMut: false,
           isSigner: false,
@@ -1953,6 +1990,13 @@ export const IDL: Omnisol = {
             name: 'authority',
             docs: [
               'An account with authority that can manage and close the pool.',
+            ],
+            type: 'publicKey',
+          },
+          {
+            name: 'oracle',
+            docs: [
+              'Oracle address for clarification',
             ],
             type: 'publicKey',
           },
@@ -2271,7 +2315,7 @@ export const IDL: Omnisol = {
       ],
     },
     {
-      name: 'MintPoolTokensEvent',
+      name: 'MintOmnisolEvent',
       fields: [
         {
           name: 'pool',

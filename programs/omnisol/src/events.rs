@@ -40,7 +40,7 @@ pub struct RegisterUserEvent {
 }
 
 #[event]
-pub struct MintPoolTokensEvent {
+pub struct MintOmnisolEvent {
     #[index]
     pub pool: Pubkey,
     #[index]

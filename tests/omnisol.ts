@@ -3,7 +3,7 @@ import { TOKEN_PROGRAM_ID, createMint, getOrCreateAssociatedTokenAccount, mintTo
 import { AnchorProvider, BN, Program, Wallet, web3 } from '@project-serum/anchor'
 import { assert } from 'chai'
 import { OmnisolClient } from '@omnisol/sdk'
-import { STAKE_POOL_PROGRAM_ID, depositSol } from '@solana/spl-stake-pool'
+import { STAKE_POOL_PROGRAM_ID, getStakePoolAccount } from '@solana/spl-stake-pool'
 
 const payerKeypair = web3.Keypair.generate()
 const opts = AnchorProvider.defaultOptions()
@@ -197,9 +197,9 @@ describe('omnisol', () => {
   it('can add to whitelist', async () => {
     // const stakePoolAccount = await getStakePoolAccount(provider.connection, new web3.PublicKey('Jito4APyf642JPZPx3hGc6WWJ8zPKtRbRs4P815Awbb'))
     // console.log(stakePoolAccount)
-    stakePool = new web3.PublicKey('5ocnV1qiCgaQR8Jb8xWnVbApfaygJ8tNoZfgPwsgx9kx')
+    stakePool = new web3.PublicKey('SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy')
     // try {
-    //   await depositSol(provider.connection, stakePool, provider.wallet.publicKey, 100000000)
+    //   console.log(await getStakePoolAccount(provider.connection, stakePool))
     // } catch (e) {
     //   console.log(e)
     // }

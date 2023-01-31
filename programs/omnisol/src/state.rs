@@ -6,6 +6,8 @@ pub struct Pool {
     pub pool_mint: Pubkey,
     /// An account with authority that can manage and close the pool.
     pub authority: Pubkey,
+    /// Oracle address for clarification
+    pub oracle: Pubkey,
     /// Total stake in deposit
     pub deposit_amount: u64,
     /// Signer bump seed for deriving PDA seeds
@@ -15,7 +17,7 @@ pub struct Pool {
 }
 
 impl Pool {
-    pub const SIZE: usize = 8 + 32 + 32 + 8 + 1 + 1;
+    pub const SIZE: usize = 8 + 32 + 32 + 32 + 8 + 1 + 1;
 }
 
 #[account]

@@ -1,12 +1,14 @@
 use anchor_lang::prelude::*;
 
-use crate::{state::Pool, ErrorCode};
+use crate::state::Pool;
 use crate::state::Oracle;
 
 pub fn handle(ctx: Context<InitOracle>) -> Result<()> {
     let oracle = &mut ctx.accounts.oracle;
+    let pool = &mut ctx.accounts.pool;
 
     oracle.authority = ctx.accounts.oracle_authority.key();
+    pool.oracle = oracle.key();
 
     Ok(())
 }
