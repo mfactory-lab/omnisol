@@ -2,9 +2,10 @@ import type { Address, BN, Program } from '@project-serum/anchor'
 import type { PublicKey } from '@solana/web3.js'
 import { Transaction } from '@solana/web3.js'
 import { web3 } from '@project-serum/anchor'
-import type { Collateral, Manager, Oracle, Pool, User, Whitelist } from './generated'
+import type { Collateral, Liquidator, Manager, Oracle, Pool, User, Whitelist } from './generated'
 import {
   PROGRAM_ID,
+  createAddLiquidatorInstruction,
   createAddManagerInstruction,
   createAddToWhitelistInstruction,
   createBlockUserInstruction,
@@ -17,6 +18,7 @@ import {
   createMintOmnisolInstruction,
   createPausePoolInstruction,
   createRemoveFromWhitelistInstruction,
+  createRemoveLiquidatorInstruction,
   createRemoveManagerInstruction,
   createResumePoolInstruction,
   createUnblockUserInstruction,
@@ -30,6 +32,7 @@ const COLLATERAL_SEED_PREFIX = 'collateral'
 const WHITELIST_SEED_PREFIX = 'whitelist'
 const USER_SEED_PREFIX = 'user'
 const MANAGER_SEED_PREFIX = 'manager'
+const LIQUIDATOR_SEED_PREFIX = 'liquidator'
 
 export class OmnisolClient {
   static programId = PROGRAM_ID
@@ -73,6 +76,10 @@ export class OmnisolClient {
 
   async fetchOracle(address: Address) {
     return await this.program.account.oracle.fetchNullable(address) as unknown as Oracle
+  }
+
+  async fetchLiquidator(address: Address) {
+    return await this.program.account.liquidator.fetchNullable(address) as unknown as Liquidator
   }
 
   async createGlobalPool(props: CreateGlobalPoolProps) {
@@ -453,6 +460,48 @@ export class OmnisolClient {
     }
   }
 
+  async addLiquidator(props: AddLiquidatorProps) {
+    const payer = this.wallet.publicKey
+    const liquidator_wallet = props.liquidator_wallet
+    const [liquidator] = await this.pda.liquidator(liquidator_wallet)
+    const [manager] = await this.pda.manager(payer)
+    const ix = createAddLiquidatorInstruction(
+      {
+        authority: payer,
+        liquidator,
+        manager,
+        walletOfLiquidator: liquidator_wallet,
+      },
+    )
+    const tx = new Transaction().add(ix)
+
+    return {
+      tx,
+      liquidator,
+    }
+  }
+
+  async removeLiquidator(props: RemoveLiquidatorProps) {
+    const payer = this.wallet.publicKey
+    const liquidator_wallet = props.liquidator_wallet
+    const [liquidator] = await this.pda.liquidator(liquidator_wallet)
+    const [manager] = await this.pda.manager(payer)
+    const ix = createRemoveLiquidatorInstruction(
+      {
+        authority: payer,
+        liquidator,
+        manager,
+        walletOfLiquidator: liquidator_wallet,
+      },
+    )
+    const tx = new Transaction().add(ix)
+
+    return {
+      tx,
+      liquidator,
+    }
+  }
+
   async updateOracleInfo(props: UpdateOracleInfoProps) {
     const payer = this.wallet.publicKey
     const ix = createUpdateOracleInfoInstruction(
@@ -496,6 +545,11 @@ class OmnisolPDA {
 
   manager = (wallet: Address) => this.pda([
     Buffer.from(MANAGER_SEED_PREFIX),
+    new web3.PublicKey(wallet).toBuffer(),
+  ])
+
+  liquidator = (wallet: Address) => this.pda([
+    Buffer.from(LIQUIDATOR_SEED_PREFIX),
     new web3.PublicKey(wallet).toBuffer(),
   ])
 
@@ -614,6 +668,14 @@ interface InitOracleProps {
 interface CloseOracleProps {
   pool: PublicKey
   oracle: PublicKey
+}
+
+interface AddLiquidatorProps {
+  liquidator_wallet: PublicKey
+}
+
+interface RemoveLiquidatorProps {
+  liquidator_wallet: PublicKey
 }
 
 interface UpdateOracleInfoProps {

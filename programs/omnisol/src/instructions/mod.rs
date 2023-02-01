@@ -17,6 +17,8 @@ pub mod withdraw_stake;
 pub mod init_oracle;
 pub mod close_oracle;
 pub mod update_oracle_info;
+pub mod add_liquidator;
+pub mod remove_liquidator;
 
 pub use add_manager::*;
 pub use add_to_whitelist::*;
@@ -37,3 +39,5 @@ pub use withdraw_stake::*;
 pub use init_oracle::*;
 pub use close_oracle::*;
 pub use update_oracle_info::*;
+pub use add_liquidator::*;
+pub use remove_liquidator::*;

@@ -1,10 +1,8 @@
-import { Buffer } from 'buffer'
 import { TOKEN_PROGRAM_ID, createMint, getOrCreateAssociatedTokenAccount, mintTo } from '@solana/spl-token'
 import { AnchorProvider, BN, Program, Wallet, web3 } from '@project-serum/anchor'
-import { PublicKey } from '@solana/web3.js'
 import { assert } from 'chai'
 import { OmnisolClient } from '@omnisol/sdk'
-import { STAKE_POOL_PROGRAM_ID, depositSol, getStakePoolAccount, getStakePoolAccounts, initialize } from '@solana/spl-stake-pool/src'
+// import { STAKE_POOL_PROGRAM_ID, depositSol, getStakePoolAccount, getStakePoolAccounts, initialize } from '@solana/spl-stake-pool/src'
 
 const payerKeypair = web3.Keypair.generate()
 const opts = AnchorProvider.defaultOptions()
@@ -105,6 +103,22 @@ describe('omnisol', () => {
     assert.equal(oracleData.priorityQueue.toString(), [].toString())
   })
 
+  it('can add liquidator', async () => {
+    const { tx, liquidator } = await client.addLiquidator({
+      liquidator_wallet: provider.wallet.publicKey,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const liquidatorData = await client.fetchLiquidator(liquidator)
+    assert.equal(liquidatorData.authority.equals(provider.wallet.publicKey), true)
+  })
+
   it('can update oracle info', async () => {
     const addresses = [web3.PublicKey.unique(), web3.PublicKey.unique()]
     const values = [new BN(100), new BN(200)]
@@ -197,57 +211,58 @@ describe('omnisol', () => {
 
   it('can add to whitelist', async () => {
     const stakePoolKeypair = web3.Keypair.generate()
-    const validatorListKeypair = web3.Keypair.generate()
-    const [withdrawAuthority] = await PublicKey.findProgramAddress(
-      [stakePoolKeypair.publicKey.toBuffer(), Buffer.from('withdraw')],
-      STAKE_POOL_PROGRAM_ID,
-    )
-    const stakePoolMint = await createMint(provider.connection, payerKeypair, withdrawAuthority, null, 9, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
-    const reserveKeypair = web3.Keypair.generate()
-    const reserveAccount = reserveKeypair.publicKey
-
-    const createAccountTransaction = web3.StakeProgram.createAccount({
-      fromPubkey: provider.wallet.publicKey,
-      authorized: new web3.Authorized(
-        withdrawAuthority,
-        withdrawAuthority,
-      ),
-      lamports: 0,
-      lockup: new web3.Lockup(0, 0, withdrawAuthority),
-      stakePubkey: reserveAccount,
-    })
-    await provider.sendAndConfirm(createAccountTransaction, [payerKeypair, reserveKeypair])
-
-    try {
-      await initialize({
-        connection: provider.connection,
-        fee: { denominator: new BN(0), numerator: new BN(0) },
-        manager: payerKeypair,
-        managerPoolAccount: provider.wallet.publicKey,
-        maxValidators: 1,
-        poolMint: stakePoolMint,
-        referralFee: { denominator: new BN(0), numerator: new BN(0) },
-        reserveStake: reserveAccount,
-        stakePool: stakePoolKeypair,
-        validatorList: validatorListKeypair,
-      })
-    } catch (e) {
-      console.log(e)
-    }
+    stakePool = stakePoolKeypair.publicKey
+    // const validatorListKeypair = web3.Keypair.generate()
+    // const [withdrawAuthority] = await PublicKey.findProgramAddress(
+    //   [stakePoolKeypair.publicKey.toBuffer(), Buffer.from('withdraw')],
+    //   STAKE_POOL_PROGRAM_ID,
+    // )
+    // const stakePoolMint = await createMint(provider.connection, payerKeypair, withdrawAuthority, null, 9, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
+    // const reserveKeypair = web3.Keypair.generate()
+    // const reserveAccount = reserveKeypair.publicKey
+    //
+    // const createAccountTransaction = web3.StakeProgram.createAccount({
+    //   fromPubkey: provider.wallet.publicKey,
+    //   authorized: new web3.Authorized(
+    //     withdrawAuthority,
+    //     withdrawAuthority,
+    //   ),
+    //   lamports: 0,
+    //   lockup: new web3.Lockup(0, 0, withdrawAuthority),
+    //   stakePubkey: reserveAccount,
+    // })
+    // await provider.sendAndConfirm(createAccountTransaction, [payerKeypair, reserveKeypair])
+    //
+    // try {
+    //   await initialize({
+    //     connection: provider.connection,
+    //     fee: { denominator: new BN(0), numerator: new BN(0) },
+    //     manager: payerKeypair,
+    //     managerPoolAccount: provider.wallet.publicKey,
+    //     maxValidators: 1,
+    //     poolMint: stakePoolMint,
+    //     referralFee: { denominator: new BN(0), numerator: new BN(0) },
+    //     reserveStake: reserveAccount,
+    //     stakePool: stakePoolKeypair,
+    //     validatorList: validatorListKeypair,
+    //   })
+    // } catch (e) {
+    //   console.log(e)
+    // }
     // try {
     //   console.log(await depositSol(provider.connection, stakePool, provider.wallet.publicKey, 1000000))
     // } catch (e) {
     //   console.log(e)
     // }
-    try {
-      console.log(await getStakePoolAccounts(provider.connection, stakePool))
-    } catch (e) {
-      console.log(e)
-    }
+    // try {
+    //   console.log(await getStakePoolAccounts(provider.connection, stakePool))
+    // } catch (e) {
+    //   console.log(e)
+    // }
     const { tx, whitelist } = await client.addToWhitelist({
       pool,
       token: poolMint,
-      tokenPool: STAKE_POOL_PROGRAM_ID,
+      tokenPool: new web3.PublicKey('SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy'),
       stakePool,
     })
 
@@ -260,7 +275,7 @@ describe('omnisol', () => {
 
     const whitelistData = await client.fetchWhitelist(whitelist)
     assert.equal(whitelistData.whitelistedToken.equals(poolMint), true)
-    assert.equal(whitelistData.pool.equals(STAKE_POOL_PROGRAM_ID), true)
+    assert.equal(whitelistData.pool.equals(new web3.PublicKey('SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy')), true)
     assert.equal(whitelistData.stakingPool.equals(stakePool), true)
   })
 
@@ -289,7 +304,7 @@ describe('omnisol', () => {
     const { tx: transaction } = await client.addToWhitelist({
       pool,
       token: lpToken,
-      tokenPool: STAKE_POOL_PROGRAM_ID,
+      tokenPool: new web3.PublicKey('SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy'),
       stakePool,
     })
     try {
@@ -1317,6 +1332,22 @@ describe('omnisol', () => {
     } catch (e: any) {
       assertErrorCode(e, '')
     }
+  })
+
+  it('can remove liquidator', async () => {
+    const { tx, liquidator } = await client.removeLiquidator({
+      liquidator_wallet: provider.wallet.publicKey,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const liquidatorData = await client.fetchLiquidator(liquidator)
+    assert.equal(liquidatorData, null)
   })
 
   it('can close global pool', async () => {

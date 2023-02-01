@@ -773,6 +773,68 @@
           }
         }
       ]
+    },
+    {
+      "name": "addLiquidator",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "walletOfLiquidator",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liquidator",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "removeLiquidator",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "walletOfLiquidator",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liquidator",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -874,7 +936,8 @@
           {
             "name": "sourceStake",
             "docs": [
-              "An account of staking pool or LP token"
+              "An account of staking pool or LP token",
+              "TODO rename"
             ],
             "type": "publicKey"
           },
@@ -946,6 +1009,21 @@
             "name": "stakingPool",
             "docs": [
               "LP tokens` pool (default for native stake)"
+            ],
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Liquidator",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "Liquidator authority"
             ],
             "type": "publicKey"
           }

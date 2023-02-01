@@ -1,21 +1,15 @@
 use anchor_lang::prelude::*;
-use spl_stake_pool::state::StakePool;
 
 use crate::state::{Manager, Whitelist};
-use crate::ErrorCode;
 
 pub fn handle(ctx: Context<AddToWhitelist>) -> Result<()> {
     let whitelist = &mut ctx.accounts.whitelist;
     let address_to_whitelist = ctx.accounts.address_to_whitelist.key();
+    // program_id
     let pool = ctx.accounts.pool.key();
     let staking_pool = ctx.accounts.staking_pool.key();
 
-    // let mut stake_pool_data = &mut &**ctx.accounts.staking_pool.try_borrow_data()?;
-    // let stake_pool = StakePool::deserialize(stake_pool_data)?;
-    //
-    // if stake_pool.pool_mint != ctx.accounts.address_to_whitelist.key() {
-    //     return Err(ErrorCode::WrongData.into());
-    // }
+    // TODO add validation
 
     whitelist.whitelisted_token = address_to_whitelist;
     whitelist.pool = pool;

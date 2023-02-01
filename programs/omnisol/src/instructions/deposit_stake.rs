@@ -25,7 +25,6 @@ pub fn handle(ctx: Context<DepositStake>) -> Result<()> {
         .ok_or(ErrorCode::InvalidStakeAccount)?;
 
     let pool_key = pool.key();
-    let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
     let clock = &ctx.accounts.clock;
 
     // Authorize to `withdraw` the stake for the program

@@ -45,6 +45,7 @@ pub struct Collateral {
     /// Address of the global pool
     pub pool: Pubkey,
     /// An account of staking pool or LP token
+    /// TODO rename
     pub source_stake: Pubkey,
     /// An amount of delegated staked tokens
     pub delegation_stake: u64,
@@ -78,6 +79,17 @@ pub struct Whitelist {
 impl Whitelist {
     pub const SEED: &'static [u8] = b"whitelist";
     pub const SIZE: usize = 8 + 32 + 32 + 32;
+}
+
+#[account]
+pub struct Liquidator {
+    /// Liquidator authority
+    pub authority: Pubkey,
+}
+
+impl Liquidator {
+    pub const SEED: &'static [u8] = b"liquidator";
+    pub const SIZE: usize = 8 + 32;
 }
 
 #[account]

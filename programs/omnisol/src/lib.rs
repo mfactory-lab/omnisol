@@ -88,6 +88,14 @@ pub mod omnisol {
     pub fn update_oracle_info<'info>(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>) -> Result<()> {
         update_oracle_info::handle(ctx, addresses, values)
     }
+
+    pub fn add_liquidator<'info>(ctx: Context<AddLiquidator>) -> Result<()> {
+        add_liquidator::handle(ctx)
+    }
+
+    pub fn remove_liquidator<'info>(ctx: Context<RemoveLiquidator>) -> Result<()> {
+        remove_liquidator::handle(ctx)
+    }
 }
 
 #[error_code]

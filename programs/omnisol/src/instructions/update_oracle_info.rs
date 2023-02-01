@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::{state::Pool, ErrorCode};
+use crate::ErrorCode;
 use crate::state::{Oracle, QueueMember};
 
 pub fn handle(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>) -> Result<()> {

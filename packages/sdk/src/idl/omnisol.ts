@@ -774,6 +774,68 @@ export interface Omnisol {
         },
       ]
     },
+    {
+      'name': 'addLiquidator'
+      'accounts': [
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'walletOfLiquidator'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'liquidator'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'manager'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'systemProgram'
+          'isMut': false
+          'isSigner': false
+        },
+      ]
+      'args': []
+    },
+    {
+      'name': 'removeLiquidator'
+      'accounts': [
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'walletOfLiquidator'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'liquidator'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'manager'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'systemProgram'
+          'isMut': false
+          'isSigner': false
+        },
+      ]
+      'args': []
+    },
   ]
   'accounts': [
     {
@@ -875,6 +937,7 @@ export interface Omnisol {
             'name': 'sourceStake'
             'docs': [
               'An account of staking pool or LP token',
+              'TODO rename',
             ]
             'type': 'publicKey'
           },
@@ -946,6 +1009,21 @@ export interface Omnisol {
             'name': 'stakingPool'
             'docs': [
               'LP tokens` pool (default for native stake)',
+            ]
+            'type': 'publicKey'
+          },
+        ]
+      }
+    },
+    {
+      'name': 'liquidator'
+      'type': {
+        'kind': 'struct'
+        'fields': [
+          {
+            'name': 'authority'
+            'docs': [
+              'Liquidator authority',
             ]
             'type': 'publicKey'
           },
@@ -1972,6 +2050,68 @@ export const IDL: Omnisol = {
         },
       ],
     },
+    {
+      name: 'addLiquidator',
+      accounts: [
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'walletOfLiquidator',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'liquidator',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'manager',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: 'removeLiquidator',
+      accounts: [
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'walletOfLiquidator',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'liquidator',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'manager',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
   ],
   accounts: [
     {
@@ -2073,6 +2213,7 @@ export const IDL: Omnisol = {
             name: 'sourceStake',
             docs: [
               'An account of staking pool or LP token',
+              'TODO rename',
             ],
             type: 'publicKey',
           },
@@ -2144,6 +2285,21 @@ export const IDL: Omnisol = {
             name: 'stakingPool',
             docs: [
               'LP tokens` pool (default for native stake)',
+            ],
+            type: 'publicKey',
+          },
+        ],
+      },
+    },
+    {
+      name: 'liquidator',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'authority',
+            docs: [
+              'Liquidator authority',
             ],
             type: 'publicKey',
           },
