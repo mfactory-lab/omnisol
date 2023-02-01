@@ -1,9 +1,10 @@
-// @ts-expect-error "no-error"
+import { Buffer } from 'buffer'
 import { TOKEN_PROGRAM_ID, createMint, getOrCreateAssociatedTokenAccount, mintTo } from '@solana/spl-token'
 import { AnchorProvider, BN, Program, Wallet, web3 } from '@project-serum/anchor'
+import { PublicKey } from '@solana/web3.js'
 import { assert } from 'chai'
 import { OmnisolClient } from '@omnisol/sdk'
-import { STAKE_POOL_PROGRAM_ID, getStakePoolAccount } from '@solana/spl-stake-pool'
+import { STAKE_POOL_PROGRAM_ID, depositSol, getStakePoolAccount, getStakePoolAccounts, initialize } from '@solana/spl-stake-pool/src'
 
 const payerKeypair = web3.Keypair.generate()
 const opts = AnchorProvider.defaultOptions()
@@ -195,14 +196,54 @@ describe('omnisol', () => {
   })
 
   it('can add to whitelist', async () => {
-    // const stakePoolAccount = await getStakePoolAccount(provider.connection, new web3.PublicKey('Jito4APyf642JPZPx3hGc6WWJ8zPKtRbRs4P815Awbb'))
-    // console.log(stakePoolAccount)
-    stakePool = new web3.PublicKey('SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy')
+    const stakePoolKeypair = web3.Keypair.generate()
+    const validatorListKeypair = web3.Keypair.generate()
+    const [withdrawAuthority] = await PublicKey.findProgramAddress(
+      [stakePoolKeypair.publicKey.toBuffer(), Buffer.from('withdraw')],
+      STAKE_POOL_PROGRAM_ID,
+    )
+    const stakePoolMint = await createMint(provider.connection, payerKeypair, withdrawAuthority, null, 9, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
+    const reserveKeypair = web3.Keypair.generate()
+    const reserveAccount = reserveKeypair.publicKey
+
+    const createAccountTransaction = web3.StakeProgram.createAccount({
+      fromPubkey: provider.wallet.publicKey,
+      authorized: new web3.Authorized(
+        withdrawAuthority,
+        withdrawAuthority,
+      ),
+      lamports: 0,
+      lockup: new web3.Lockup(0, 0, withdrawAuthority),
+      stakePubkey: reserveAccount,
+    })
+    await provider.sendAndConfirm(createAccountTransaction, [payerKeypair, reserveKeypair])
+
+    try {
+      await initialize({
+        connection: provider.connection,
+        fee: { denominator: new BN(0), numerator: new BN(0) },
+        manager: payerKeypair,
+        managerPoolAccount: provider.wallet.publicKey,
+        maxValidators: 1,
+        poolMint: stakePoolMint,
+        referralFee: { denominator: new BN(0), numerator: new BN(0) },
+        reserveStake: reserveAccount,
+        stakePool: stakePoolKeypair,
+        validatorList: validatorListKeypair,
+      })
+    } catch (e) {
+      console.log(e)
+    }
     // try {
-    //   console.log(await getStakePoolAccount(provider.connection, stakePool))
+    //   console.log(await depositSol(provider.connection, stakePool, provider.wallet.publicKey, 1000000))
     // } catch (e) {
     //   console.log(e)
     // }
+    try {
+      console.log(await getStakePoolAccounts(provider.connection, stakePool))
+    } catch (e) {
+      console.log(e)
+    }
     const { tx, whitelist } = await client.addToWhitelist({
       pool,
       token: poolMint,

@@ -14,7 +14,7 @@
     "@omnisol/sdk": "*"
   },
   "devDependencies": {
-    "@solana/spl-stake-pool": "^0.6.5",
+    "@solana/spl-stake-pool": "git+https://github.com/mfactory-lab/jfactory-stake-pool.git",
     "@antfu/eslint-config-vue": "^0.34.0",
     "@types/bn.js": "^5.1.0",
     "@types/bs58": "^4.0.1",

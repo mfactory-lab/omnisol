@@ -7,7 +7,7 @@ importers:
       '@antfu/eslint-config-vue': ^0.34.0
       '@omnisol/sdk': '*'
       '@project-serum/anchor': ^0.25.0
-      '@solana/spl-stake-pool': ^0.6.5
+      '@solana/spl-stake-pool': mfactory-lab/jfactory-stake-pool#8995f4a
       '@solana/spl-token': ^0.3.6
       '@types/bn.js': ^5.1.0
       '@types/bs58': ^4.0.1
@@ -23,7 +23,7 @@ importers:
       '@project-serum/anchor': 0.25.0
     devDependencies:
       '@antfu/eslint-config-vue': 0.34.1_yygwinqv3a2io74xmwofqb7uka
-      '@solana/spl-stake-pool': 0.6.5
+      '@solana/spl-stake-pool': github.com/mfactory-lab/jfactory-stake-pool/8995f4a
       '@solana/spl-token': 0.3.6
       '@types/bn.js': 5.1.1
       '@types/bs58': 4.0.1
@@ -725,22 +725,6 @@ packages:
     engines: {node: '>=5.10'}
     dependencies:
       buffer: 6.0.3
-
-  /@solana/spl-stake-pool/0.6.5:
-    resolution: {integrity: sha512-gAYjX4LlRem3Bje1csZOOBStX8wAH8b8tu4sublUTIoJxLMdEbXqnwc8RJ2lAsmFkjxxomEM9Hk65F8jcvv15A==}
-    dependencies:
-      '@project-serum/borsh': 0.2.5_@solana+web3.js@1.73.0
-      '@solana/buffer-layout': 4.0.0
-      '@solana/spl-token': 0.1.8
-      '@solana/web3.js': 1.73.0
-      bn.js: 5.2.1
-      buffer: 6.0.3
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - supports-color
-      - utf-8-validate
-    dev: true
 
   /@solana/spl-token/0.1.8:
     resolution: {integrity: sha512-LZmYCKcPQDtJgecvWOgT/cnoIQPWjdH+QVyzPcFvyDUiT0DiRjZaam4aqNUyvchLFhzgunv3d9xOoyE34ofdoQ==}
@@ -6836,4 +6820,22 @@ packages:
   /yocto-queue/0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
+    dev: true
+
+  github.com/mfactory-lab/jfactory-stake-pool/8995f4a:
+    resolution: {tarball: https://codeload.github.com/mfactory-lab/jfactory-stake-pool/tar.gz/8995f4a}
+    name: '@solana/spl-stake-pool'
+    version: 0.6.5
+    dependencies:
+      '@project-serum/borsh': 0.2.5_@solana+web3.js@1.73.0
+      '@solana/buffer-layout': 4.0.0
+      '@solana/spl-token': 0.1.8
+      '@solana/web3.js': 1.73.0
+      bn.js: 5.2.1
+      buffer: 6.0.3
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
     dev: true
