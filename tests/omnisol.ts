@@ -1061,7 +1061,7 @@ describe('omnisol', () => {
     }
   })
 
-  it('can withdraw stake', async () => {
+  it('can withdraw split stake', async () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
     let userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
 
@@ -1071,7 +1071,48 @@ describe('omnisol', () => {
     const splitAccount = splitKeypair.publicKey
 
     const { transaction, user, collateral } = await client.withdrawStake({
-      amount: new BN(10000000000),
+      amount: new BN(5000000000),
+      pool,
+      poolMint,
+      splitStake: splitAccount,
+      stakeAccount,
+      stakeProgram: web3.StakeProgram.programId,
+      userPoolToken: userPoolToken.address,
+    })
+
+    try {
+      await provider.sendAndConfirm(transaction, [payerKeypair, splitKeypair])
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
+
+    assert.equal(userPoolBalance.value.amount, 5000000050)
+
+    const poolData = await client.fetchGlobalPool(pool)
+    const userData = await client.fetchUser(user)
+    const collateralData = await client.fetchCollateral(collateral)
+
+    assert.equal(poolData.depositAmount.toString(), '5000000150')
+    assert.equal(userData.rate.toString(), '100')
+    assert.equal(collateralData.amount.toString(), '5000000000')
+    assert.equal(collateralData.delegationStake.toString(), '5000000000')
+    assert.equal(collateralData.liquidatedAmount, 0)
+  })
+
+  it('can withdraw stake', async () => {
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+    let userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
+
+    assert.equal(userPoolBalance.value.amount, 5000000050)
+
+    const splitKeypair = web3.Keypair.generate()
+    const splitAccount = splitKeypair.publicKey
+
+    const { transaction, user, collateral } = await client.withdrawStake({
+      amount: new BN(5000000000),
       pool,
       poolMint,
       splitStake: splitAccount,
