@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::state::{Liquidator, Manager, Pool};
+use crate::state::{Liquidator, Manager};
 
 pub fn handle(_ctx: Context<RemoveLiquidator>) -> Result<()> {
     Ok(())

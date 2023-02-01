@@ -613,7 +613,7 @@ export interface Omnisol {
       ]
     },
     {
-      'name': 'withdrawSol'
+      'name': 'burnOmnisol'
       'accounts': [
         {
           'name': 'pool'
@@ -622,12 +622,7 @@ export interface Omnisol {
         },
         {
           'name': 'poolMint'
-          'isMut': false
-          'isSigner': false
-        },
-        {
-          'name': 'poolAuthority'
-          'isMut': false
+          'isMut': true
           'isSigner': false
         },
         {
@@ -646,22 +641,12 @@ export interface Omnisol {
           'isSigner': false
         },
         {
-          'name': 'collateral'
-          'isMut': true
-          'isSigner': false
-        },
-        {
-          'name': 'oracle'
+          'name': 'withdrawInfo'
           'isMut': true
           'isSigner': false
         },
         {
           'name': 'clock'
-          'isMut': false
-          'isSigner': false
-        },
-        {
-          'name': 'stakeProgram'
           'isMut': false
           'isSigner': false
         },
@@ -1016,6 +1001,35 @@ export interface Omnisol {
       }
     },
     {
+      'name': 'withdrawInfo'
+      'type': {
+        'kind': 'struct'
+        'fields': [
+          {
+            'name': 'authority'
+            'docs': [
+              'User that made withdraw request',
+            ]
+            'type': 'publicKey'
+          },
+          {
+            'name': 'amount'
+            'docs': [
+              'Amount of omnisol burnt',
+            ]
+            'type': 'u64'
+          },
+          {
+            'name': 'createdAt'
+            'docs': [
+              'Time of withdraw request creation',
+            ]
+            'type': 'i64'
+          },
+        ]
+      }
+    },
+    {
       'name': 'liquidator'
       'type': {
         'kind': 'struct'
@@ -1164,6 +1178,31 @@ export interface Omnisol {
         },
         {
           'name': 'authority'
+          'type': 'publicKey'
+          'index': false
+        },
+        {
+          'name': 'amount'
+          'type': 'u64'
+          'index': false
+        },
+        {
+          'name': 'timestamp'
+          'type': 'i64'
+          'index': false
+        },
+      ]
+    },
+    {
+      'name': 'WithdrawRequestCreationEvent'
+      'fields': [
+        {
+          'name': 'pool'
+          'type': 'publicKey'
+          'index': true
+        },
+        {
+          'name': 'user'
           'type': 'publicKey'
           'index': false
         },
@@ -1889,7 +1928,7 @@ export const IDL: Omnisol = {
       ],
     },
     {
-      name: 'withdrawSol',
+      name: 'burnOmnisol',
       accounts: [
         {
           name: 'pool',
@@ -1898,12 +1937,7 @@ export const IDL: Omnisol = {
         },
         {
           name: 'poolMint',
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: 'poolAuthority',
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
@@ -1922,22 +1956,12 @@ export const IDL: Omnisol = {
           isSigner: false,
         },
         {
-          name: 'collateral',
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: 'oracle',
+          name: 'withdrawInfo',
           isMut: true,
           isSigner: false,
         },
         {
           name: 'clock',
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: 'stakeProgram',
           isMut: false,
           isSigner: false,
         },
@@ -2292,6 +2316,35 @@ export const IDL: Omnisol = {
       },
     },
     {
+      name: 'withdrawInfo',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'authority',
+            docs: [
+              'User that made withdraw request',
+            ],
+            type: 'publicKey',
+          },
+          {
+            name: 'amount',
+            docs: [
+              'Amount of omnisol burnt',
+            ],
+            type: 'u64',
+          },
+          {
+            name: 'createdAt',
+            docs: [
+              'Time of withdraw request creation',
+            ],
+            type: 'i64',
+          },
+        ],
+      },
+    },
+    {
       name: 'liquidator',
       type: {
         kind: 'struct',
@@ -2440,6 +2493,31 @@ export const IDL: Omnisol = {
         },
         {
           name: 'authority',
+          type: 'publicKey',
+          index: false,
+        },
+        {
+          name: 'amount',
+          type: 'u64',
+          index: false,
+        },
+        {
+          name: 'timestamp',
+          type: 'i64',
+          index: false,
+        },
+      ],
+    },
+    {
+      name: 'WithdrawRequestCreationEvent',
+      fields: [
+        {
+          name: 'pool',
+          type: 'publicKey',
+          index: true,
+        },
+        {
+          name: 'user',
           type: 'publicKey',
           index: false,
         },

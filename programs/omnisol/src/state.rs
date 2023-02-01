@@ -82,6 +82,21 @@ impl Whitelist {
 }
 
 #[account]
+pub struct WithdrawInfo {
+    /// User that made withdraw request
+    pub authority: Pubkey,
+    /// Amount of omnisol burnt
+    pub amount: u64,
+    /// Time of withdraw request creation
+    pub created_at: i64,
+}
+
+impl WithdrawInfo {
+    pub const SEED: &'static [u8] = b"withdraw_info";
+    pub const SIZE: usize = 8 + 32 + 8 + 8;
+}
+
+#[account]
 pub struct Liquidator {
     /// Liquidator authority
     pub authority: Pubkey,

@@ -11,19 +11,19 @@ import * as web3 from '@solana/web3.js'
 
 /**
  * @category Instructions
- * @category WithdrawSol
+ * @category BurnOmnisol
  * @category generated
  */
-export interface WithdrawSolInstructionArgs {
+export interface BurnOmnisolInstructionArgs {
   amount: beet.bignum
 }
 /**
  * @category Instructions
- * @category WithdrawSol
+ * @category BurnOmnisol
  * @category generated
  */
-export const withdrawSolStruct = new beet.BeetArgsStruct<
-  WithdrawSolInstructionArgs & {
+export const burnOmnisolStruct = new beet.BeetArgsStruct<
+  BurnOmnisolInstructionArgs & {
     instructionDiscriminator: number[] /* size: 8 */
   }
 >(
@@ -31,62 +31,56 @@ export const withdrawSolStruct = new beet.BeetArgsStruct<
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
     ['amount', beet.u64],
   ],
-  'WithdrawSolInstructionArgs',
+  'BurnOmnisolInstructionArgs',
 )
 /**
- * Accounts required by the _withdrawSol_ instruction
+ * Accounts required by the _burnOmnisol_ instruction
  *
  * @property [_writable_] pool
- * @property [] poolMint
- * @property [] poolAuthority
+ * @property [_writable_] poolMint
  * @property [_writable_] sourceTokenAccount
  * @property [_writable_, **signer**] authority
  * @property [_writable_] user
- * @property [_writable_] collateral
- * @property [_writable_] oracle
+ * @property [_writable_] withdrawInfo
  * @property [] clock
- * @property [] stakeProgram
  * @category Instructions
- * @category WithdrawSol
+ * @category BurnOmnisol
  * @category generated
  */
-export interface WithdrawSolInstructionAccounts {
+export interface BurnOmnisolInstructionAccounts {
   pool: web3.PublicKey
   poolMint: web3.PublicKey
-  poolAuthority: web3.PublicKey
   sourceTokenAccount: web3.PublicKey
   authority: web3.PublicKey
   user: web3.PublicKey
-  collateral: web3.PublicKey
-  oracle: web3.PublicKey
+  withdrawInfo: web3.PublicKey
   clock: web3.PublicKey
-  stakeProgram: web3.PublicKey
   tokenProgram?: web3.PublicKey
   systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
-export const withdrawSolInstructionDiscriminator = [
-  145, 131, 74, 136, 65, 137, 42, 38,
+export const burnOmnisolInstructionDiscriminator = [
+  9, 228, 220, 251, 222, 150, 179, 169,
 ]
 
 /**
- * Creates a _WithdrawSol_ instruction.
+ * Creates a _BurnOmnisol_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
  * @param args to provide as instruction data to the program
  *
  * @category Instructions
- * @category WithdrawSol
+ * @category BurnOmnisol
  * @category generated
  */
-export function createWithdrawSolInstruction(
-  accounts: WithdrawSolInstructionAccounts,
-  args: WithdrawSolInstructionArgs,
+export function createBurnOmnisolInstruction(
+  accounts: BurnOmnisolInstructionAccounts,
+  args: BurnOmnisolInstructionArgs,
   programId = new web3.PublicKey('9SfbhzHrx5xczfoiTo2VVpG5oukcS5Schgy2ppLH3zQd'),
 ) {
-  const [data] = withdrawSolStruct.serialize({
-    instructionDiscriminator: withdrawSolInstructionDiscriminator,
+  const [data] = burnOmnisolStruct.serialize({
+    instructionDiscriminator: burnOmnisolInstructionDiscriminator,
     ...args,
   })
   const keys: web3.AccountMeta[] = [
@@ -97,12 +91,7 @@ export function createWithdrawSolInstruction(
     },
     {
       pubkey: accounts.poolMint,
-      isWritable: false,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.poolAuthority,
-      isWritable: false,
+      isWritable: true,
       isSigner: false,
     },
     {
@@ -121,22 +110,12 @@ export function createWithdrawSolInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.collateral,
-      isWritable: true,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.oracle,
+      pubkey: accounts.withdrawInfo,
       isWritable: true,
       isSigner: false,
     },
     {
       pubkey: accounts.clock,
-      isWritable: false,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.stakeProgram,
       isWritable: false,
       isSigner: false,
     },

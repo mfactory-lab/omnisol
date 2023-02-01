@@ -1284,6 +1284,246 @@ describe('omnisol', () => {
     assert.equal(collateralData, null)
   })
 
+  it('can not burn 0 omnisol', async () => {
+    const stakeKeypair = web3.Keypair.generate()
+    stakeAccount = stakeKeypair.publicKey
+
+    const lamportsForStakeAccount
+      = (await provider.connection.getMinimumBalanceForRentExemption(
+        web3.StakeProgram.space,
+      ))
+
+    const createAccountTransaction = web3.StakeProgram.createAccount({
+      fromPubkey: provider.wallet.publicKey,
+      authorized: new web3.Authorized(
+        provider.wallet.publicKey,
+        provider.wallet.publicKey,
+      ),
+      lamports: lamportsForStakeAccount + web3.LAMPORTS_PER_SOL,
+      lockup: new web3.Lockup(0, 0, provider.wallet.publicKey),
+      stakePubkey: stakeAccount,
+    })
+    await provider.sendAndConfirm(createAccountTransaction, [payerKeypair, stakeKeypair])
+
+    const validators = await provider.connection.getVoteAccounts()
+    const selectedValidator = validators.current[0]
+    const selectedValidatorPubkey = new web3.PublicKey(selectedValidator.votePubkey)
+
+    const delegateTransaction = web3.StakeProgram.delegate({
+      stakePubkey: stakeAccount,
+      authorizedPubkey: provider.wallet.publicKey,
+      votePubkey: selectedValidatorPubkey,
+    })
+
+    await provider.sendAndConfirm(delegateTransaction, [payerKeypair, payerKeypair])
+
+    const { transaction, user, collateral, bump } = await client.depositStake({
+      sourceStake: stakeAccount,
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(transaction)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    let poolData = await client.fetchGlobalPool(pool)
+    let userData = await client.fetchUser(user)
+    let collateralData = await client.fetchCollateral(collateral)
+
+    assert.equal(poolData.depositAmount.toString(), '1000000000')
+    assert.equal(userData.wallet.equals(provider.wallet.publicKey), true)
+    assert.equal(userData.rate.toString(), '1000000000')
+    assert.equal(userData.isBlocked, false)
+    assert.equal(collateralData.user.equals(user), true)
+    assert.equal(collateralData.pool.equals(pool), true)
+    assert.equal(collateralData.bump, bump)
+    assert.equal(collateralData.amount, 0)
+    assert.equal(collateralData.delegationStake.toString(), '1000000000')
+    assert.equal(collateralData.liquidatedAmount.toString(), '0')
+    assert.equal(collateralData.isNative, true)
+    assert.equal(collateralData.sourceStake.equals(stakeAccount), true)
+
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+    let userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
+
+    assert.equal(userPoolBalance.value.amount, 0)
+
+    const { transaction: tx1 } = await client.mintOmnisol({
+      amount: new BN(1000000000),
+      pool,
+      poolMint,
+      stakedAddress: stakeAccount,
+      userPoolToken: userPoolToken.address,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx1)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
+
+    assert.equal(userPoolBalance.value.amount, 1000000000)
+
+    poolData = await client.fetchGlobalPool(pool)
+    userData = await client.fetchUser(user)
+    collateralData = await client.fetchCollateral(collateral)
+
+    assert.equal(poolData.depositAmount.toString(), '1000000000')
+    assert.equal(userData.rate.toString(), '0')
+    assert.equal(collateralData.amount.toString(), '1000000000')
+    assert.equal(collateralData.delegationStake.toString(), '1000000000')
+
+    const { tx } = await client.burnOmnisol({
+      sourceTokenAccount: userPoolToken.address,
+      amount: new BN(0),
+      pool,
+      poolMint,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, 'InsufficientAmount')
+    }
+  })
+
+  it('can not burn omnisol when pool paused', async () => {
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+
+    const { tx: tx1 } = await client.pauseGlobalPool({
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx1)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const { tx } = await client.burnOmnisol({
+      sourceTokenAccount: userPoolToken.address,
+      amount: new BN(100),
+      pool,
+      poolMint,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, 'PoolAlreadyPaused')
+    }
+
+    const { tx: tx2 } = await client.resumeGlobalPool({
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx2)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+  })
+
+  it('can not burn omnisol when user blocked', async () => {
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+
+    const { tx: tx1 } = await client.blockUser({
+      pool,
+      userWallet: provider.wallet.publicKey,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx1)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const { tx } = await client.burnOmnisol({
+      sourceTokenAccount: userPoolToken.address,
+      amount: new BN(100),
+      pool,
+      poolMint,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, 'UserBlocked')
+    }
+
+    const { tx: tx2 } = await client.unblockUser({
+      pool,
+      userWallet: provider.wallet.publicKey,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx2)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+  })
+
+  it('can burn omnisol', async () => {
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+    let userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
+
+    assert.equal(userPoolBalance.value.amount, 1000000000)
+
+    const { tx, withdrawInfo } = await client.burnOmnisol({
+      sourceTokenAccount: userPoolToken.address,
+      amount: new BN(500000000),
+      pool,
+      poolMint,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
+
+    assert.equal(userPoolBalance.value.amount, 500000000)
+
+    const withdrawInfoData = await client.fetchWithdrawInfo(withdrawInfo)
+
+    assert.equal(withdrawInfoData.amount.toString(), '500000000')
+    assert.equal(withdrawInfoData.authority.equals(provider.wallet.publicKey), true)
+  })
+
+  it('can not burn omnisol while withdraw request is pending', async () => {
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+
+    const { tx } = await client.burnOmnisol({
+      sourceTokenAccount: userPoolToken.address,
+      amount: new BN(500000000),
+      pool,
+      poolMint,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+      assert.ok(false)
+    } catch {
+      assert.ok(true)
+    }
+  })
+
   it('can close oracle', async () => {
     const { tx } = await client.closeOracle({
       pool,

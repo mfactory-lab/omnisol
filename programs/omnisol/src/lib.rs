@@ -73,8 +73,8 @@ pub mod omnisol {
         withdraw_stake::handle(ctx, amount)
     }
 
-    pub fn withdraw_sol<'info>(ctx: Context<'_, '_, '_, 'info, WithdrawSol<'info>>, amount: u64) -> Result<()> {
-        withdraw_sol::handle(ctx, amount)
+    pub fn burn_omnisol<'info>(ctx: Context<'_, '_, '_, 'info, BurnOmnisol<'info>>, amount: u64) -> Result<()> {
+        burn_omnisol::handle(ctx, amount)
     }
 
     pub fn init_oracle<'info>(ctx: Context<InitOracle>) -> Result<()> {

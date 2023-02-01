@@ -2,13 +2,14 @@ import type { Address, BN, Program } from '@project-serum/anchor'
 import type { PublicKey } from '@solana/web3.js'
 import { Transaction } from '@solana/web3.js'
 import { web3 } from '@project-serum/anchor'
-import type { Collateral, Liquidator, Manager, Oracle, Pool, User, Whitelist } from './generated'
+import type { Collateral, Liquidator, Manager, Oracle, Pool, User, Whitelist, WithdrawInfo } from './generated'
 import {
   PROGRAM_ID,
   createAddLiquidatorInstruction,
   createAddManagerInstruction,
   createAddToWhitelistInstruction,
   createBlockUserInstruction,
+  createBurnOmnisolInstruction,
   createCloseOracleInstruction,
   createClosePoolInstruction,
   createDepositLpInstruction,
@@ -23,8 +24,7 @@ import {
   createResumePoolInstruction,
   createUnblockUserInstruction,
   createUpdateOracleInfoInstruction,
-  createWithdrawLpTokensInstruction,
-  createWithdrawStakeInstruction,
+  createWithdrawLpTokensInstruction, createWithdrawStakeInstruction,
 } from './generated'
 import { IDL } from './idl/omnisol'
 
@@ -33,6 +33,7 @@ const WHITELIST_SEED_PREFIX = 'whitelist'
 const USER_SEED_PREFIX = 'user'
 const MANAGER_SEED_PREFIX = 'manager'
 const LIQUIDATOR_SEED_PREFIX = 'liquidator'
+const WITHDRAW_INFO_PREFIX = 'withdraw_info'
 
 export class OmnisolClient {
   static programId = PROGRAM_ID
@@ -80,6 +81,10 @@ export class OmnisolClient {
 
   async fetchLiquidator(address: Address) {
     return await this.program.account.liquidator.fetchNullable(address) as unknown as Liquidator
+  }
+
+  async fetchWithdrawInfo(address: Address) {
+    return await this.program.account.withdrawInfo.fetchNullable(address) as unknown as WithdrawInfo
   }
 
   async createGlobalPool(props: CreateGlobalPoolProps) {
@@ -520,6 +525,33 @@ export class OmnisolClient {
       tx,
     }
   }
+
+  async burnOmnisol(props: BurnOmnisolProps) {
+    const payer = this.wallet.publicKey
+    const [user] = await this.pda.user(payer)
+    const [withdrawInfo] = await this.pda.withdrawInfo(payer)
+    const ix = createBurnOmnisolInstruction(
+      {
+        authority: payer,
+        clock: OmnisolClient.clock,
+        pool: props.pool,
+        poolMint: props.poolMint,
+        sourceTokenAccount: props.sourceTokenAccount,
+        user,
+        withdrawInfo,
+      },
+      {
+        amount: props.amount,
+      },
+    )
+    const tx = new Transaction().add(ix)
+
+    return {
+      tx,
+      user,
+      withdrawInfo,
+    }
+  }
 }
 
 class OmnisolPDA {
@@ -550,6 +582,11 @@ class OmnisolPDA {
 
   liquidator = (wallet: Address) => this.pda([
     Buffer.from(LIQUIDATOR_SEED_PREFIX),
+    new web3.PublicKey(wallet).toBuffer(),
+  ])
+
+  withdrawInfo = (wallet: Address) => this.pda([
+    Buffer.from(WITHDRAW_INFO_PREFIX),
     new web3.PublicKey(wallet).toBuffer(),
   ])
 
@@ -682,4 +719,11 @@ interface UpdateOracleInfoProps {
   oracle: PublicKey
   addresses: PublicKey[]
   values: BN[]
+}
+
+interface BurnOmnisolProps {
+  pool: PublicKey
+  poolMint: PublicKey
+  sourceTokenAccount: PublicKey
+  amount: BN
 }

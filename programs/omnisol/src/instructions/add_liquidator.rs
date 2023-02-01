@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::state::{Liquidator, Manager, Pool};
+use crate::state::{Liquidator, Manager};
 
 pub fn handle(ctx: Context<AddLiquidator>) -> Result<()> {
     let liquidator = &mut ctx.accounts.liquidator;
