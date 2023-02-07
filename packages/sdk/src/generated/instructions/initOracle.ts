@@ -22,7 +22,6 @@ export const initOracleStruct = new beet.BeetArgsStruct<{
 /**
  * Accounts required by the _initOracle_ instruction
  *
- * @property [] pool
  * @property [_writable_, **signer**] authority
  * @property [_writable_, **signer**] oracle
  * @property [] oracleAuthority
@@ -31,7 +30,6 @@ export const initOracleStruct = new beet.BeetArgsStruct<{
  * @category generated
  */
 export interface InitOracleInstructionAccounts {
-  pool: web3.PublicKey
   authority: web3.PublicKey
   oracle: web3.PublicKey
   oracleAuthority: web3.PublicKey
@@ -59,11 +57,6 @@ export function createInitOracleInstruction(
     instructionDiscriminator: initOracleInstructionDiscriminator,
   })
   const keys: web3.AccountMeta[] = [
-    {
-      pubkey: accounts.pool,
-      isWritable: false,
-      isSigner: false,
-    },
     {
       pubkey: accounts.authority,
       isWritable: true,

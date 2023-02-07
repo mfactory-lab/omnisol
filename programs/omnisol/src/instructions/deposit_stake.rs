@@ -49,6 +49,11 @@ pub fn handle(ctx: Context<DepositStake>) -> Result<()> {
         user.wallet = ctx.accounts.authority.key();
         user.rate = 0;
         user.is_blocked = false;
+
+        emit!(RegisterUserEvent {
+            pool: pool_key,
+            user: user.key(),
+        });
     }
 
     if user.is_blocked {
@@ -69,11 +74,6 @@ pub fn handle(ctx: Context<DepositStake>) -> Result<()> {
 
     pool.deposit_amount = pool.deposit_amount.saturating_add(delegation.stake);
 
-    emit!(RegisterUserEvent {
-        pool: pool_key,
-        user: ctx.accounts.user.key(),
-    });
-
     emit!(DepositStakeEvent {
         pool: pool.key(),
         collateral: collateral.key(),
@@ -87,7 +87,7 @@ pub fn handle(ctx: Context<DepositStake>) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct DepositStake<'info> {
-    #[account(mut)]
+    #[account(mut, constraint = pool.stake_source == stake_program.key())]
     pub pool: Box<Account<'info, Pool>>,
 
     /// CHECK: no needs to check, only for signing

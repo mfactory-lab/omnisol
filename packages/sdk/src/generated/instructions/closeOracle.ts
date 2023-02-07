@@ -22,7 +22,6 @@ export const closeOracleStruct = new beet.BeetArgsStruct<{
 /**
  * Accounts required by the _closeOracle_ instruction
  *
- * @property [] pool
  * @property [_writable_, **signer**] authority
  * @property [_writable_] oracle
  * @category Instructions
@@ -30,7 +29,6 @@ export const closeOracleStruct = new beet.BeetArgsStruct<{
  * @category generated
  */
 export interface CloseOracleInstructionAccounts {
-  pool: web3.PublicKey
   authority: web3.PublicKey
   oracle: web3.PublicKey
   systemProgram?: web3.PublicKey
@@ -57,11 +55,6 @@ export function createCloseOracleInstruction(
     instructionDiscriminator: closeOracleInstructionDiscriminator,
   })
   const keys: web3.AccountMeta[] = [
-    {
-      pubkey: accounts.pool,
-      isWritable: false,
-      isSigner: false,
-    },
     {
       pubkey: accounts.authority,
       isWritable: true,

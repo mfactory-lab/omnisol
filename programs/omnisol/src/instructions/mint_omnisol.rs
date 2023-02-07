@@ -6,6 +6,7 @@ use crate::{
     state::{Collateral, Pool, User},
     ErrorCode,
 };
+use crate::state::MINT_AUTHORITY_SEED;
 
 /// The user can use their deposit to mint omniSOL.
 /// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
@@ -27,7 +28,7 @@ pub fn handle(ctx: Context<MintOmnisol>, amount: u64) -> Result<()> {
     }
 
     let pool_key = pool.key();
-    let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
+    let mint_authority_seeds = [MINT_AUTHORITY_SEED, &[ctx.bumps["mint_authority"]]];
     let clock = &ctx.accounts.clock;
 
     // Mint new pool tokens equals to `amount`
@@ -37,9 +38,9 @@ pub fn handle(ctx: Context<MintOmnisol>, amount: u64) -> Result<()> {
             token::MintTo {
                 mint: ctx.accounts.pool_mint.to_account_info(),
                 to: ctx.accounts.user_pool_token.to_account_info(),
-                authority: ctx.accounts.pool_authority.to_account_info(),
+                authority: ctx.accounts.mint_authority.to_account_info(),
             },
-            &[&pool_authority_seeds],
+            &[&mint_authority_seeds],
         ),
         amount,
     )?;
@@ -60,7 +61,7 @@ pub fn handle(ctx: Context<MintOmnisol>, amount: u64) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct MintOmnisol<'info> {
-    #[account(mut)]
+    #[account(mut, address = collateral.pool)]
     pub pool: Box<Account<'info, Pool>>,
 
     /// CHECK:
@@ -68,8 +69,8 @@ pub struct MintOmnisol<'info> {
     pub pool_mint: AccountInfo<'info>,
 
     /// CHECK: no needs to check, only for signing
-    #[account(seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
-    pub pool_authority: AccountInfo<'info>,
+    #[account(seeds = [MINT_AUTHORITY_SEED], bump)]
+    pub mint_authority: AccountInfo<'info>,
 
     #[account(
         mut,

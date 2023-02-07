@@ -19,7 +19,7 @@ pub fn handle(ctx: Context<PausePool>) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct PausePool<'info> {
-    #[account(mut, has_one = authority)]
+    #[account(mut)]
     pub pool: Box<Account<'info, Pool>>,
 
     #[account(mut, seeds = [Manager::SEED, authority.key().as_ref()], bump)]

@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
+use std::str::FromStr;
 
-use crate::state::{Manager, Pool};
+use crate::state::{Manager, ADMIN};
 
 pub fn handle(ctx: Context<AddManager>) -> Result<()> {
     let manager = &mut ctx.accounts.manager;
@@ -13,10 +14,7 @@ pub fn handle(ctx: Context<AddManager>) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct AddManager<'info> {
-    #[account(has_one = authority)]
-    pub pool: Box<Account<'info, Pool>>,
-
-    #[account(mut)]
+    #[account(mut, constraint = authority.key() == Pubkey::from_str(ADMIN).unwrap())]
     pub authority: Signer<'info>,
 
     /// CHECK: Address of manager to add

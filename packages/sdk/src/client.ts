@@ -34,6 +34,7 @@ const USER_SEED_PREFIX = 'user'
 const MANAGER_SEED_PREFIX = 'manager'
 const LIQUIDATOR_SEED_PREFIX = 'liquidator'
 const WITHDRAW_INFO_PREFIX = 'withdraw_info'
+const MINT_AUTHORITY_PREFIX = 'mint_authority'
 
 export class OmnisolClient {
   static programId = PROGRAM_ID
@@ -87,16 +88,21 @@ export class OmnisolClient {
     return await this.program.account.withdrawInfo.fetchNullable(address) as unknown as WithdrawInfo
   }
 
-  async createGlobalPool(props: CreateGlobalPoolProps) {
+  async createPool(props: CreatePoolProps) {
     const payer = this.wallet.publicKey
     const pool = props.pool
+    const stakeSource = props.stakeSource
     const [poolAuthority, bump] = await this.pda.poolAuthority(pool)
+    const [mintAuthority] = await this.pda.mintAuthority()
     const ix = createInitPoolInstruction(
       {
         authority: payer,
+        mintAuthority,
+        oracle: props.oracle,
         pool,
         poolAuthority,
         poolMint: props.mint,
+        stakeSource,
       },
     )
     const tx = new Transaction().add(ix)
@@ -105,6 +111,7 @@ export class OmnisolClient {
       tx,
       poolAuthority,
       bump,
+      stakeSource,
     }
   }
 
@@ -116,7 +123,6 @@ export class OmnisolClient {
         authority: payer,
         manager,
         managerWallet: props.managerWallet,
-        pool: props.pool,
       },
     )
     const tx = new Transaction().add(instruction)
@@ -135,7 +141,6 @@ export class OmnisolClient {
         authority: payer,
         manager,
         managerWallet: props.managerWallet,
-        pool: props.pool,
       },
     )
     const tx = new Transaction().add(instruction)
@@ -161,7 +166,7 @@ export class OmnisolClient {
     }
   }
 
-  async pauseGlobalPool(props: PauseGlobalPoolProps) {
+  async pausePool(props: PausePoolProps) {
     const payer = this.wallet.publicKey
     const [manager] = await this.pda.manager(payer)
     const instruction = createPausePoolInstruction(
@@ -178,7 +183,7 @@ export class OmnisolClient {
     }
   }
 
-  async resumeGlobalPool(props: ResumeGlobalPoolProps) {
+  async resumePool(props: ResumePoolProps) {
     const payer = this.wallet.publicKey
     const [manager] = await this.pda.manager(payer)
     const instruction = createResumePoolInstruction(
@@ -338,16 +343,16 @@ export class OmnisolClient {
 
   async mintOmnisol(props: MintOmnisolProps) {
     const payer = this.wallet.publicKey
-    const [poolAuthority] = await this.pda.poolAuthority(props.pool)
+    const [mintAuthority] = await this.pda.mintAuthority()
     const [user] = await this.pda.user(payer)
     const [collateral] = await this.pda.collateral(props.stakedAddress, user)
     const instruction = createMintOmnisolInstruction(
       {
+        mintAuthority,
         authority: payer,
         clock: OmnisolClient.clock,
         collateral,
         pool: props.pool,
-        poolAuthority,
         poolMint: props.poolMint,
         stakedAddress: props.stakedAddress,
         user,
@@ -432,13 +437,12 @@ export class OmnisolClient {
 
   async initOracle(props: InitOracleProps) {
     const payer = this.wallet.publicKey
-    const pool = props.pool
+
     const ix = createInitOracleInstruction(
       {
         authority: payer,
         oracle: props.oracle,
         oracleAuthority: props.oracleAuthority,
-        pool,
       },
     )
     const tx = new Transaction().add(ix)
@@ -450,12 +454,10 @@ export class OmnisolClient {
 
   async closeOracle(props: CloseOracleProps) {
     const payer = this.wallet.publicKey
-    const pool = props.pool
     const ix = createCloseOracleInstruction(
       {
         authority: payer,
         oracle: props.oracle,
-        pool,
       },
     )
     const tx = new Transaction().add(ix)
@@ -559,6 +561,10 @@ class OmnisolPDA {
     new web3.PublicKey(pool).toBuffer(),
   ])
 
+  mintAuthority = () => this.pda([
+    Buffer.from(MINT_AUTHORITY_PREFIX),
+  ])
+
   whitelist = (token: Address) => this.pda([
     Buffer.from(WHITELIST_SEED_PREFIX),
     new web3.PublicKey(token).toBuffer(),
@@ -606,20 +612,22 @@ interface OmnisolClientProps {
   program: Program<typeof IDL>
 }
 
-interface CreateGlobalPoolProps {
+interface CreatePoolProps {
   pool: PublicKey
   mint: PublicKey
+  oracle: PublicKey
+  stakeSource: PublicKey
 }
 
 interface CloseGlobalPoolProps {
   pool: PublicKey
 }
 
-interface PauseGlobalPoolProps {
+interface PausePoolProps {
   pool: PublicKey
 }
 
-interface ResumeGlobalPoolProps {
+interface ResumePoolProps {
   pool: PublicKey
 }
 
@@ -636,12 +644,10 @@ interface RemoveFromWhitelistProps {
 }
 
 interface BlockUserProps {
-  pool: PublicKey
   userWallet: PublicKey
 }
 
 interface UnblockUserProps {
-  pool: PublicKey
   userWallet: PublicKey
 }
 
@@ -667,12 +673,10 @@ interface MintOmnisolProps {
 }
 
 interface AddManagerProps {
-  pool: PublicKey
   managerWallet: PublicKey
 }
 
 interface RemoveManagerProps {
-  pool: PublicKey
   managerWallet: PublicKey
 }
 
@@ -697,13 +701,11 @@ interface WithdrawStakeProps {
 }
 
 interface InitOracleProps {
-  pool: PublicKey
   oracle: PublicKey
   oracleAuthority: PublicKey
 }
 
 interface CloseOracleProps {
-  pool: PublicKey
   oracle: PublicKey
 }
 

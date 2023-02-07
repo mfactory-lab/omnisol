@@ -1,24 +1,19 @@
+use std::str::FromStr;
 use anchor_lang::prelude::*;
 
-use crate::state::Pool;
-use crate::state::Oracle;
+use crate::state::{Oracle, ADMIN};
 
 pub fn handle(ctx: Context<InitOracle>) -> Result<()> {
     let oracle = &mut ctx.accounts.oracle;
-    let pool = &mut ctx.accounts.pool;
 
     oracle.authority = ctx.accounts.oracle_authority.key();
-    pool.oracle = oracle.key();
 
     Ok(())
 }
 
 #[derive(Accounts)]
 pub struct InitOracle<'info> {
-    #[account(has_one = authority)]
-    pub pool: Box<Account<'info, Pool>>,
-
-    #[account(mut)]
+    #[account(mut, constraint = authority.key() == Pubkey::from_str(ADMIN).unwrap())]
     pub authority: Signer<'info>,
 
     #[account(init, payer = authority, space = Oracle::SIZE)]

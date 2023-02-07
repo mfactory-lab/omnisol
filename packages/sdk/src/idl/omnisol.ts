@@ -11,12 +11,27 @@ export interface Omnisol {
           'isSigner': true
         },
         {
+          'name': 'oracle'
+          'isMut': true
+          'isSigner': false
+        },
+        {
           'name': 'poolMint'
           'isMut': true
           'isSigner': false
         },
         {
           'name': 'poolAuthority'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'mintAuthority'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'stakeSource'
           'isMut': false
           'isSigner': false
         },
@@ -36,11 +51,6 @@ export interface Omnisol {
     {
       'name': 'addManager'
       'accounts': [
-        {
-          'name': 'pool'
-          'isMut': false
-          'isSigner': false
-        },
         {
           'name': 'authority'
           'isMut': true
@@ -67,11 +77,6 @@ export interface Omnisol {
     {
       'name': 'removeManager'
       'accounts': [
-        {
-          'name': 'pool'
-          'isMut': false
-          'isSigner': false
-        },
         {
           'name': 'authority'
           'isMut': true
@@ -418,7 +423,7 @@ export interface Omnisol {
           'isSigner': false
         },
         {
-          'name': 'poolAuthority'
+          'name': 'mintAuthority'
           'isMut': false
           'isSigner': false
         },
@@ -672,11 +677,6 @@ export interface Omnisol {
       'name': 'initOracle'
       'accounts': [
         {
-          'name': 'pool'
-          'isMut': false
-          'isSigner': false
-        },
-        {
           'name': 'authority'
           'isMut': true
           'isSigner': true
@@ -702,11 +702,6 @@ export interface Omnisol {
     {
       'name': 'closeOracle'
       'accounts': [
-        {
-          'name': 'pool'
-          'isMut': false
-          'isSigner': false
-        },
         {
           'name': 'authority'
           'isMut': true
@@ -846,6 +841,14 @@ export interface Omnisol {
             'name': 'oracle'
             'docs': [
               'Oracle address for clarification',
+            ]
+            'type': 'publicKey'
+          },
+          {
+            'name': 'stakeSource'
+            'docs': [
+              'Address of LP token or native stake program',
+              'TODO: rename',
             ]
             'type': 'publicKey'
           },
@@ -1326,12 +1329,27 @@ export const IDL: Omnisol = {
           isSigner: true,
         },
         {
+          name: 'oracle',
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: 'poolMint',
           isMut: true,
           isSigner: false,
         },
         {
           name: 'poolAuthority',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'mintAuthority',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'stakeSource',
           isMut: false,
           isSigner: false,
         },
@@ -1351,11 +1369,6 @@ export const IDL: Omnisol = {
     {
       name: 'addManager',
       accounts: [
-        {
-          name: 'pool',
-          isMut: false,
-          isSigner: false,
-        },
         {
           name: 'authority',
           isMut: true,
@@ -1382,11 +1395,6 @@ export const IDL: Omnisol = {
     {
       name: 'removeManager',
       accounts: [
-        {
-          name: 'pool',
-          isMut: false,
-          isSigner: false,
-        },
         {
           name: 'authority',
           isMut: true,
@@ -1733,7 +1741,7 @@ export const IDL: Omnisol = {
           isSigner: false,
         },
         {
-          name: 'poolAuthority',
+          name: 'mintAuthority',
           isMut: false,
           isSigner: false,
         },
@@ -1987,11 +1995,6 @@ export const IDL: Omnisol = {
       name: 'initOracle',
       accounts: [
         {
-          name: 'pool',
-          isMut: false,
-          isSigner: false,
-        },
-        {
           name: 'authority',
           isMut: true,
           isSigner: true,
@@ -2017,11 +2020,6 @@ export const IDL: Omnisol = {
     {
       name: 'closeOracle',
       accounts: [
-        {
-          name: 'pool',
-          isMut: false,
-          isSigner: false,
-        },
         {
           name: 'authority',
           isMut: true,
@@ -2161,6 +2159,14 @@ export const IDL: Omnisol = {
             name: 'oracle',
             docs: [
               'Oracle address for clarification',
+            ],
+            type: 'publicKey',
+          },
+          {
+            name: 'stakeSource',
+            docs: [
+              'Address of LP token or native stake program',
+              'TODO: rename',
             ],
             type: 'publicKey',
           },

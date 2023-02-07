@@ -22,7 +22,6 @@ export const removeManagerStruct = new beet.BeetArgsStruct<{
 /**
  * Accounts required by the _removeManager_ instruction
  *
- * @property [] pool
  * @property [_writable_, **signer**] authority
  * @property [_writable_] manager
  * @property [] managerWallet
@@ -31,7 +30,6 @@ export const removeManagerStruct = new beet.BeetArgsStruct<{
  * @category generated
  */
 export interface RemoveManagerInstructionAccounts {
-  pool: web3.PublicKey
   authority: web3.PublicKey
   manager: web3.PublicKey
   managerWallet: web3.PublicKey
@@ -59,11 +57,6 @@ export function createRemoveManagerInstruction(
     instructionDiscriminator: removeManagerInstructionDiscriminator,
   })
   const keys: web3.AccountMeta[] = [
-    {
-      pubkey: accounts.pool,
-      isWritable: false,
-      isSigner: false,
-    },
     {
       pubkey: accounts.authority,
       isWritable: true,

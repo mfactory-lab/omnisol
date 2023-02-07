@@ -11,12 +11,27 @@
           "isSigner": true
         },
         {
+          "name": "oracle",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "poolMint",
           "isMut": true,
           "isSigner": false
         },
         {
           "name": "poolAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakeSource",
           "isMut": false,
           "isSigner": false
         },
@@ -36,11 +51,6 @@
     {
       "name": "addManager",
       "accounts": [
-        {
-          "name": "pool",
-          "isMut": false,
-          "isSigner": false
-        },
         {
           "name": "authority",
           "isMut": true,
@@ -67,11 +77,6 @@
     {
       "name": "removeManager",
       "accounts": [
-        {
-          "name": "pool",
-          "isMut": false,
-          "isSigner": false
-        },
         {
           "name": "authority",
           "isMut": true,
@@ -418,7 +423,7 @@
           "isSigner": false
         },
         {
-          "name": "poolAuthority",
+          "name": "mintAuthority",
           "isMut": false,
           "isSigner": false
         },
@@ -672,11 +677,6 @@
       "name": "initOracle",
       "accounts": [
         {
-          "name": "pool",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "authority",
           "isMut": true,
           "isSigner": true
@@ -702,11 +702,6 @@
     {
       "name": "closeOracle",
       "accounts": [
-        {
-          "name": "pool",
-          "isMut": false,
-          "isSigner": false
-        },
         {
           "name": "authority",
           "isMut": true,
@@ -846,6 +841,14 @@
             "name": "oracle",
             "docs": [
               "Oracle address for clarification"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "stakeSource",
+            "docs": [
+              "Address of LP token or native stake program",
+              "TODO: rename"
             ],
             "type": "publicKey"
           },

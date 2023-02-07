@@ -38,7 +38,7 @@ export const mintOmnisolStruct = new beet.BeetArgsStruct<
  *
  * @property [_writable_] pool
  * @property [_writable_] poolMint
- * @property [] poolAuthority
+ * @property [] mintAuthority
  * @property [_writable_] user
  * @property [_writable_] collateral
  * @property [_writable_] userPoolToken
@@ -52,7 +52,7 @@ export const mintOmnisolStruct = new beet.BeetArgsStruct<
 export interface MintOmnisolInstructionAccounts {
   pool: web3.PublicKey
   poolMint: web3.PublicKey
-  poolAuthority: web3.PublicKey
+  mintAuthority: web3.PublicKey
   user: web3.PublicKey
   collateral: web3.PublicKey
   userPoolToken: web3.PublicKey
@@ -98,7 +98,7 @@ export function createMintOmnisolInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.poolAuthority,
+      pubkey: accounts.mintAuthority,
       isWritable: false,
       isSigner: false,
     },

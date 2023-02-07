@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
+use std::str::FromStr;
 
-use crate::state::{Oracle, Pool};
+use crate::state::{Oracle, ADMIN};
 
 pub fn handle(_ctx: Context<CloseOracle>) -> Result<()> {
     Ok(())
@@ -8,13 +9,10 @@ pub fn handle(_ctx: Context<CloseOracle>) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct CloseOracle<'info> {
-    #[account(has_one = authority)]
-    pub pool: Box<Account<'info, Pool>>,
-
     #[account(mut)]
     pub authority: Signer<'info>,
 
-    #[account(mut, close = authority)]
+    #[account(mut, constraint = authority.key() == Pubkey::from_str(ADMIN).unwrap(), close = authority)]
     pub oracle: Box<Account<'info, Oracle>>,
 
     pub system_program: Program<'info, System>,

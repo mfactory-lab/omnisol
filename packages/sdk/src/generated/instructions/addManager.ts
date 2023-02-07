@@ -22,7 +22,6 @@ export const addManagerStruct = new beet.BeetArgsStruct<{
 /**
  * Accounts required by the _addManager_ instruction
  *
- * @property [] pool
  * @property [_writable_, **signer**] authority
  * @property [] managerWallet
  * @property [_writable_] manager
@@ -31,7 +30,6 @@ export const addManagerStruct = new beet.BeetArgsStruct<{
  * @category generated
  */
 export interface AddManagerInstructionAccounts {
-  pool: web3.PublicKey
   authority: web3.PublicKey
   managerWallet: web3.PublicKey
   manager: web3.PublicKey
@@ -59,11 +57,6 @@ export function createAddManagerInstruction(
     instructionDiscriminator: addManagerInstructionDiscriminator,
   })
   const keys: web3.AccountMeta[] = [
-    {
-      pubkey: accounts.pool,
-      isWritable: false,
-      isSigner: false,
-    },
     {
       pubkey: accounts.authority,
       isWritable: true,

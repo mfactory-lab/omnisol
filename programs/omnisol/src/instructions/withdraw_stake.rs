@@ -109,7 +109,7 @@ pub fn handle(ctx: Context<WithdrawStake>, amount: u64) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct WithdrawStake<'info> {
-    #[account(mut)]
+    #[account(mut, address = collateral.pool)]
     pub pool: Box<Account<'info, Pool>>,
 
     /// CHECK: no needs to check, only for signing

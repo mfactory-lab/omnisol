@@ -4,7 +4,7 @@ import { assert } from 'chai'
 import { OmnisolClient } from '@omnisol/sdk'
 // import { STAKE_POOL_PROGRAM_ID, depositSol, getStakePoolAccount, getStakePoolAccounts, initialize } from '@solana/spl-stake-pool/src'
 
-const payerKeypair = web3.Keypair.generate()
+const payerKeypair = web3.Keypair.fromSecretKey(Uint8Array.from([46, 183, 156, 94, 55, 128, 248, 0, 49, 70, 183, 244, 178, 0, 0, 236, 212, 131, 76, 78, 112, 48, 25, 79, 249, 33, 43, 158, 199, 2, 168, 18, 55, 174, 166, 159, 57, 67, 197, 158, 255, 142, 177, 177, 47, 39, 35, 185, 148, 253, 191, 58, 219, 119, 104, 89, 225, 26, 244, 119, 160, 6, 156, 227]))
 const opts = AnchorProvider.defaultOptions()
 const provider = new AnchorProvider(
   new web3.Connection('http://localhost:8899', opts.preflightCommitment),
@@ -19,12 +19,15 @@ describe('omnisol', () => {
   })
 
   let pool: web3.PublicKey
+  let poolForLP: web3.PublicKey
   let poolMint: web3.PublicKey
   let lpToken: web3.PublicKey
   let poolAuthority: web3.PublicKey
+  let poolForLPAuthority: web3.PublicKey
   let stakeAccount: web3.PublicKey
   let oracle: web3.PublicKey
   let stakePool: web3.PublicKey
+  let mintAuthority: web3.PublicKey
 
   before(async () => {
     await provider.connection.confirmTransaction(
@@ -32,41 +35,8 @@ describe('omnisol', () => {
     )
   })
 
-  it('can create global pool', async () => {
-    const poolKeypair = web3.Keypair.generate()
-    pool = poolKeypair.publicKey
-    const [authority, bump] = await client.pda.poolAuthority(pool)
-    poolAuthority = authority
-    poolMint = await createMint(provider.connection, payerKeypair, authority, null, 9, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
-    const { tx } = await client.createGlobalPool({
-      pool,
-      mint: poolMint,
-    })
-
-    try {
-      await provider.sendAndConfirm(tx, [
-        poolKeypair,
-      ])
-    } catch (e) {
-      console.log(e)
-      throw e
-    }
-
-    const poolData = await client.fetchGlobalPool(pool)
-    if (!poolData) {
-      throw new Error('Invalid pool')
-    }
-
-    assert.equal(poolData.poolMint.equals(poolMint), true)
-    assert.equal(poolData.depositAmount, 0)
-    assert.equal(poolData.authorityBump, bump)
-    assert.equal(poolData.authority.equals(provider.wallet.publicKey), true)
-    assert.equal(poolData.isActive, true)
-  })
-
   it('can add manager', async () => {
     const { tx, manager } = await client.addManager({
-      pool,
       managerWallet: provider.wallet.publicKey,
     })
 
@@ -86,7 +56,6 @@ describe('omnisol', () => {
     oracle = oraclePair.publicKey
 
     const { tx } = await client.initOracle({
-      pool,
       oracleAuthority: provider.wallet.publicKey,
       oracle,
     })
@@ -141,7 +110,6 @@ describe('omnisol', () => {
 
   it('can remove manager', async () => {
     const { tx } = await client.removeManager({
-      pool,
       managerWallet: provider.wallet.publicKey,
     })
 
@@ -154,21 +122,58 @@ describe('omnisol', () => {
   })
 
   it('can not call manager instruction from non-manager account', async () => {
-    const { tx } = await client.pauseGlobalPool({
+    const { tx } = await client.pausePool({
       pool,
     })
 
     try {
       await provider.sendAndConfirm(tx)
       assert.ok(false)
-    } catch (e: any) {
-      assertErrorCode(e, '')
+    } catch {
+      assert.ok(true)
     }
+  })
+
+  it('can create pool', async () => {
+    const poolKeypair = web3.Keypair.generate()
+    pool = poolKeypair.publicKey
+    const [authority, bump] = await client.pda.poolAuthority(pool)
+    poolAuthority = authority
+    const [mintAuthorityKey] = await client.pda.mintAuthority()
+    mintAuthority = mintAuthorityKey
+    poolMint = await createMint(provider.connection, payerKeypair, mintAuthority, null, 9, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
+    const { tx } = await client.createPool({
+      oracle,
+      stakeSource: web3.StakeProgram.programId,
+      pool,
+      mint: poolMint,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx, [
+        poolKeypair,
+      ])
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const poolData = await client.fetchGlobalPool(pool)
+    if (!poolData) {
+      throw new Error('Invalid pool')
+    }
+
+    assert.equal(poolData.poolMint.equals(poolMint), true)
+    assert.equal(poolData.depositAmount, 0)
+    assert.equal(poolData.authorityBump, bump)
+    assert.equal(poolData.authority.equals(provider.wallet.publicKey), true)
+    assert.equal(poolData.isActive, true)
+    assert.equal(poolData.oracle.equals(oracle), true)
+    assert.equal(poolData.stakeSource.equals(web3.StakeProgram.programId), true)
   })
 
   it('can pause pool', async () => {
     const { tx: tx1 } = await client.addManager({
-      pool,
       managerWallet: provider.wallet.publicKey,
     })
 
@@ -178,7 +183,7 @@ describe('omnisol', () => {
       console.log(e)
       throw e
     }
-    const { tx } = await client.pauseGlobalPool({
+    const { tx } = await client.pausePool({
       pool,
     })
 
@@ -194,7 +199,7 @@ describe('omnisol', () => {
   })
 
   it('can resume pool', async () => {
-    const { tx } = await client.resumeGlobalPool({
+    const { tx } = await client.resumePool({
       pool,
     })
 
@@ -299,6 +304,27 @@ describe('omnisol', () => {
     await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], null, TOKEN_PROGRAM_ID)
     let sourceBalance = await provider.connection.getTokenAccountBalance(source.address)
 
+    const poolKeypair = web3.Keypair.generate()
+    poolForLP = poolKeypair.publicKey
+    const [authority] = await client.pda.poolAuthority(poolForLP)
+    poolForLPAuthority = authority
+
+    const { tx: tx1 } = await client.createPool({
+      oracle,
+      stakeSource: lpToken,
+      pool: poolForLP,
+      mint: poolMint,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx1, [
+        poolKeypair,
+      ])
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
     assert.equal(sourceBalance.value.amount, 100)
 
     const { tx: transaction } = await client.addToWhitelist({
@@ -313,7 +339,7 @@ describe('omnisol', () => {
       console.log(e)
       throw e
     }
-    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
+    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolForLPAuthority, true)
     let destinationBalance = await provider.connection.getTokenAccountBalance(destination.address)
 
     assert.equal(destinationBalance.value.amount, 0)
@@ -323,7 +349,7 @@ describe('omnisol', () => {
       destination: destination.address,
       lpToken,
       source: source.address,
-      pool,
+      pool: poolForLP,
     })
 
     try {
@@ -339,7 +365,7 @@ describe('omnisol', () => {
     assert.equal(sourceBalance.value.amount, 0)
     assert.equal(destinationBalance.value.amount, 100)
 
-    const poolData = await client.fetchGlobalPool(pool)
+    const poolData = await client.fetchGlobalPool(poolForLP)
     const userData = await client.fetchUser(user)
     const collateralData = await client.fetchCollateral(collateral)
 
@@ -348,7 +374,7 @@ describe('omnisol', () => {
     assert.equal(userData.rate, 100)
     assert.equal(userData.isBlocked, false)
     assert.equal(collateralData.user.equals(user), true)
-    assert.equal(collateralData.pool.equals(pool), true)
+    assert.equal(collateralData.pool.equals(poolForLP), true)
     assert.equal(collateralData.bump, bump)
     assert.equal(collateralData.amount, 0)
     assert.equal(collateralData.delegationStake, 100)
@@ -360,7 +386,7 @@ describe('omnisol', () => {
   it('can deposit lp tokens twice', async () => {
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
     await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], null, TOKEN_PROGRAM_ID)
-    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
+    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolForLPAuthority, true)
     let sourceBalance = await provider.connection.getTokenAccountBalance(source.address)
     let destinationBalance = await provider.connection.getTokenAccountBalance(destination.address)
 
@@ -372,7 +398,7 @@ describe('omnisol', () => {
       destination: destination.address,
       lpToken,
       source: source.address,
-      pool,
+      pool: poolForLP,
     })
 
     try {
@@ -388,7 +414,7 @@ describe('omnisol', () => {
     assert.equal(sourceBalance.value.amount, 0)
     assert.equal(destinationBalance.value.amount, 200)
 
-    const poolData = await client.fetchGlobalPool(pool)
+    const poolData = await client.fetchGlobalPool(poolForLP)
     const userData = await client.fetchUser(user)
     const collateralData = await client.fetchCollateral(collateral)
 
@@ -397,7 +423,7 @@ describe('omnisol', () => {
     assert.equal(userData.rate, 200)
     assert.equal(userData.isBlocked, false)
     assert.equal(collateralData.user.equals(user), true)
-    assert.equal(collateralData.pool.equals(pool), true)
+    assert.equal(collateralData.pool.equals(poolForLP), true)
     assert.equal(collateralData.bump, bump)
     assert.equal(collateralData.amount, 0)
     assert.equal(collateralData.delegationStake, 200)
@@ -410,13 +436,13 @@ describe('omnisol', () => {
     const someToken = await createMint(provider.connection, payerKeypair, provider.wallet.publicKey, null, 1, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, someToken, provider.wallet.publicKey)
     await mintTo(provider.connection, payerKeypair, someToken, source.address, provider.wallet.publicKey, 100, [], null, TOKEN_PROGRAM_ID)
-    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, someToken, poolAuthority, true)
+    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, someToken, poolForLPAuthority, true)
     const { tx } = await client.depositLPToken({
       amount: new BN(100),
       destination: destination.address,
       lpToken: someToken,
       source: source.address,
-      pool,
+      pool: poolForLP,
     })
 
     try {
@@ -429,7 +455,6 @@ describe('omnisol', () => {
 
   it('can block user', async () => {
     const { tx, user } = await client.blockUser({
-      pool,
       userWallet: provider.wallet.publicKey,
     })
 
@@ -447,13 +472,13 @@ describe('omnisol', () => {
   it('can not deposit if user blocked', async () => {
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
     await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], null, TOKEN_PROGRAM_ID)
-    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
+    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolForLPAuthority, true)
     const { tx } = await client.depositLPToken({
       amount: new BN(100),
       destination: destination.address,
       lpToken,
       source: source.address,
-      pool,
+      pool: poolForLP,
     })
 
     try {
@@ -466,7 +491,6 @@ describe('omnisol', () => {
 
   it('can unblock user', async () => {
     const { tx, user } = await client.unblockUser({
-      pool,
       userWallet: provider.wallet.publicKey,
     })
 
@@ -483,13 +507,13 @@ describe('omnisol', () => {
 
   it('can not deposit if amount is 0', async () => {
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
-    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
+    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolForLPAuthority, true)
     const { tx } = await client.depositLPToken({
       amount: new BN(0),
       destination: destination.address,
       lpToken,
       source: source.address,
-      pool,
+      pool: poolForLP,
     })
 
     try {
@@ -503,17 +527,17 @@ describe('omnisol', () => {
   it('can not deposit if pool paused', async () => {
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
     await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], null, TOKEN_PROGRAM_ID)
-    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
+    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolForLPAuthority, true)
     const { tx } = await client.depositLPToken({
       amount: new BN(100),
       destination: destination.address,
       lpToken,
       source: source.address,
-      pool,
+      pool: poolForLP,
     })
 
-    const { tx: tx1 } = await client.pauseGlobalPool({
-      pool,
+    const { tx: tx1 } = await client.pausePool({
+      pool: poolForLP,
     })
 
     try {
@@ -530,8 +554,8 @@ describe('omnisol', () => {
       assertErrorCode(e, 'PoolAlreadyPaused')
     }
 
-    const { tx: tx2 } = await client.resumeGlobalPool({
-      pool,
+    const { tx: tx2 } = await client.resumePool({
+      pool: poolForLP,
     })
 
     try {
@@ -591,7 +615,7 @@ describe('omnisol', () => {
     const userData = await client.fetchUser(user)
     const collateralData = await client.fetchCollateral(collateral)
 
-    assert.equal(poolData.depositAmount.toString(), '10000000200')
+    assert.equal(poolData.depositAmount.toString(), '10000000000')
     assert.equal(userData.wallet.equals(provider.wallet.publicKey), true)
     assert.equal(userData.rate.toString(), '10000000200')
     assert.equal(userData.isBlocked, false)
@@ -686,7 +710,7 @@ describe('omnisol', () => {
 
     await provider.sendAndConfirm(delegateTransaction, [payerKeypair, payerKeypair])
 
-    const { tx: tx1 } = await client.pauseGlobalPool({
+    const { tx: tx1 } = await client.pausePool({
       pool,
     })
 
@@ -709,7 +733,7 @@ describe('omnisol', () => {
       assertErrorCode(e, 'PoolAlreadyPaused')
     }
 
-    const { tx: tx2 } = await client.resumeGlobalPool({
+    const { tx: tx2 } = await client.resumePool({
       pool,
     })
 
@@ -750,7 +774,7 @@ describe('omnisol', () => {
     const userData = await client.fetchUser(user)
     const collateralData = await client.fetchCollateral(collateral)
 
-    assert.equal(poolData.depositAmount.toString(), '10000000200')
+    assert.equal(poolData.depositAmount.toString(), '10000000000')
     assert.equal(userData.rate.toString(), '200')
     assert.equal(collateralData.amount.toString(), '10000000000')
     assert.equal(collateralData.delegationStake.toString(), '10000000000')
@@ -764,7 +788,7 @@ describe('omnisol', () => {
 
     const { transaction, user, collateral } = await client.mintOmnisol({
       amount: new BN(100),
-      pool,
+      pool: poolForLP,
       poolMint,
       stakedAddress: lpToken,
       userPoolToken: userPoolToken.address,
@@ -781,11 +805,11 @@ describe('omnisol', () => {
 
     assert.equal(userPoolBalance.value.amount, 10000000100)
 
-    const poolData = await client.fetchGlobalPool(pool)
+    const poolData = await client.fetchGlobalPool(poolForLP)
     const userData = await client.fetchUser(user)
     const collateralData = await client.fetchCollateral(collateral)
 
-    assert.equal(poolData.depositAmount.toString(), '10000000200')
+    assert.equal(poolData.depositAmount.toString(), '200')
     assert.equal(userData.rate.toString(), '100')
     assert.equal(collateralData.amount.toString(), '100')
     assert.equal(collateralData.delegationStake.toString(), '200')
@@ -795,7 +819,7 @@ describe('omnisol', () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
     const { transaction } = await client.mintOmnisol({
       amount: new BN(101),
-      pool,
+      pool: poolForLP,
       poolMint,
       stakedAddress: lpToken,
       userPoolToken: userPoolToken.address,
@@ -813,14 +837,14 @@ describe('omnisol', () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
     const { transaction } = await client.mintOmnisol({
       amount: new BN(100),
-      pool,
+      pool: poolForLP,
       poolMint,
       stakedAddress: lpToken,
       userPoolToken: userPoolToken.address,
     })
 
-    const { tx: tx1 } = await client.pauseGlobalPool({
-      pool,
+    const { tx: tx1 } = await client.pausePool({
+      pool: poolForLP,
     })
 
     try {
@@ -837,8 +861,8 @@ describe('omnisol', () => {
       assertErrorCode(e, 'PoolAlreadyPaused')
     }
 
-    const { tx: tx2 } = await client.resumeGlobalPool({
-      pool,
+    const { tx: tx2 } = await client.resumePool({
+      pool: poolForLP,
     })
 
     try {
@@ -853,14 +877,13 @@ describe('omnisol', () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
     const { transaction } = await client.mintOmnisol({
       amount: new BN(100),
-      pool,
+      pool: poolForLP,
       poolMint,
       stakedAddress: lpToken,
       userPoolToken: userPoolToken.address,
     })
 
     const { tx } = await client.blockUser({
-      pool,
       userWallet: provider.wallet.publicKey,
     })
 
@@ -879,7 +902,6 @@ describe('omnisol', () => {
     }
 
     const { tx: tx1 } = await client.unblockUser({
-      pool,
       userWallet: provider.wallet.publicKey,
     })
 
@@ -949,7 +971,7 @@ describe('omnisol', () => {
     const splitKeypair = web3.Keypair.generate()
     const splitAccount = splitKeypair.publicKey
 
-    const { tx } = await client.pauseGlobalPool({
+    const { tx } = await client.pausePool({
       pool,
     })
 
@@ -977,7 +999,7 @@ describe('omnisol', () => {
       assertErrorCode(e, 'PoolAlreadyPaused')
     }
 
-    const { tx: tx1 } = await client.resumeGlobalPool({
+    const { tx: tx1 } = await client.resumePool({
       pool,
     })
 
@@ -1146,7 +1168,7 @@ describe('omnisol', () => {
     const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
 
-    const { tx } = await client.pauseGlobalPool({
+    const { tx } = await client.pausePool({
       pool,
     })
 
@@ -1174,7 +1196,7 @@ describe('omnisol', () => {
       assertErrorCode(e, 'PoolAlreadyPaused')
     }
 
-    const { tx: tx1 } = await client.resumeGlobalPool({
+    const { tx: tx1 } = await client.resumePool({
       pool,
     })
 
@@ -1438,7 +1460,7 @@ describe('omnisol', () => {
   it('can not burn omnisol when pool paused', async () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
 
-    const { tx: tx1 } = await client.pauseGlobalPool({
+    const { tx: tx1 } = await client.pausePool({
       pool,
     })
 
@@ -1463,7 +1485,7 @@ describe('omnisol', () => {
       assertErrorCode(e, 'PoolAlreadyPaused')
     }
 
-    const { tx: tx2 } = await client.resumeGlobalPool({
+    const { tx: tx2 } = await client.resumePool({
       pool,
     })
 
@@ -1567,7 +1589,6 @@ describe('omnisol', () => {
 
   it('can close oracle', async () => {
     const { tx } = await client.closeOracle({
-      pool,
       oracle,
     })
 
@@ -1587,7 +1608,6 @@ describe('omnisol', () => {
     oracle = oraclePair.publicKey
 
     const { tx } = await client.initOracle({
-      pool,
       oracleAuthority: web3.PublicKey.unique(),
       oracle,
     })

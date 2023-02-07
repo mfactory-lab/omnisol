@@ -23,8 +23,11 @@ export const initPoolStruct = new beet.BeetArgsStruct<{
  * Accounts required by the _initPool_ instruction
  *
  * @property [_writable_, **signer**] pool
+ * @property [_writable_] oracle
  * @property [_writable_] poolMint
  * @property [] poolAuthority
+ * @property [] mintAuthority
+ * @property [] stakeSource
  * @property [_writable_, **signer**] authority
  * @category Instructions
  * @category InitPool
@@ -32,8 +35,11 @@ export const initPoolStruct = new beet.BeetArgsStruct<{
  */
 export interface InitPoolInstructionAccounts {
   pool: web3.PublicKey
+  oracle: web3.PublicKey
   poolMint: web3.PublicKey
   poolAuthority: web3.PublicKey
+  mintAuthority: web3.PublicKey
+  stakeSource: web3.PublicKey
   authority: web3.PublicKey
   systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
@@ -65,12 +71,27 @@ export function createInitPoolInstruction(
       isSigner: true,
     },
     {
+      pubkey: accounts.oracle,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
       pubkey: accounts.poolMint,
       isWritable: true,
       isSigner: false,
     },
     {
       pubkey: accounts.poolAuthority,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.mintAuthority,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.stakeSource,
       isWritable: false,
       isSigner: false,
     },

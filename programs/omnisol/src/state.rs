@@ -1,4 +1,8 @@
+use std::str::FromStr;
 use anchor_lang::prelude::*;
+
+pub const ADMIN: &str = "4kMtMnYWFbsMc7M3jcdnfCceHaiXmrqaMz2QZQAmn88i";
+pub const MINT_AUTHORITY_SEED: &'static [u8] = b"mint_authority";
 
 #[account]
 pub struct Pool {
@@ -8,6 +12,9 @@ pub struct Pool {
     pub authority: Pubkey,
     /// Oracle address for clarification
     pub oracle: Pubkey,
+    /// Address of LP token or native stake program
+    /// TODO: rename
+    pub stake_source: Pubkey,
     /// Total stake in deposit
     pub deposit_amount: u64,
     /// Signer bump seed for deriving PDA seeds
@@ -17,7 +24,7 @@ pub struct Pool {
 }
 
 impl Pool {
-    pub const SIZE: usize = 8 + 32 + 32 + 32 + 8 + 1 + 1;
+    pub const SIZE: usize = 8 + 32 + 32 + 32 + 32 + 8 + 1 + 1;
 }
 
 #[account]
