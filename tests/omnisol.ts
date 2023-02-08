@@ -924,7 +924,7 @@ describe('omnisol', () => {
 
     assert.equal(destinationBalance.value.amount, 200)
 
-    const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
+    const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolForLPAuthority, true)
     let sourceBalance = await provider.connection.getTokenAccountBalance(source.address)
 
     assert.equal(sourceBalance.value.amount, 200)
@@ -933,7 +933,7 @@ describe('omnisol', () => {
       amount: new BN(50),
       destination: destination.address,
       lpToken,
-      pool,
+      pool: poolForLP,
       poolMint,
       source: source.address,
       userPoolToken: userPoolToken.address,
@@ -954,11 +954,11 @@ describe('omnisol', () => {
     assert.equal(destinationBalance.value.amount, 250)
     assert.equal(userPoolBalance.value.amount, 10000000050)
 
-    const poolData = await client.fetchGlobalPool(pool)
+    const poolData = await client.fetchGlobalPool(poolForLP)
     const userData = await client.fetchUser(user)
     const collateralData = await client.fetchCollateral(collateral)
 
-    assert.equal(poolData.depositAmount.toString(), '10000000150')
+    assert.equal(poolData.depositAmount.toString(), '150')
     assert.equal(userData.rate.toString(), '100')
     assert.equal(collateralData.amount, 50)
     assert.equal(collateralData.delegationStake, 150)
@@ -1018,7 +1018,6 @@ describe('omnisol', () => {
     const splitAccount = splitKeypair.publicKey
 
     const { tx } = await client.blockUser({
-      pool,
       userWallet: provider.wallet.publicKey,
     })
 
@@ -1047,7 +1046,6 @@ describe('omnisol', () => {
     }
 
     const { tx: tx1 } = await client.unblockUser({
-      pool,
       userWallet: provider.wallet.publicKey,
     })
 
@@ -1117,7 +1115,7 @@ describe('omnisol', () => {
     const userData = await client.fetchUser(user)
     const collateralData = await client.fetchCollateral(collateral)
 
-    assert.equal(poolData.depositAmount.toString(), '5000000150')
+    assert.equal(poolData.depositAmount.toString(), '5000000000')
     assert.equal(userData.rate.toString(), '100')
     assert.equal(collateralData.amount.toString(), '5000000000')
     assert.equal(collateralData.delegationStake.toString(), '5000000000')
@@ -1158,7 +1156,7 @@ describe('omnisol', () => {
     const userData = await client.fetchUser(user)
     const collateralData = await client.fetchCollateral(collateral)
 
-    assert.equal(poolData.depositAmount.toString(), '150')
+    assert.equal(poolData.depositAmount.toString(), '0')
     assert.equal(userData.rate.toString(), '100')
     assert.equal(collateralData, null)
   })
@@ -1166,10 +1164,10 @@ describe('omnisol', () => {
   it('can not withdraw lp tokens if pool paused', async () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
     const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
-    const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
+    const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolForLPAuthority, true)
 
     const { tx } = await client.pausePool({
-      pool,
+      pool: poolForLP,
     })
 
     try {
@@ -1183,7 +1181,7 @@ describe('omnisol', () => {
       amount: new BN(50),
       destination: destination.address,
       lpToken,
-      pool,
+      pool: poolForLP,
       poolMint,
       source: source.address,
       userPoolToken: userPoolToken.address,
@@ -1197,7 +1195,7 @@ describe('omnisol', () => {
     }
 
     const { tx: tx1 } = await client.resumePool({
-      pool,
+      pool: poolForLP,
     })
 
     try {
@@ -1211,10 +1209,9 @@ describe('omnisol', () => {
   it('can not withdraw lp tokens if user blocked', async () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
     const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
-    const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
+    const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolForLPAuthority, true)
 
     const { tx } = await client.blockUser({
-      pool,
       userWallet: provider.wallet.publicKey,
     })
 
@@ -1229,7 +1226,7 @@ describe('omnisol', () => {
       amount: new BN(50),
       destination: destination.address,
       lpToken,
-      pool,
+      pool: poolForLP,
       poolMint,
       source: source.address,
       userPoolToken: userPoolToken.address,
@@ -1243,7 +1240,6 @@ describe('omnisol', () => {
     }
 
     const { tx: tx1 } = await client.unblockUser({
-      pool,
       userWallet: provider.wallet.publicKey,
     })
 
@@ -1258,13 +1254,13 @@ describe('omnisol', () => {
   it('can not withdraw lp tokens more than user can', async () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
     const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
-    const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
+    const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolForLPAuthority, true)
 
     const { transaction } = await client.withdrawLPTokens({
       amount: new BN(51),
       destination: destination.address,
       lpToken,
-      pool,
+      pool: poolForLP,
       poolMint,
       source: source.address,
       userPoolToken: userPoolToken.address,
@@ -1286,7 +1282,7 @@ describe('omnisol', () => {
 
     const { transaction } = await client.mintOmnisol({
       amount: new BN(100),
-      pool,
+      pool: poolForLP,
       poolMint,
       stakedAddress: lpToken,
       userPoolToken: userPoolToken.address,
@@ -1308,7 +1304,7 @@ describe('omnisol', () => {
 
     assert.equal(destinationBalance.value.amount, 250)
 
-    const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolAuthority, true)
+    const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolForLPAuthority, true)
     let sourceBalance = await provider.connection.getTokenAccountBalance(source.address)
 
     assert.equal(sourceBalance.value.amount, 150)
@@ -1317,7 +1313,7 @@ describe('omnisol', () => {
       amount: new BN(150),
       destination: destination.address,
       lpToken,
-      pool,
+      pool: poolForLP,
       poolMint,
       source: source.address,
       userPoolToken: userPoolToken.address,
@@ -1338,7 +1334,7 @@ describe('omnisol', () => {
     assert.equal(destinationBalance.value.amount, 400)
     assert.equal(userPoolBalance.value.amount, 0)
 
-    const poolData = await client.fetchGlobalPool(pool)
+    const poolData = await client.fetchGlobalPool(poolForLP)
     const userData = await client.fetchUser(user)
     const collateralData = await client.fetchCollateral(collateral)
 
@@ -1501,7 +1497,6 @@ describe('omnisol', () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
 
     const { tx: tx1 } = await client.blockUser({
-      pool,
       userWallet: provider.wallet.publicKey,
     })
 
@@ -1527,7 +1522,6 @@ describe('omnisol', () => {
     }
 
     const { tx: tx2 } = await client.unblockUser({
-      pool,
       userWallet: provider.wallet.publicKey,
     })
 
