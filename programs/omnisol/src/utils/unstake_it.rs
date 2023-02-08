@@ -27,7 +27,7 @@ pub fn unstake<'info>(ctx: CpiContext<'_, '_, '_, 'info, Unstake<'info>>) -> Res
         AccountMeta::new_readonly(ctx.accounts.system_program.key(), false),
     ];
 
-    let program_id = Pubkey::from_str(PROGRAM_ADDRESS).map_err(Into::into)?;
+    let program_id = Pubkey::from_str(PROGRAM_ADDRESS).unwrap();
     let ix = Instruction::new_with_bincode(program_id, &[9], account_metas);
 
     let mut account_infos = vec![
@@ -50,17 +50,30 @@ pub fn unstake<'info>(ctx: CpiContext<'_, '_, '_, 'info, Unstake<'info>>) -> Res
 
 #[derive(Accounts)]
 pub struct Unstake<'info> {
+    /// CHECK:
     pub payer: AccountInfo<'info>,
+    /// CHECK:
     pub unstaker: AccountInfo<'info>,
+    /// CHECK:
     pub stake_account: AccountInfo<'info>,
+    /// CHECK:
     pub destination: AccountInfo<'info>,
+    /// CHECK:
     pub pool_account: AccountInfo<'info>,
+    /// CHECK:
     pub pool_sol_reserves: AccountInfo<'info>,
+    /// CHECK:
     pub fee_account: AccountInfo<'info>,
+    /// CHECK:
     pub stake_account_record_account: AccountInfo<'info>,
+    /// CHECK:
     pub protocol_fee_account: AccountInfo<'info>,
+    /// CHECK:
     pub protocol_fee_destination: AccountInfo<'info>,
+    /// CHECK:
     pub clock: AccountInfo<'info>,
+    /// CHECK:
     pub stake_program: AccountInfo<'info>,
+    /// CHECK:
     pub system_program: AccountInfo<'info>,
 }
