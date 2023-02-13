@@ -531,7 +531,9 @@ export class OmnisolClient {
   async burnOmnisol(props: BurnOmnisolProps) {
     const payer = this.wallet.publicKey
     const [user] = await this.pda.user(payer)
-    const [withdrawInfo] = await this.pda.withdrawInfo(payer)
+    const userData = await this.fetchUser(user)
+    const withdrawIndex = userData.lastWithdrawIndex === undefined ? 0 : userData.lastWithdrawIndex
+    const [withdrawInfo] = await this.pda.withdrawInfo(payer, withdrawIndex + 1)
     const ix = createBurnOmnisolInstruction(
       {
         authority: payer,
@@ -591,14 +593,24 @@ class OmnisolPDA {
     new web3.PublicKey(wallet).toBuffer(),
   ])
 
-  withdrawInfo = (wallet: Address) => this.pda([
+  withdrawInfo = (wallet: Address, index: number) => this.pda([
     Buffer.from(WITHDRAW_INFO_PREFIX),
     new web3.PublicKey(wallet).toBuffer(),
+    toLeInt32Bytes(index),
   ])
 
   private async pda(seeds: Array<Buffer | Uint8Array>) {
     return await web3.PublicKey.findProgramAddress(seeds, OmnisolClient.programId)
   }
+}
+
+export function toLeInt32Bytes(num: number) {
+  return new Uint8Array([
+    (num & 0x000000FF),
+    (num & 0x0000FF00) >> 8,
+    (num & 0x00FF0000) >> 16,
+    (num & 0xFF000000) >> 24,
+  ])
 }
 
 export interface Wallet {

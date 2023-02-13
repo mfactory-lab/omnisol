@@ -35,6 +35,9 @@ pub fn handle(ctx: Context<BurnOmnisol>, amount: u64) -> Result<()> {
         return Err(ErrorCode::UserBlocked.into());
     }
 
+    user.last_withdraw_index += 1;
+    user.requests_amount += 1;
+
     token::burn(
         CpiContext::new(
             ctx.accounts.token_program.to_account_info(),
@@ -93,7 +96,7 @@ pub struct BurnOmnisol<'info> {
 
     #[account(
     init,
-    seeds = [WithdrawInfo::SEED, authority.key().as_ref()],
+    seeds = [WithdrawInfo::SEED, authority.key().as_ref(), (user.last_withdraw_index + 1).to_le_bytes().as_ref()],
     bump,
     payer = authority,
     space = WithdrawInfo::SIZE

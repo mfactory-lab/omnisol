@@ -373,6 +373,8 @@ describe('omnisol', () => {
     assert.equal(userData.wallet.equals(provider.wallet.publicKey), true)
     assert.equal(userData.rate, 100)
     assert.equal(userData.isBlocked, false)
+    assert.equal(userData.lastWithdrawIndex, 0)
+    assert.equal(userData.requestsAmount, 0)
     assert.equal(collateralData.user.equals(user), true)
     assert.equal(collateralData.pool.equals(poolForLP), true)
     assert.equal(collateralData.bump, bump)
@@ -1563,10 +1565,13 @@ describe('omnisol', () => {
     assert.equal(withdrawInfoData.authority.equals(provider.wallet.publicKey), true)
   })
 
-  it('can not burn omnisol while withdraw request is pending', async () => {
+  it('can create another withdraw request', async () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+    let userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
 
-    const { tx } = await client.burnOmnisol({
+    assert.equal(userPoolBalance.value.amount, 500000000)
+
+    const { tx, withdrawInfo } = await client.burnOmnisol({
       sourceTokenAccount: userPoolToken.address,
       amount: new BN(500000000),
       pool,
@@ -1575,10 +1580,19 @@ describe('omnisol', () => {
 
     try {
       await provider.sendAndConfirm(tx)
-      assert.ok(false)
-    } catch {
-      assert.ok(true)
+    } catch (e) {
+      console.log(e)
+      throw e
     }
+
+    userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
+
+    assert.equal(userPoolBalance.value.amount, 0)
+
+    const withdrawInfoData = await client.fetchWithdrawInfo(withdrawInfo)
+
+    assert.equal(withdrawInfoData.amount.toString(), '500000000')
+    assert.equal(withdrawInfoData.authority.equals(provider.wallet.publicKey), true)
   })
 
   it('can close oracle', async () => {

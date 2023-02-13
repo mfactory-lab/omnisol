@@ -133,9 +133,13 @@ pub struct User {
     pub rate: u64,
     /// Flag that indicates that the user is blocked or not
     pub is_blocked: bool,
+    /// Current amount of pending withdraw requests
+    pub requests_amount: u32,
+    /// Index of last made withdraw request
+    pub last_withdraw_index: u32,
 }
 
 impl User {
     pub const SEED: &'static [u8] = b"user";
-    pub const SIZE: usize = 8 + 32 + 8 + 1;
+    pub const SIZE: usize = 8 + 32 + 8 + 1 + 4 + 4;
 }
