@@ -127,3 +127,59 @@ fn generate_priority_queue(user_data: Vec<(Pubkey, User)>, collateral_data: Vec<
 
     (collaterals, values)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_generate_priority_queue() {
+        let pubkey_1 = Pubkey::new_unique();
+        let user_1 = User { rate: 0 };
+        let pubkey_2 = Pubkey::new_unique();
+        let user_2 = User { rate: 100 };
+        let pubkey_3 = Pubkey::new_unique();
+        let user_3 = User { rate: 200 };
+        let collateral_address_1 = Pubkey::new_unique();
+        let collateral_address_2 = Pubkey::new_unique();
+        let collateral_address_3 = Pubkey::new_unique();
+        let collateral_address_4 = Pubkey::new_unique();
+        let collateral_address_5 = Pubkey::new_unique();
+        let collateral_1 = Collateral {
+            user: pubkey_1,
+            delegation_stake: 100,
+            liquidated_amount: 100,
+        };
+        let collateral_2 = Collateral {
+            user: pubkey_1,
+            delegation_stake: 100,
+            liquidated_amount: 0,
+        };
+        let collateral_3 = Collateral {
+            user: pubkey_2,
+            delegation_stake: 100,
+            liquidated_amount: 50,
+        };
+        let collateral_4 = Collateral {
+            user: pubkey_3,
+            delegation_stake: 100,
+            liquidated_amount: 0,
+        };
+        let collateral_5 = Collateral {
+            user: pubkey_3,
+            delegation_stake: 100,
+            liquidated_amount: 99,
+        };
+        let user_data = vec![(pubkey_1, user_1), (pubkey_2, user_2), (pubkey_3, user_3)];
+        let collateral_data = vec![
+            (collateral_address_1, collateral_1),
+            (collateral_address_2, collateral_2),
+            (collateral_address_3, collateral_3),
+            (collateral_address_4, collateral_4),
+            (collateral_address_5, collateral_5)
+        ];
+        let result_1 = vec![collateral_address_2, collateral_address_3, collateral_address_4, collateral_address_5];
+        let result_2 = vec![100, 50, 100, 1];
+        assert_eq!(generate_priority_queue(user_data, collateral_data), (result_1, result_2));
+    }
+}
