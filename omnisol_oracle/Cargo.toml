@@ -1,0 +1,12 @@
+[workspace]
+members = [
+  "oracle"
+]
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = "fat"
+panic = "abort"
+debug = false
+#strip = true
