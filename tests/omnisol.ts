@@ -108,6 +108,26 @@ describe('omnisol', () => {
     assert.equal(oracleData.priorityQueue.toString(), [{ collateral: addresses[0], amount: values[0] }, { collateral: addresses[1], amount: values[1] }].toString())
   })
 
+  it('update oracle info should replace data', async () => {
+    const addresses = [web3.PublicKey.unique(), web3.PublicKey.unique()]
+    const values = [new BN(200), new BN(300)]
+    const { tx } = await client.updateOracleInfo({
+      oracle,
+      addresses,
+      values,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const oracleData = await client.fetchOracle(oracle)
+    assert.equal(oracleData.priorityQueue.toString(), [{ collateral: addresses[0], amount: values[0] }, { collateral: addresses[1], amount: values[1] }].toString())
+  })
+
   it('can remove manager', async () => {
     const { tx } = await client.removeManager({
       managerWallet: provider.wallet.publicKey,

@@ -12,6 +12,8 @@ pub fn handle(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Ve
         return Err(ErrorCode::WrongData.into());
     }
 
+    oracle.priority_queue = vec![];
+
     for i in 0..addresses.len() {
         let collateral = *addresses.get(i).unwrap();
         let amount = *values.get(i).unwrap();
