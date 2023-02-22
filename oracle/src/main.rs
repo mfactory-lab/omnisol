@@ -67,8 +67,7 @@ fn main() {
         user_accounts.into_iter().for_each(|(address, account)| user_data.push((address, user_from_slice(account.data.as_slice()).unwrap())));
 
         // sort by rate
-        user_data.sort_by(|(_, a), (_, b)| b.rate.cmp(&a.rate));
-        user_data.reverse();
+        user_data.sort_by(|(_, a), (_, b)| a.rate.cmp(&b.rate));
 
         let filters = Some(vec![
             RpcFilterType::DataSize(Collateral::SIZE.into_u64()),

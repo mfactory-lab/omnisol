@@ -1,5 +1,5 @@
 [package]
-name = "oracle"
+name = "liquidator"
 version = "0.1.0"
 edition = "2021"
 
@@ -13,3 +13,4 @@ arrayref = "0.3.6"
 clap = { version = "4.1.6", features = ["derive"] }
 omnisol = { path = "../programs/omnisol" }
 gimli = "0.27.2"
+borsh = "0.10.2"

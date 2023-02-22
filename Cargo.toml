@@ -1,7 +1,8 @@
 [workspace]
 members = [
   "programs/*",
-  "oracle"
+  "oracle",
+  "liquidator",
 ]
 
 [profile.release]
