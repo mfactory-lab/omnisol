@@ -3,11 +3,12 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "cli": "ts-node ./src/index.ts"
   },
   "dependencies": {
+    "@omnisol/sdk": "workspace:*",
     "commander": "^9.4.1",
     "chalk": "^5.1.2",
-    "loglevel": "^1.8.0",
-    "@omnisol/sdk": "*"
+    "loglevel": "^1.8.0"
   }
 }
