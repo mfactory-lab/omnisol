@@ -2,11 +2,10 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount};
 
 use crate::{
-    state::Pool,
+    events::WithdrawRequestCreationEvent,
+    state::{Pool, User, WithdrawInfo},
     ErrorCode,
 };
-use crate::events::WithdrawRequestCreationEvent;
-use crate::state::{User, WithdrawInfo};
 
 /// Withdraw a given amount of omniSOL (without an account).
 /// Caller provides some [amount] of omni-lamports that are to be burned in
@@ -57,10 +56,10 @@ pub fn handle(ctx: Context<BurnOmnisol>, amount: u64) -> Result<()> {
     withdraw_info.created_at = clock.unix_timestamp;
 
     emit!(WithdrawRequestCreationEvent {
-         pool: pool_key,
-         user: user.key(),
-         amount,
-         timestamp: clock.unix_timestamp,
+        pool: pool_key,
+        user: user.key(),
+        amount,
+        timestamp: clock.unix_timestamp,
     });
 
     Ok(())

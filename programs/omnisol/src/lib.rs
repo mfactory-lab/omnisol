@@ -85,7 +85,11 @@ pub mod omnisol {
         close_oracle::handle(ctx)
     }
 
-    pub fn update_oracle_info<'info>(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>) -> Result<()> {
+    pub fn update_oracle_info<'info>(
+        ctx: Context<UpdateOracleInfo>,
+        addresses: Vec<Pubkey>,
+        values: Vec<u64>,
+    ) -> Result<()> {
         update_oracle_info::handle(ctx, addresses, values)
     }
 

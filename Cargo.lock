@@ -2397,8 +2397,8 @@ name = "oracle"
 version = "0.1.0"
 dependencies = [
  "arrayref",
+ "borsh 0.10.2",
  "clap 4.1.6",
- "gimli",
  "omnisol",
  "solana-account-decoder",
  "solana-client",

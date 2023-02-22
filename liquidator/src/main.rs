@@ -1,23 +1,28 @@
-mod utils;
 mod cluster;
+mod utils;
 
 use std::path::PathBuf;
+
+use clap::Parser;
+use gimli::ReaderOffset;
+use omnisol::{
+    state::{User, WithdrawInfo},
+    ID,
+};
 use solana_client::{
     rpc_client::RpcClient,
-    rpc_filter::RpcFilterType,
+    rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType},
 };
 use solana_sdk::{
     commitment_config::CommitmentConfig,
     pubkey::Pubkey,
     signature::{read_keypair_file, Signer},
 };
-use omnisol::ID;
-use omnisol::state::{User, WithdrawInfo};
-use clap::Parser;
-use solana_client::rpc_filter::{Memcmp, MemcmpEncodedBytes};
-use crate::utils::{get_accounts, oracle_from_slice, user_from_slice, WITHDRAW_INFO_DISCRIMINATOR, withdraw_info_from_slice};
-use gimli::ReaderOffset;
-use crate::cluster::Cluster;
+
+use crate::{
+    cluster::Cluster,
+    utils::{get_accounts, oracle_from_slice, user_from_slice, withdraw_info_from_slice, WITHDRAW_INFO_DISCRIMINATOR},
+};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -65,20 +70,16 @@ fn main() {
 
         // deserialize withdraw data
         let mut withdraw_info_data = vec![];
-        withdraw_info_accounts.into_iter().for_each(|(address, account)| withdraw_info_data.push((address, withdraw_info_from_slice(account.data.as_slice()).unwrap())));
+        withdraw_info_accounts.into_iter().for_each(|(address, account)| {
+            withdraw_info_data.push((address, withdraw_info_from_slice(account.data.as_slice()).unwrap()))
+        });
 
         // sort by creation time
         withdraw_info_data.sort_by(|(_, a), (_, b)| a.created_at.cmp(&b.created_at));
 
         for (withdraw_address, withdraw_info) in withdraw_info_data {
             // find user account
-            let (user_account, _) = Pubkey::find_program_address(
-                &[
-                    User::SEED,
-                    withdraw_info.authority.as_ref(),
-                ],
-                &ID,
-            );
+            let (user_account, _) = Pubkey::find_program_address(&[User::SEED, withdraw_info.authority.as_ref()], &ID);
 
             // get user data
             let user_data = connection.get_account_data(&user_account).unwrap();
@@ -87,7 +88,7 @@ fn main() {
             let user_data = user_from_slice(user_data.as_slice()).unwrap();
 
             if user_data.is_blocked {
-                continue
+                continue;
             }
 
             let mut amount_to_liquidate = withdraw_info.amount;

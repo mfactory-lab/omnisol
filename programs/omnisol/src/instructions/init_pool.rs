@@ -1,8 +1,10 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 
-use crate::ErrorCode;
-use crate::state::{Oracle, Pool, MINT_AUTHORITY_SEED};
+use crate::{
+    state::{Oracle, Pool, MINT_AUTHORITY_SEED},
+    ErrorCode,
+};
 
 pub fn handle(ctx: Context<InitPool>) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
