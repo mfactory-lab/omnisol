@@ -1,33 +1,37 @@
-mod utils;
 mod cluster;
+mod utils;
 
 use std::path::PathBuf;
+
+use clap::Parser;
+use omnisol::{
+    state::{Collateral, User},
+    ID,
+};
 use solana_client::{
     rpc_client::RpcClient,
-    rpc_filter::RpcFilterType,
+    rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType},
 };
 use solana_sdk::{
     commitment_config::CommitmentConfig,
-    system_program,
-    pubkey::Pubkey,
     instruction::{AccountMeta, Instruction},
-    signature::{read_keypair_file, Signer},
-    transaction::Transaction
+    pubkey::Pubkey,
+    signature::{read_keypair_file, Keypair, Signer},
+    system_program,
+    transaction::Transaction,
 };
-use omnisol::ID;
-use omnisol::state::{User, Collateral};
-use clap::Parser;
-use solana_client::rpc_filter::{Memcmp, MemcmpEncodedBytes};
-use crate::utils::{COLLATERAL_DISCRIMINATOR, collateral_from_slice, generate_priority_queue, get_accounts, USER_DISCRIMINATOR, user_from_slice};
-use gimli::ReaderOffset;
-use crate::cluster::Cluster;
+
+use crate::{
+    cluster::Cluster,
+    utils::{generate_priority_queue, get_accounts, COLLATERAL_DISCRIMINATOR, USER_DISCRIMINATOR},
+};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
     /// Path to private key
     #[arg(short, long)]
-    pub sign: PathBuf,
+    pub keypair: PathBuf,
 
     /// Solana cluster name
     #[arg(short, long)]
@@ -42,48 +46,15 @@ fn main() {
     let args = Args::parse();
 
     // get cluster and establish connection
-    let connection = RpcClient::new_with_commitment(args.cluster, CommitmentConfig::confirmed());
+    let client = RpcClient::new_with_commitment(args.cluster, CommitmentConfig::confirmed());
 
     // get signer wallet
-    let wallet_path = args.sign;
-    let wallet_keypair = read_keypair_file(wallet_path).expect("Can't open file-wallet");
+    let wallet_keypair = read_keypair_file(args.keypair).expect("Can't open keypair");
     let wallet_pubkey = wallet_keypair.pubkey();
 
     loop {
-        let filters = Some(vec![
-            RpcFilterType::DataSize(User::SIZE.into_u64()),
-            RpcFilterType::Memcmp(Memcmp {
-                offset: 0,
-                bytes: MemcmpEncodedBytes::Bytes(USER_DISCRIMINATOR.to_vec()),
-                encoding: None,
-            }),
-        ]);
-
-        // get User accounts
-        let user_accounts = get_accounts(filters, &connection);
-
-        // deserialize user data
-        let mut user_data = vec![];
-        user_accounts.into_iter().for_each(|(address, account)| user_data.push((address, user_from_slice(account.data.as_slice()).unwrap())));
-
-        // sort by rate
-        user_data.sort_by(|(_, a), (_, b)| a.rate.cmp(&b.rate));
-
-        let filters = Some(vec![
-            RpcFilterType::DataSize(Collateral::SIZE.into_u64()),
-            RpcFilterType::Memcmp(Memcmp {
-                offset: 0,
-                bytes: MemcmpEncodedBytes::Bytes(COLLATERAL_DISCRIMINATOR.to_vec()),
-                encoding: None,
-            }),
-        ]);
-
-        // get collateral accounts
-        let collateral_accounts = get_accounts(filters, &connection);
-
-        // deserialize collateral data
-        let mut collateral_data = vec![];
-        collateral_accounts.into_iter().for_each(|(address, account)| collateral_data.push((address, collateral_from_slice(account.data.as_slice()).unwrap())));
+        let user_data = get_user_data(&client);
+        let collateral_data = get_collateral_data(&client);
 
         // find collaterals by user list and make priority queue
         let (collaterals, values) = generate_priority_queue(user_data, collateral_data);
@@ -101,9 +72,61 @@ fn main() {
                 AccountMeta::new(system_program::id(), false),
             ],
         )];
+
         let mut tx = Transaction::new_with_payer(&instructions, Some(&wallet_pubkey));
-        let recent_blockhash = connection.get_latest_blockhash().expect("Can't get blockhash");
+        let recent_blockhash = client.get_latest_blockhash().expect("Can't get blockhash");
         tx.sign(&vec![&wallet_keypair], recent_blockhash);
-        connection.send_transaction(&tx).expect("Transaction failed.");
+        client.send_transaction(&tx).expect("Transaction failed.");
     }
+}
+
+fn get_user_data(client: &RpcClient) -> Vec<(Pubkey, User)> {
+    let accounts = get_accounts(
+        Some(vec![
+            RpcFilterType::DataSize(User::SIZE.into_u64()),
+            RpcFilterType::Memcmp(Memcmp {
+                offset: 0,
+                bytes: MemcmpEncodedBytes::Bytes(USER_DISCRIMINATOR.to_vec()),
+                encoding: None,
+            }),
+        ]),
+        client,
+    );
+
+    let mut user_data = accounts
+        .into_iter()
+        .map(|(address, account)| {
+            let user = User::try_from_slice(account.data.as_slice()).expect("Failed to deserialize");
+            // (address, user_from_slice(account.data.as_slice()).unwrap())
+            (address, user)
+        })
+        .collect::<Vec<_>>();
+
+    // sort by rate
+    user_data.sort_by(|(_, a), (_, b)| a.rate.cmp(&b.rate));
+
+    user_data
+}
+
+fn get_collateral_data(client: &RpcClient) -> Vec<(Pubkey, Collateral)> {
+    let accounts = get_accounts(
+        Some(vec![
+            RpcFilterType::DataSize(Collateral::SIZE.into_u64()),
+            RpcFilterType::Memcmp(Memcmp {
+                offset: 0,
+                bytes: MemcmpEncodedBytes::Bytes(COLLATERAL_DISCRIMINATOR.to_vec()),
+                encoding: None,
+            }),
+        ]),
+        client,
+    );
+
+    accounts
+        .into_iter()
+        .map(|(address, account)| {
+            let collateral = Collateral::try_from_slice(account.data.as_slice()).expect("Failed to deserialize");
+            // (address, collateral_from_slice(account.data.as_slice()).unwrap())
+            (address, collateral)
+        })
+        .collect::<Vec<_>>()
 }

@@ -1,21 +1,24 @@
 use arrayref::{array_ref, array_refs};
+use omnisol::{
+    state::{Collateral, User},
+    ID,
+};
 use solana_account_decoder::UiAccountEncoding;
-use solana_client::rpc_client::RpcClient;
-use solana_client::rpc_config::{RpcAccountInfoConfig, RpcProgramAccountsConfig};
-use solana_client::rpc_filter::RpcFilterType;
-use solana_sdk::{program_error::ProgramError, pubkey::Pubkey};
-use solana_sdk::account::Account;
-use omnisol::ID;
-use omnisol::state::{Collateral, User};
+use solana_client::{
+    rpc_client::RpcClient,
+    rpc_config::{RpcAccountInfoConfig, RpcProgramAccountsConfig},
+    rpc_filter::RpcFilterType,
+};
+use solana_sdk::{account::Account, program_error::ProgramError, pubkey::Pubkey};
 
 pub const PRIORITY_QUEUE_LENGTH: usize = 255;
 pub const USER_DISCRIMINATOR: [u8; 8] = [159, 117, 95, 227, 239, 151, 58, 236];
 pub const COLLATERAL_DISCRIMINATOR: [u8; 8] = [123, 130, 234, 63, 255, 240, 255, 92];
 
+#[deprecated]
 pub fn user_from_slice(src: &[u8]) -> Result<User, ProgramError> {
     let src = array_ref![src, 0, User::SIZE];
-    let (_, wallet, rate, is_blocked, request_amount, last_withdraw_index) =
-        array_refs![src, 8, 32, 8, 1, 4, 4];
+    let (_, wallet, rate, is_blocked, request_amount, last_withdraw_index) = array_refs![src, 8, 32, 8, 1, 4, 4];
     Ok(User {
         wallet: Pubkey::new_from_array(*wallet),
         rate: u64::from_le_bytes(*rate),
@@ -25,6 +28,7 @@ pub fn user_from_slice(src: &[u8]) -> Result<User, ProgramError> {
     })
 }
 
+#[deprecated]
 pub fn collateral_from_slice(src: &[u8]) -> Result<Collateral, ProgramError> {
     let src = array_ref![src, 0, Collateral::SIZE];
     let (_, user, pool, source_stake, delegation_stake, amount, liquidated_amount, created_at, bump, is_native) =
@@ -43,21 +47,26 @@ pub fn collateral_from_slice(src: &[u8]) -> Result<Collateral, ProgramError> {
 }
 
 pub fn get_accounts(filters: Option<Vec<RpcFilterType>>, connection: &RpcClient) -> Vec<(Pubkey, Account)> {
-    connection.get_program_accounts_with_config(
-        &Pubkey::new_from_array(ID.to_bytes()),
-        RpcProgramAccountsConfig {
-            filters,
-            account_config: RpcAccountInfoConfig {
-                encoding: Some(UiAccountEncoding::Base64),
-                commitment: Some(connection.commitment()),
-                ..RpcAccountInfoConfig::default()
+    connection
+        .get_program_accounts_with_config(
+            &Pubkey::new_from_array(ID.to_bytes()),
+            RpcProgramAccountsConfig {
+                filters,
+                account_config: RpcAccountInfoConfig {
+                    encoding: Some(UiAccountEncoding::Base64),
+                    commitment: Some(connection.commitment()),
+                    ..RpcAccountInfoConfig::default()
+                },
+                ..RpcProgramAccountsConfig::default()
             },
-            ..RpcProgramAccountsConfig::default()
-        },
-    ).unwrap()
+        )
+        .unwrap()
 }
 
-pub fn generate_priority_queue(user_data: Vec<(Pubkey, User)>, collateral_data: Vec<(Pubkey, Collateral)>) -> (Vec<Pubkey>, Vec<u64>) {
+pub fn generate_priority_queue(
+    user_data: Vec<(Pubkey, User)>,
+    collateral_data: Vec<(Pubkey, Collateral)>,
+) -> (Vec<Pubkey>, Vec<u64>) {
     let mut collaterals = vec![];
     let mut values = vec![];
 
@@ -89,11 +98,29 @@ mod tests {
     #[test]
     fn test_generate_priority_queue() {
         let pubkey_1 = Pubkey::new_unique();
-        let user_1 = User { wallet: Default::default(), rate: 0, is_blocked: false, requests_amount: 0, last_withdraw_index: 0 };
+        let user_1 = User {
+            wallet: Default::default(),
+            rate: 0,
+            is_blocked: false,
+            requests_amount: 0,
+            last_withdraw_index: 0,
+        };
         let pubkey_2 = Pubkey::new_unique();
-        let user_2 = User { wallet: Default::default(), rate: 100, is_blocked: false, requests_amount: 0, last_withdraw_index: 0 };
+        let user_2 = User {
+            wallet: Default::default(),
+            rate: 100,
+            is_blocked: false,
+            requests_amount: 0,
+            last_withdraw_index: 0,
+        };
         let pubkey_3 = Pubkey::new_unique();
-        let user_3 = User { wallet: Default::default(), rate: 200, is_blocked: false, requests_amount: 0, last_withdraw_index: 0 };
+        let user_3 = User {
+            wallet: Default::default(),
+            rate: 200,
+            is_blocked: false,
+            requests_amount: 0,
+            last_withdraw_index: 0,
+        };
         let collateral_address_1 = Pubkey::new_unique();
         let collateral_address_2 = Pubkey::new_unique();
         let collateral_address_3 = Pubkey::new_unique();
@@ -160,10 +187,18 @@ mod tests {
             (collateral_address_2, collateral_2),
             (collateral_address_3, collateral_3),
             (collateral_address_4, collateral_4),
-            (collateral_address_5, collateral_5)
+            (collateral_address_5, collateral_5),
         ];
-        let result_1 = vec![collateral_address_2, collateral_address_3, collateral_address_4, collateral_address_5];
+        let result_1 = vec![
+            collateral_address_2,
+            collateral_address_3,
+            collateral_address_4,
+            collateral_address_5,
+        ];
         let result_2 = vec![100, 50, 100, 1];
-        assert_eq!(generate_priority_queue(user_data, collateral_data), (result_1, result_2));
+        assert_eq!(
+            generate_priority_queue(user_data, collateral_data),
+            (result_1, result_2)
+        );
     }
 }
