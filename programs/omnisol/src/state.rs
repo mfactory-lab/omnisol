@@ -34,17 +34,18 @@ pub struct Oracle {
     pub priority_queue: Vec<QueueMember>,
 }
 
+impl Oracle {
+    pub const SIZE: usize = 10240;
+}
+
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct QueueMember {
     pub collateral: Pubkey,
     pub amount: u64,
 }
 
-impl Oracle {
-    pub const SIZE: usize = 10240;
-}
-
 #[account]
+#[derive(AnchorDeserialize)]
 pub struct Collateral {
     /// User PDA with wallet that has authority of the staking pool
     pub user: Pubkey,
@@ -124,6 +125,7 @@ impl Manager {
     pub const SIZE: usize = 8 + 32;
 }
 
+#[derive(AnchorDeserialize)]
 #[account]
 pub struct User {
     /// Wallet of registered user

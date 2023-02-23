@@ -1,14 +1,14 @@
 use anchor_lang::prelude::*;
 
-use crate::ErrorCode;
-use crate::state::{Oracle, QueueMember};
+use crate::{
+    state::{Oracle, QueueMember},
+    ErrorCode,
+};
 
 pub fn handle(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>) -> Result<()> {
     let oracle = &mut ctx.accounts.oracle;
 
-    if addresses.is_empty()
-        || values.is_empty()
-        || addresses.len() != values.len() {
+    if addresses.is_empty() || values.is_empty() || addresses.len() != values.len() {
         return Err(ErrorCode::WrongData.into());
     }
 
@@ -17,7 +17,7 @@ pub fn handle(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Ve
     for i in 0..addresses.len() {
         let collateral = *addresses.get(i).unwrap();
         let amount = *values.get(i).unwrap();
-        let queue_member = QueueMember {collateral, amount};
+        let queue_member = QueueMember { collateral, amount };
         oracle.priority_queue.push(queue_member);
     }
 

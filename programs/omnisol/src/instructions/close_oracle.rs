@@ -1,5 +1,6 @@
-use anchor_lang::prelude::*;
 use std::str::FromStr;
+
+use anchor_lang::prelude::*;
 
 use crate::state::{Oracle, ADMIN};
 
