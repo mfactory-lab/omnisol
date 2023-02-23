@@ -2,6 +2,7 @@ mod utils;
 mod cluster;
 
 use std::path::PathBuf;
+use anchor_lang::AnchorDeserialize;
 use solana_client::{
     rpc_client::RpcClient,
     rpc_filter::RpcFilterType,
@@ -12,10 +13,10 @@ use solana_sdk::{
     signature::{read_keypair_file, Signer},
 };
 use omnisol::ID;
-use omnisol::state::{User, WithdrawInfo};
+use omnisol::state::{Oracle, User, WithdrawInfo};
 use clap::Parser;
 use solana_client::rpc_filter::{Memcmp, MemcmpEncodedBytes};
-use crate::utils::{get_accounts, oracle_from_slice, user_from_slice, WITHDRAW_INFO_DISCRIMINATOR, withdraw_info_from_slice};
+use crate::utils::{get_accounts, WITHDRAW_INFO_DISCRIMINATOR};
 use gimli::ReaderOffset;
 use crate::cluster::Cluster;
 
@@ -64,8 +65,8 @@ fn main() {
         let withdraw_info_accounts = get_accounts(filters, &connection);
 
         // deserialize withdraw data
-        let mut withdraw_info_data = vec![];
-        withdraw_info_accounts.into_iter().for_each(|(address, account)| withdraw_info_data.push((address, withdraw_info_from_slice(account.data.as_slice()).unwrap())));
+        let mut withdraw_info_data: Vec<(Pubkey, WithdrawInfo)> = vec![];
+        withdraw_info_accounts.into_iter().for_each(|(address, account)| withdraw_info_data.push((address, WithdrawInfo::try_from_slice(account.data.as_slice()).unwrap())));
 
         // sort by creation time
         withdraw_info_data.sort_by(|(_, a), (_, b)| a.created_at.cmp(&b.created_at));
@@ -84,7 +85,7 @@ fn main() {
             let user_data = connection.get_account_data(&user_account).unwrap();
 
             // deserialize user data
-            let user_data = user_from_slice(user_data.as_slice()).unwrap();
+            let user_data: User = User::try_from_slice(user_data.as_slice()).unwrap();
 
             if user_data.is_blocked {
                 continue
@@ -97,7 +98,7 @@ fn main() {
                 let oracle_data = connection.get_account_data(&args.oracle).unwrap();
 
                 // deserialize oracle data
-                let oracle_data = oracle_from_slice(oracle_data.as_slice()).unwrap();
+                let oracle_data: Oracle = Oracle::try_from_slice(oracle_data.as_slice()).unwrap();
 
                 for queue_member in oracle_data.priority_queue {
                     // TODO send transaction

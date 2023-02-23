@@ -18,9 +18,10 @@ use omnisol::ID;
 use omnisol::state::{User, Collateral};
 use clap::Parser;
 use solana_client::rpc_filter::{Memcmp, MemcmpEncodedBytes};
-use crate::utils::{COLLATERAL_DISCRIMINATOR, collateral_from_slice, generate_priority_queue, get_accounts, USER_DISCRIMINATOR, user_from_slice};
+use crate::utils::{COLLATERAL_DISCRIMINATOR, generate_priority_queue, get_accounts, USER_DISCRIMINATOR};
 use gimli::ReaderOffset;
 use crate::cluster::Cluster;
+use anchor_lang::prelude::borsh::BorshDeserialize;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -63,8 +64,8 @@ fn main() {
         let user_accounts = get_accounts(filters, &connection);
 
         // deserialize user data
-        let mut user_data = vec![];
-        user_accounts.into_iter().for_each(|(address, account)| user_data.push((address, user_from_slice(account.data.as_slice()).unwrap())));
+        let mut user_data: Vec<(Pubkey, User)> = vec![];
+        user_accounts.into_iter().for_each(|(address, account)| user_data.push((address, User::try_from_slice(account.data.as_slice()).unwrap())));
 
         // sort by rate
         user_data.sort_by(|(_, a), (_, b)| a.rate.cmp(&b.rate));
@@ -82,8 +83,8 @@ fn main() {
         let collateral_accounts = get_accounts(filters, &connection);
 
         // deserialize collateral data
-        let mut collateral_data = vec![];
-        collateral_accounts.into_iter().for_each(|(address, account)| collateral_data.push((address, collateral_from_slice(account.data.as_slice()).unwrap())));
+        let mut collateral_data: Vec<(Pubkey, Collateral)> = vec![];
+        collateral_accounts.into_iter().for_each(|(address, account)| collateral_data.push((address, Collateral::try_from_slice(account.data.as_slice()).unwrap())));
 
         // find collaterals by user list and make priority queue
         let (collaterals, values) = generate_priority_queue(user_data, collateral_data);

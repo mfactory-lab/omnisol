@@ -2029,6 +2029,7 @@ checksum = "f051f77a7c8e6957c0696eac88f26b0117e54f52d3fc682ab19397a8812846a4"
 name = "liquidator"
 version = "0.1.0"
 dependencies = [
+ "anchor-lang",
  "arrayref",
  "borsh 0.10.2",
  "clap 4.1.6",
@@ -2396,6 +2397,7 @@ checksum = "ff011a302c396a5197692431fc1948019154afc178baf7d8e37367442a4601cf"
 name = "oracle"
 version = "0.1.0"
 dependencies = [
+ "anchor-lang",
  "arrayref",
  "clap 4.1.6",
  "gimli",

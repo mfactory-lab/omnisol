@@ -1,9 +1,8 @@
-use arrayref::{array_ref, array_refs};
 use solana_account_decoder::UiAccountEncoding;
 use solana_client::rpc_client::RpcClient;
 use solana_client::rpc_config::{RpcAccountInfoConfig, RpcProgramAccountsConfig};
 use solana_client::rpc_filter::RpcFilterType;
-use solana_sdk::{program_error::ProgramError, pubkey::Pubkey};
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::account::Account;
 use omnisol::ID;
 use omnisol::state::{Collateral, User};
@@ -11,36 +10,6 @@ use omnisol::state::{Collateral, User};
 pub const PRIORITY_QUEUE_LENGTH: usize = 255;
 pub const USER_DISCRIMINATOR: [u8; 8] = [159, 117, 95, 227, 239, 151, 58, 236];
 pub const COLLATERAL_DISCRIMINATOR: [u8; 8] = [123, 130, 234, 63, 255, 240, 255, 92];
-
-pub fn user_from_slice(src: &[u8]) -> Result<User, ProgramError> {
-    let src = array_ref![src, 0, User::SIZE];
-    let (_, wallet, rate, is_blocked, request_amount, last_withdraw_index) =
-        array_refs![src, 8, 32, 8, 1, 4, 4];
-    Ok(User {
-        wallet: Pubkey::new_from_array(*wallet),
-        rate: u64::from_le_bytes(*rate),
-        is_blocked: is_blocked[0] != 0,
-        requests_amount: u32::from_le_bytes(*request_amount),
-        last_withdraw_index: u32::from_le_bytes(*last_withdraw_index),
-    })
-}
-
-pub fn collateral_from_slice(src: &[u8]) -> Result<Collateral, ProgramError> {
-    let src = array_ref![src, 0, Collateral::SIZE];
-    let (_, user, pool, source_stake, delegation_stake, amount, liquidated_amount, created_at, bump, is_native) =
-        array_refs![src, 8, 32, 32, 32, 8, 8, 8, 8, 1, 1];
-    Ok(Collateral {
-        user: Pubkey::new_from_array(*user),
-        pool: Pubkey::new_from_array(*pool),
-        source_stake: Pubkey::new_from_array(*source_stake),
-        delegation_stake: u64::from_le_bytes(*delegation_stake),
-        amount: u64::from_le_bytes(*amount),
-        liquidated_amount: u64::from_le_bytes(*liquidated_amount),
-        created_at: i64::from_le_bytes(*created_at),
-        bump: u8::from_le_bytes(*bump),
-        is_native: is_native[0] != 0,
-    })
-}
 
 pub fn get_accounts(filters: Option<Vec<RpcFilterType>>, connection: &RpcClient) -> Vec<(Pubkey, Account)> {
     connection.get_program_accounts_with_config(

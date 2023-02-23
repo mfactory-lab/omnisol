@@ -14,3 +14,4 @@ clap = { version = "4.1.6", features = ["derive"] }
 omnisol = { path = "../programs/omnisol" }
 gimli = "0.27.2"
 borsh = "0.10.2"
+anchor-lang = "0.25.0"
