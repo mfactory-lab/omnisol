@@ -19,7 +19,8 @@ pub fn handle(ctx: Context<UnblockUser>) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct UnblockUser<'info> {
-    #[account(mut,
+    #[account(
+        mut,
         seeds = [
             Manager::SEED,
             authority.key().as_ref(),
@@ -31,7 +32,8 @@ pub struct UnblockUser<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 
-    #[account(mut,
+    #[account(
+        mut,
         seeds = [
             User::SEED,
             user_wallet.key().as_ref(),

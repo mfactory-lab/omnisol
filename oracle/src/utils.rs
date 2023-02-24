@@ -1,3 +1,4 @@
+use anchor_lang::prelude::borsh::BorshDeserialize;
 use gimli::ReaderOffset;
 use omnisol::{
     state::{Collateral, User},
@@ -5,33 +6,30 @@ use omnisol::{
 };
 use solana_account_decoder::UiAccountEncoding;
 use solana_client::{
+    client_error::Result,
     rpc_client::RpcClient,
     rpc_config::{RpcAccountInfoConfig, RpcProgramAccountsConfig},
-    rpc_filter::RpcFilterType,
-    client_error::Result,
+    rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType},
 };
-use solana_client::rpc_filter::{Memcmp, MemcmpEncodedBytes};
 use solana_sdk::{account::Account, pubkey::Pubkey};
-use anchor_lang::prelude::borsh::BorshDeserialize;
 
 pub const PRIORITY_QUEUE_LENGTH: usize = 255;
 pub const USER_DISCRIMINATOR: [u8; 8] = [159, 117, 95, 227, 239, 151, 58, 236];
 pub const COLLATERAL_DISCRIMINATOR: [u8; 8] = [123, 130, 234, 63, 255, 240, 255, 92];
 
 pub fn get_accounts(filters: Option<Vec<RpcFilterType>>, client: &RpcClient) -> Result<Vec<(Pubkey, Account)>> {
-    client
-        .get_program_accounts_with_config(
-            &Pubkey::new_from_array(ID.to_bytes()),
-            RpcProgramAccountsConfig {
-                filters,
-                account_config: RpcAccountInfoConfig {
-                    encoding: Some(UiAccountEncoding::Base64),
-                    commitment: Some(client.commitment()),
-                    ..RpcAccountInfoConfig::default()
-                },
-                ..RpcProgramAccountsConfig::default()
+    client.get_program_accounts_with_config(
+        &Pubkey::new_from_array(ID.to_bytes()),
+        RpcProgramAccountsConfig {
+            filters,
+            account_config: RpcAccountInfoConfig {
+                encoding: Some(UiAccountEncoding::Base64),
+                commitment: Some(client.commitment()),
+                ..RpcAccountInfoConfig::default()
             },
-        )
+            ..RpcProgramAccountsConfig::default()
+        },
+    )
 }
 
 pub fn get_user_data(client: &RpcClient) -> Result<Vec<(Pubkey, User)>> {

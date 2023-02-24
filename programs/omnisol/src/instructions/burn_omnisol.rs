@@ -85,20 +85,24 @@ pub struct BurnOmnisol<'info> {
     pub authority: Signer<'info>,
 
     #[account(
-    init_if_needed,
-    seeds = [User::SEED, authority.key().as_ref()],
-    bump,
-    payer = authority,
-    space = User::SIZE,
+        init_if_needed,
+        seeds = [User::SEED, authority.key().as_ref()],
+        bump,
+        payer = authority,
+        space = User::SIZE,
     )]
     pub user: Box<Account<'info, User>>,
 
     #[account(
-    init,
-    seeds = [WithdrawInfo::SEED, authority.key().as_ref(), (user.last_withdraw_index + 1).to_le_bytes().as_ref()],
-    bump,
-    payer = authority,
-    space = WithdrawInfo::SIZE
+        init,
+        seeds = [
+            WithdrawInfo::SEED,
+            authority.key().as_ref(),
+            (user.last_withdraw_index + 1).to_le_bytes().as_ref()
+        ],
+        bump,
+        payer = authority,
+        space = WithdrawInfo::SIZE
     )]
     pub withdraw_info: Box<Account<'info, WithdrawInfo>>,
 

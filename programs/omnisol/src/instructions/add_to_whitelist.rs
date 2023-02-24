@@ -32,7 +32,8 @@ pub struct AddToWhitelist<'info> {
     /// CHECK: Stake pool with LP token mint address
     pub staking_pool: AccountInfo<'info>,
 
-    #[account(init,
+    #[account(
+        init,
         seeds = [Whitelist::SEED, address_to_whitelist.key().as_ref()],
         bump,
         payer = authority,

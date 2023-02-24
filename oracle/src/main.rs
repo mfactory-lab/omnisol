@@ -1,15 +1,12 @@
 mod cluster;
 mod utils;
 
-use std::path::PathBuf;
+use std::{path::PathBuf, thread, time};
 
-use std::{thread, time};
 use clap::Parser;
-use omnisol::ID;
-
 use log::{info, LevelFilter};
-use simplelog::{TermLogger, TerminalMode, Config, ColorChoice};
-
+use omnisol::ID;
+use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
     commitment_config::CommitmentConfig,
@@ -22,7 +19,7 @@ use solana_sdk::{
 
 use crate::{
     cluster::Cluster,
-    utils::{generate_priority_queue, get_user_data, get_collateral_data},
+    utils::{generate_priority_queue, get_collateral_data, get_user_data},
 };
 
 #[derive(Parser, Debug)]
@@ -48,7 +45,13 @@ pub struct Args {
 fn main() {
     let args = Args::parse();
 
-    TermLogger::init(LevelFilter::Info, Config::default(), TerminalMode::Stdout, ColorChoice::Always).expect("Can't init logger");
+    TermLogger::init(
+        LevelFilter::Info,
+        Config::default(),
+        TerminalMode::Stdout,
+        ColorChoice::Always,
+    )
+    .expect("Can't init logger");
 
     // get cluster and establish connection
     let client = RpcClient::new_with_commitment(args.cluster.url(), CommitmentConfig::confirmed());
@@ -67,7 +70,10 @@ fn main() {
 
         // find collaterals by user list and make priority queue
         let (collaterals, values) = generate_priority_queue(user_data, collateral_data);
-        info!("Generated priority queue: \n\t\tCollaterals - {:?} \n\t\tAmounts - {:?}", collaterals, values);
+        info!(
+            "Generated priority queue: \n\t\tCollaterals - {:?} \n\t\tAmounts - {:?}",
+            collaterals, values
+        );
 
         // send tx to contract
         let instructions = vec![Instruction::new_with_borsh(

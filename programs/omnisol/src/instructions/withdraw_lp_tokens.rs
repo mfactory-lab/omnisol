@@ -94,30 +94,34 @@ pub struct WithdrawLPTokens<'info> {
     pub pool_authority: AccountInfo<'info>,
 
     #[account(
-    mut,
-    seeds = [User::SEED, authority.key().as_ref()],
-    bump,
+        mut,
+        seeds = [User::SEED, authority.key().as_ref()],
+        bump,
     )]
     pub user: Box<Account<'info, User>>,
 
     #[account(
-    mut,
-    seeds = [Collateral::SEED, user.key().as_ref(), lp_token.key().as_ref()],
-    bump,
+        mut,
+        seeds = [
+            Collateral::SEED,
+            user.key().as_ref(),
+            lp_token.key().as_ref()
+        ],
+        bump,
     )]
     pub collateral: Account<'info, Collateral>,
 
     #[account(
-    mut,
-    associated_token::mint = lp_token,
-    associated_token::authority = pool_authority,
+        mut,
+        associated_token::mint = lp_token,
+        associated_token::authority = pool_authority,
     )]
     pub source: Account<'info, token::TokenAccount>,
 
     #[account(
-    mut,
-    associated_token::mint = lp_token,
-    associated_token::authority = authority,
+        mut,
+        associated_token::mint = lp_token,
+        associated_token::authority = authority,
     )]
     pub destination: Account<'info, token::TokenAccount>,
 
@@ -129,9 +133,9 @@ pub struct WithdrawLPTokens<'info> {
     pub pool_mint: AccountInfo<'info>,
 
     #[account(
-    mut,
-    associated_token::mint = pool_mint,
-    associated_token::authority = authority,
+        mut,
+        associated_token::mint = pool_mint,
+        associated_token::authority = authority,
     )]
     pub user_pool_token: Account<'info, token::TokenAccount>,
 

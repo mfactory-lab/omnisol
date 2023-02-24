@@ -22,13 +22,15 @@ pub struct BlockUser<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 
-    #[account(mut,
+    #[account(
+        mut,
         seeds = [Manager::SEED, authority.key().as_ref()],
         bump
     )]
     pub manager: Box<Account<'info, Manager>>,
 
-    #[account(mut,
+    #[account(
+        mut,
         seeds = [User::SEED, user_wallet.key().as_ref()],
         bump
     )]

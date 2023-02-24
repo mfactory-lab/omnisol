@@ -1,16 +1,17 @@
+use anchor_lang::AnchorDeserialize;
 use gimli::ReaderOffset;
-use omnisol::ID;
+use omnisol::{
+    state::{Oracle, User, WithdrawInfo},
+    ID,
+};
 use solana_account_decoder::UiAccountEncoding;
 use solana_client::{
+    client_error::Result,
     rpc_client::RpcClient,
     rpc_config::{RpcAccountInfoConfig, RpcProgramAccountsConfig},
-    rpc_filter::RpcFilterType,
-    client_error::Result,
+    rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType},
 };
-use solana_client::rpc_filter::{Memcmp, MemcmpEncodedBytes};
 use solana_sdk::{account::Account, pubkey::Pubkey};
-use omnisol::state::{Oracle, User, WithdrawInfo};
-use anchor_lang::AnchorDeserialize;
 
 pub const WITHDRAW_INFO_DISCRIMINATOR: [u8; 8] = [103, 244, 107, 42, 135, 228, 81, 107];
 
@@ -66,17 +67,16 @@ pub fn get_oracle_data(client: &RpcClient, oracle: &Pubkey) -> Result<Oracle> {
 }
 
 pub fn get_accounts(filters: Option<Vec<RpcFilterType>>, connection: &RpcClient) -> Result<Vec<(Pubkey, Account)>> {
-    connection
-        .get_program_accounts_with_config(
-            &Pubkey::new_from_array(ID.to_bytes()),
-            RpcProgramAccountsConfig {
-                filters,
-                account_config: RpcAccountInfoConfig {
-                    encoding: Some(UiAccountEncoding::Base64),
-                    commitment: Some(connection.commitment()),
-                    ..RpcAccountInfoConfig::default()
-                },
-                ..RpcProgramAccountsConfig::default()
+    connection.get_program_accounts_with_config(
+        &Pubkey::new_from_array(ID.to_bytes()),
+        RpcProgramAccountsConfig {
+            filters,
+            account_config: RpcAccountInfoConfig {
+                encoding: Some(UiAccountEncoding::Base64),
+                commitment: Some(connection.commitment()),
+                ..RpcAccountInfoConfig::default()
             },
-        )
+            ..RpcProgramAccountsConfig::default()
+        },
+    )
 }

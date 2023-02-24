@@ -117,16 +117,20 @@ pub struct WithdrawStake<'info> {
     pub pool_authority: AccountInfo<'info>,
 
     #[account(
-    mut,
-    seeds = [User::SEED, authority.key().as_ref()],
-    bump,
+        mut,
+        seeds = [User::SEED, authority.key().as_ref()],
+        bump,
     )]
     pub user: Box<Account<'info, User>>,
 
     #[account(
-    mut,
-    seeds = [Collateral::SEED, user.key().as_ref(), source_stake.key().as_ref()],
-    bump,
+        mut,
+        seeds = [
+            Collateral::SEED,
+            user.key().as_ref(),
+            source_stake.key().as_ref()
+        ],
+        bump,
     )]
     pub collateral: Account<'info, Collateral>,
 

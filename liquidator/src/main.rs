@@ -1,14 +1,11 @@
 mod cluster;
 mod utils;
 
-use std::path::PathBuf;
+use std::{path::PathBuf, thread, time};
 
 use clap::Parser;
-use std::{thread, time};
-
 use log::{info, LevelFilter};
-use simplelog::{TermLogger, TerminalMode, Config, ColorChoice};
-
+use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
     commitment_config::CommitmentConfig,
@@ -48,7 +45,13 @@ pub struct Args {
 fn main() {
     let args = Args::parse();
 
-    TermLogger::init(LevelFilter::Info, Config::default(), TerminalMode::Stdout, ColorChoice::Always).expect("Can't init logger");
+    TermLogger::init(
+        LevelFilter::Info,
+        Config::default(),
+        TerminalMode::Stdout,
+        ColorChoice::Always,
+    )
+    .expect("Can't init logger");
 
     // get cluster and establish connection
     let client = RpcClient::new_with_commitment(args.cluster.url(), CommitmentConfig::confirmed());
