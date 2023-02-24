@@ -50,7 +50,7 @@ pub fn get_user_data(client: &RpcClient, authority: Pubkey) -> Result<(Pubkey, U
     let user_data = client.get_account_data(&user_account)?;
 
     // deserialize user data
-    let user_data: User = User::try_from_slice(user_data.as_slice()).unwrap();
+    let user_data: User = User::try_from_slice(user_data.as_slice()).expect("Failed to deserialize");
 
     Ok((user_account, user_data))
 }
@@ -60,7 +60,7 @@ pub fn get_oracle_data(client: &RpcClient, oracle: &Pubkey) -> Result<Oracle> {
     let oracle_data = client.get_account_data(oracle)?;
 
     // deserialize oracle data
-    let oracle_data = Oracle::try_from_slice(oracle_data.as_slice()).unwrap();
+    let oracle_data = Oracle::try_from_slice(oracle_data.as_slice()).expect("Failed to deserialize");
 
     Ok(oracle_data)
 }
