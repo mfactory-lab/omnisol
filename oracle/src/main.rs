@@ -1,34 +1,34 @@
-mod utils;
 mod cluster;
+mod utils;
 
 use std::path::PathBuf;
-use solana_client::{
-    rpc_client::RpcClient,
-    rpc_filter::RpcFilterType,
-};
+
+use std::{thread, time};
+use log::{info, LevelFilter};
+use simplelog::{TermLogger, TerminalMode, Config, ColorChoice};
+use clap::Parser;
+use omnisol::ID;
+use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
     commitment_config::CommitmentConfig,
-    system_program,
-    pubkey::Pubkey,
     instruction::{AccountMeta, Instruction},
+    pubkey::Pubkey,
     signature::{read_keypair_file, Signer},
-    transaction::Transaction
+    system_program,
+    transaction::Transaction,
 };
-use omnisol::ID;
-use omnisol::state::{User, Collateral};
-use clap::Parser;
-use solana_client::rpc_filter::{Memcmp, MemcmpEncodedBytes};
-use crate::utils::{COLLATERAL_DISCRIMINATOR, generate_priority_queue, get_accounts, USER_DISCRIMINATOR};
-use gimli::ReaderOffset;
-use crate::cluster::Cluster;
-use anchor_lang::prelude::borsh::BorshDeserialize;
+
+use crate::{
+    cluster::Cluster,
+    utils::{generate_priority_queue, get_user_data, get_collateral_data},
+};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
     /// Path to private key
     #[arg(short, long)]
-    pub sign: PathBuf,
+    pub keypair: PathBuf,
 
     /// Solana cluster name
     #[arg(short, long)]
@@ -37,57 +37,35 @@ pub struct Args {
     /// Oracle address
     #[arg(short, long)]
     pub oracle: Pubkey,
+
+    /// Sleep duration in seconds
+    #[arg(short, long)]
+    pub time: u64,
 }
 
 fn main() {
     let args = Args::parse();
 
+    TermLogger::init(LevelFilter::Info, Config::default(), TerminalMode::Stdout, ColorChoice::Always).expect("Can't init logger");
+
     // get cluster and establish connection
-    let connection = RpcClient::new_with_commitment(args.cluster, CommitmentConfig::confirmed());
+    let client = RpcClient::new_with_commitment(args.cluster.url(), CommitmentConfig::confirmed());
+    info!("Established connection: {}", client.url());
 
     // get signer wallet
-    let wallet_path = args.sign;
-    let wallet_keypair = read_keypair_file(wallet_path).expect("Can't open file-wallet");
+    let wallet_keypair = read_keypair_file(args.keypair).expect("Can't open keypair");
     let wallet_pubkey = wallet_keypair.pubkey();
+    info!("Read oracle keypair file: {}", wallet_pubkey);
 
     loop {
-        let filters = Some(vec![
-            RpcFilterType::DataSize(User::SIZE.into_u64()),
-            RpcFilterType::Memcmp(Memcmp {
-                offset: 0,
-                bytes: MemcmpEncodedBytes::Bytes(USER_DISCRIMINATOR.to_vec()),
-                encoding: None,
-            }),
-        ]);
-
-        // get User accounts
-        let user_accounts = get_accounts(filters, &connection);
-
-        // deserialize user data
-        let mut user_data: Vec<(Pubkey, User)> = vec![];
-        user_accounts.into_iter().for_each(|(address, account)| user_data.push((address, User::try_from_slice(account.data.as_slice()).unwrap())));
-
-        // sort by rate
-        user_data.sort_by(|(_, a), (_, b)| a.rate.cmp(&b.rate));
-
-        let filters = Some(vec![
-            RpcFilterType::DataSize(Collateral::SIZE.into_u64()),
-            RpcFilterType::Memcmp(Memcmp {
-                offset: 0,
-                bytes: MemcmpEncodedBytes::Bytes(COLLATERAL_DISCRIMINATOR.to_vec()),
-                encoding: None,
-            }),
-        ]);
-
-        // get collateral accounts
-        let collateral_accounts = get_accounts(filters, &connection);
-
-        // deserialize collateral data
-        let mut collateral_data: Vec<(Pubkey, Collateral)> = vec![];
-        collateral_accounts.into_iter().for_each(|(address, account)| collateral_data.push((address, Collateral::try_from_slice(account.data.as_slice()).unwrap())));
+        let user_data = get_user_data(&client).expect("Can't get user accounts");
+        info!("Got user data");
+        let collateral_data = get_collateral_data(&client).expect("Can't get collateral accounts");
+        info!("Got collateral data");
 
         // find collaterals by user list and make priority queue
         let (collaterals, values) = generate_priority_queue(user_data, collateral_data);
+        info!("Generated priority queue: \n\t\tCollaterals - {:?} \n\t\tAmounts - {:?}", collaterals, values);
 
         // send tx to contract
         let instructions = vec![Instruction::new_with_borsh(
@@ -103,8 +81,11 @@ fn main() {
             ],
         )];
         let mut tx = Transaction::new_with_payer(&instructions, Some(&wallet_pubkey));
-        let recent_blockhash = connection.get_latest_blockhash().expect("Can't get blockhash");
+        let recent_blockhash = client.get_latest_blockhash().expect("Can't get blockhash");
         tx.sign(&vec![&wallet_keypair], recent_blockhash);
-        connection.send_transaction(&tx).expect("Transaction failed.");
+        let signature = client.send_transaction(&tx).expect("Transaction failed.");
+        info!("Sent transaction successfully with signature: {}", signature);
+
+        thread::sleep(time::Duration::from_secs(args.time))
     }
 }

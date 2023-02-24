@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use anyhow::anyhow;
 use solana_client::client_error::reqwest::Url;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -24,7 +25,8 @@ impl Cluster {
 }
 
 impl FromStr for Cluster {
-    type Err = &'static str;
+    type Err = anyhow::Error;
+
     fn from_str(s: &str) -> Result<Cluster, Self::Err> {
         match s.to_lowercase().as_str() {
             "t" | "testnet" => Ok(Cluster::Testnet),
