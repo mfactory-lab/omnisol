@@ -4,10 +4,12 @@ mod utils;
 use std::path::PathBuf;
 
 use std::{thread, time};
-use log::{info, LevelFilter};
-use simplelog::{TermLogger, TerminalMode, Config, ColorChoice};
 use clap::Parser;
 use omnisol::ID;
+
+use log::{info, LevelFilter};
+use simplelog::{TermLogger, TerminalMode, Config, ColorChoice};
+
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
     commitment_config::CommitmentConfig,
@@ -86,6 +88,6 @@ fn main() {
         let signature = client.send_transaction(&tx).expect("Transaction failed.");
         info!("Sent transaction successfully with signature: {}", signature);
 
-        thread::sleep(time::Duration::from_secs(args.time))
+        thread::sleep(time::Duration::from_secs(args.time));
     }
 }

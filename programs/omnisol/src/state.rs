@@ -45,7 +45,6 @@ pub struct QueueMember {
 }
 
 #[account]
-#[derive(AnchorDeserialize)]
 pub struct Collateral {
     /// User PDA with wallet that has authority of the staking pool
     pub user: Pubkey,
@@ -125,7 +124,6 @@ impl Manager {
     pub const SIZE: usize = 8 + 32;
 }
 
-#[derive(AnchorDeserialize)]
 #[account]
 pub struct User {
     /// Wallet of registered user
