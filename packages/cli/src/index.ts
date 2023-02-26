@@ -24,7 +24,27 @@ cli
     log.info(`# Cluster: ${cluster}`)
   })
 
-cli.command('init').action(actions.init)
+cli.command('create-pool').action(actions.createPool)
+cli.command('add-liquidator').action(actions.addLiquidator)
+cli.command('add-manager').action(actions.addManager)
+cli.command('add-to-whitelist').action(actions.addToWhitelist)
+cli.command('block-user').action(actions.blockUser)
+cli.command('burn').action(actions.burnOmnisol)
+cli.command('close-oracle').action(actions.closeOracle)
+cli.command('close-pool').action(actions.closePool)
+cli.command('deposit-lp').action(actions.depositLp)
+cli.command('deposit-stake').action(actions.depositStake)
+cli.command('init-oracle').action(actions.initOracle)
+cli.command('mint').action(actions.mintOmnisol)
+cli.command('pause-pool').action(actions.pausePool)
+cli.command('remove-from-whitelist').action(actions.removeFromWhitelist)
+cli.command('remove-liquidator').action(actions.removeLiquidator)
+cli.command('remove-manager').action(actions.removeManager)
+cli.command('resume-pool').action(actions.resumePool)
+cli.command('unblock-user').action(actions.unblockUser)
+cli.command('update-oracle').action(actions.updateOracleInfo)
+cli.command('withdraw-lp').action(actions.withdrawLpTokens)
+cli.command('withdraw-stake').action(actions.withdrawStake)
 
 cli.parseAsync(process.argv).then(
   () => {},

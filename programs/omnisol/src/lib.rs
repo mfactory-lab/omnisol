@@ -7,7 +7,7 @@ use anchor_lang::prelude::*;
 
 use crate::instructions::*;
 
-declare_id!("9SfbhzHrx5xczfoiTo2VVpG5oukcS5Schgy2ppLH3zQd");
+declare_id!("6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7");
 
 #[program]
 pub mod omnisol {

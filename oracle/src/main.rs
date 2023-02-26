@@ -51,7 +51,7 @@ fn main() {
         TerminalMode::Stdout,
         ColorChoice::Always,
     )
-    .expect("Can't init logger");
+    .expect("Can't createPool logger");
 
     // get cluster and establish connection
     let client = RpcClient::new_with_commitment(args.cluster.url(), CommitmentConfig::confirmed());

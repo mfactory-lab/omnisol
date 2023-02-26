@@ -88,6 +88,21 @@ export class OmnisolClient {
     return await this.program.account.withdrawInfo.fetchNullable(address) as unknown as WithdrawInfo
   }
 
+  async getCurrentRate(address: Address) {
+    return (await this.fetchUser(address)).rate
+  }
+
+  async getLiquidationRate(address: Address) {
+    const oracle = await this.fetchOracle(address)
+    const queueMember = oracle.priorityQueue.at(0)
+    if (queueMember === undefined) {
+      return undefined
+    }
+    const collateral = await this.fetchCollateral(queueMember.collateral)
+    const user = await this.fetchUser(collateral.user)
+    return user.rate
+  }
+
   async createPool(props: CreatePoolProps) {
     const payer = this.wallet.publicKey
     const pool = props.pool
@@ -151,7 +166,7 @@ export class OmnisolClient {
     }
   }
 
-  async closeGlobalPool(props: CloseGlobalPoolProps) {
+  async closePool(props: ClosePoolProps) {
     const payer = this.wallet.publicKey
     const instruction = createClosePoolInstruction(
       {
@@ -408,6 +423,7 @@ export class OmnisolClient {
     const [poolAuthority] = await this.pda.poolAuthority(props.pool)
     const [user] = await this.pda.user(payer)
     const [collateral] = await this.pda.collateral(props.stakeAccount, user)
+    const stakeProgram = props.stakeProgram ?? web3.StakeProgram.programId
     const instruction = createWithdrawStakeInstruction(
       {
         authority: payer,
@@ -418,7 +434,7 @@ export class OmnisolClient {
         poolMint: props.poolMint,
         sourceStake: props.stakeAccount,
         splitStake: props.splitStake,
-        stakeProgram: props.stakeProgram,
+        stakeProgram,
         user,
         userPoolToken: props.userPoolToken,
       },
@@ -631,7 +647,7 @@ interface CreatePoolProps {
   stakeSource: PublicKey
 }
 
-interface CloseGlobalPoolProps {
+interface ClosePoolProps {
   pool: PublicKey
 }
 
@@ -708,7 +724,7 @@ interface WithdrawStakeProps {
   userPoolToken: PublicKey
   stakeAccount: PublicKey
   splitStake: PublicKey
-  stakeProgram: PublicKey
+  stakeProgram?: PublicKey
   amount: BN
 }
 

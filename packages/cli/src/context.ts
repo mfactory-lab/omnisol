@@ -1,6 +1,7 @@
+import {OmnisolClient} from "@omnisol/sdk";
 import { Buffer } from 'buffer'
 import fs from 'fs'
-import { AnchorProvider, Wallet, web3 } from '@project-serum/anchor'
+import {AnchorProvider, Program, Wallet, web3} from '@project-serum/anchor'
 import type { Cluster } from '@solana/web3.js'
 import { Keypair } from '@solana/web3.js'
 import { clusterUrl } from './utils'
@@ -8,11 +9,15 @@ import { clusterUrl } from './utils'
 export interface Context {
   cluster: Cluster | string
   provider: AnchorProvider
+  client: OmnisolClient
 }
 
 const context: Context = {
   cluster: 'devnet',
+  // @ts-expect-error ...
   provider: undefined,
+  // @ts-expect-error ...
+  client: undefined,
 }
 
 export function initContext({ cluster, keypair }: { cluster: Cluster; keypair: string }) {
@@ -23,6 +28,10 @@ export function initContext({ cluster, keypair }: { cluster: Cluster; keypair: s
 
   context.cluster = cluster
   context.provider = new AnchorProvider(connection, wallet, opts)
+  context.client = new OmnisolClient({
+    program: new Program(OmnisolClient.IDL, OmnisolClient.programId, context.provider),
+    wallet: context.provider.wallet,
+  })
 
   return context
 }

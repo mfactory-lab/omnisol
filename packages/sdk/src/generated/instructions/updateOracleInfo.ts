@@ -68,7 +68,7 @@ export const updateOracleInfoInstructionDiscriminator = [
 export function createUpdateOracleInfoInstruction(
   accounts: UpdateOracleInfoInstructionAccounts,
   args: UpdateOracleInfoInstructionArgs,
-  programId = new web3.PublicKey('9SfbhzHrx5xczfoiTo2VVpG5oukcS5Schgy2ppLH3zQd'),
+  programId = new web3.PublicKey('6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7'),
 ) {
   const [data] = updateOracleInfoStruct.serialize({
     instructionDiscriminator: updateOracleInfoInstructionDiscriminator,

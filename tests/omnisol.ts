@@ -22,6 +22,7 @@ describe('omnisol', () => {
   let poolForLP: web3.PublicKey
   let poolMint: web3.PublicKey
   let lpToken: web3.PublicKey
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let poolAuthority: web3.PublicKey
   let poolForLPAuthority: web3.PublicKey
   let stakeAccount: web3.PublicKey
@@ -161,7 +162,7 @@ describe('omnisol', () => {
     poolAuthority = authority
     const [mintAuthorityKey] = await client.pda.mintAuthority()
     mintAuthority = mintAuthorityKey
-    poolMint = await createMint(provider.connection, payerKeypair, mintAuthority, null, 9, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
+    poolMint = await createMint(provider.connection, payerKeypair, mintAuthority, null, 9, web3.Keypair.generate(), undefined, TOKEN_PROGRAM_ID)
     const { tx } = await client.createPool({
       oracle,
       stakeSource: web3.StakeProgram.programId,
@@ -319,9 +320,9 @@ describe('omnisol', () => {
   })
 
   it('can deposit lp tokens', async () => {
-    lpToken = await createMint(provider.connection, payerKeypair, provider.wallet.publicKey, null, 9, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
+    lpToken = await createMint(provider.connection, payerKeypair, provider.wallet.publicKey, null, 9, web3.Keypair.generate(), undefined, TOKEN_PROGRAM_ID)
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
-    await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], null, TOKEN_PROGRAM_ID)
+    await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], undefined, TOKEN_PROGRAM_ID)
     let sourceBalance = await provider.connection.getTokenAccountBalance(source.address)
 
     const poolKeypair = web3.Keypair.generate()
@@ -407,7 +408,7 @@ describe('omnisol', () => {
 
   it('can deposit lp tokens twice', async () => {
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
-    await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], null, TOKEN_PROGRAM_ID)
+    await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], undefined, TOKEN_PROGRAM_ID)
     const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolForLPAuthority, true)
     let sourceBalance = await provider.connection.getTokenAccountBalance(source.address)
     let destinationBalance = await provider.connection.getTokenAccountBalance(destination.address)
@@ -455,9 +456,9 @@ describe('omnisol', () => {
   })
 
   it('can not deposit non-whitelisted tokens', async () => {
-    const someToken = await createMint(provider.connection, payerKeypair, provider.wallet.publicKey, null, 1, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
+    const someToken = await createMint(provider.connection, payerKeypair, provider.wallet.publicKey, null, 1, web3.Keypair.generate(), undefined, TOKEN_PROGRAM_ID)
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, someToken, provider.wallet.publicKey)
-    await mintTo(provider.connection, payerKeypair, someToken, source.address, provider.wallet.publicKey, 100, [], null, TOKEN_PROGRAM_ID)
+    await mintTo(provider.connection, payerKeypair, someToken, source.address, provider.wallet.publicKey, 100, [], undefined, TOKEN_PROGRAM_ID)
     const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, someToken, poolForLPAuthority, true)
     const { tx } = await client.depositLPToken({
       amount: new BN(100),
@@ -493,7 +494,7 @@ describe('omnisol', () => {
 
   it('can not deposit if user blocked', async () => {
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
-    await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], null, TOKEN_PROGRAM_ID)
+    await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], undefined, TOKEN_PROGRAM_ID)
     const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolForLPAuthority, true)
     const { tx } = await client.depositLPToken({
       amount: new BN(100),
@@ -548,7 +549,7 @@ describe('omnisol', () => {
 
   it('can not deposit if pool paused', async () => {
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
-    await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], null, TOKEN_PROGRAM_ID)
+    await mintTo(provider.connection, payerKeypair, lpToken, source.address, provider.wallet.publicKey, 100, [], undefined, TOKEN_PROGRAM_ID)
     const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolForLPAuthority, true)
     const { tx } = await client.depositLPToken({
       amount: new BN(100),
@@ -1680,7 +1681,7 @@ describe('omnisol', () => {
   })
 
   it('can close global pool', async () => {
-    const { tx } = await client.closeGlobalPool({
+    const { tx } = await client.closePool({
       pool,
     })
 

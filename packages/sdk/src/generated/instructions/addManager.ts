@@ -51,7 +51,7 @@ export const addManagerInstructionDiscriminator = [
  */
 export function createAddManagerInstruction(
   accounts: AddManagerInstructionAccounts,
-  programId = new web3.PublicKey('9SfbhzHrx5xczfoiTo2VVpG5oukcS5Schgy2ppLH3zQd'),
+  programId = new web3.PublicKey('6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7'),
 ) {
   const [data] = addManagerStruct.serialize({
     instructionDiscriminator: addManagerInstructionDiscriminator,
