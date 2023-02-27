@@ -1,4 +1,4 @@
-import {OmnisolClient} from "@omnisol/sdk";
+import { OmnisolClient } from '@omnisol/sdk';
 import { Buffer } from 'buffer'
 import fs from 'fs'
 import {AnchorProvider, Program, Wallet, web3} from '@project-serum/anchor'
