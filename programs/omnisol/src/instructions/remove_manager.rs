@@ -1,5 +1,6 @@
-use anchor_lang::prelude::*;
 use std::str::FromStr;
+
+use anchor_lang::prelude::*;
 
 use crate::state::{Manager, ADMIN};
 
@@ -12,7 +13,8 @@ pub struct RemoveManager<'info> {
     #[account(mut, constraint = authority.key() == Pubkey::from_str(ADMIN).unwrap())]
     pub authority: Signer<'info>,
 
-    #[account(mut,
+    #[account(
+        mut,
         seeds = [
             Manager::SEED,
             manager_wallet.key().as_ref(),

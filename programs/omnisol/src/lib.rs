@@ -7,7 +7,7 @@ use anchor_lang::prelude::*;
 
 use crate::instructions::*;
 
-declare_id!("9SfbhzHrx5xczfoiTo2VVpG5oukcS5Schgy2ppLH3zQd");
+declare_id!("6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7");
 
 #[program]
 pub mod omnisol {
@@ -85,7 +85,11 @@ pub mod omnisol {
         close_oracle::handle(ctx)
     }
 
-    pub fn update_oracle_info<'info>(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>) -> Result<()> {
+    pub fn update_oracle_info<'info>(
+        ctx: Context<UpdateOracleInfo>,
+        addresses: Vec<Pubkey>,
+        values: Vec<u64>,
+    ) -> Result<()> {
         update_oracle_info::handle(ctx, addresses, values)
     }
 

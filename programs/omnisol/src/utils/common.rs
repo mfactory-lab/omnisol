@@ -1,7 +1,15 @@
-use std::io::{Cursor, Write};
-use std::ops::DerefMut;
-use anchor_lang::{solana_program::{account_info::AccountInfo, system_program}, Result, error, error::ErrorCode};
-use anchor_lang::__private::CLOSED_ACCOUNT_DISCRIMINATOR;
+use std::{
+    io::{Cursor, Write},
+    ops::DerefMut,
+};
+
+use anchor_lang::{
+    error,
+    error::ErrorCode,
+    solana_program::{account_info::AccountInfo, system_program},
+    Result,
+    __private::CLOSED_ACCOUNT_DISCRIMINATOR,
+};
 
 pub fn close<'info>(info: AccountInfo<'info>, sol_destination: AccountInfo<'info>) -> Result<()> {
     // Transfer lamports from the account to the sol_destination.
@@ -18,6 +26,7 @@ pub fn close<'info>(info: AccountInfo<'info>, sol_destination: AccountInfo<'info
     // Mark the account discriminator as closed.
     let dst: &mut [u8] = &mut data;
     let mut cursor = Cursor::new(dst);
-    cursor.write_all(&CLOSED_ACCOUNT_DISCRIMINATOR)
+    cursor
+        .write_all(&CLOSED_ACCOUNT_DISCRIMINATOR)
         .map_err(|_| error!(ErrorCode::AccountDidNotSerialize))
 }

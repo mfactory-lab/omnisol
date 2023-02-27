@@ -19,11 +19,12 @@ pub struct AddLiquidator<'info> {
     /// CHECK: Wallet that will have authority to liquidate collaterals
     pub wallet_of_liquidator: AccountInfo<'info>,
 
-    #[account(init,
-    seeds = [Liquidator::SEED, wallet_of_liquidator.key().as_ref()],
-    bump,
-    payer = authority,
-    space = Liquidator::SIZE
+    #[account(
+        init,
+        seeds = [Liquidator::SEED, wallet_of_liquidator.key().as_ref()],
+        bump,
+        payer = authority,
+        space = Liquidator::SIZE
     )]
     pub liquidator: Box<Account<'info, Liquidator>>,
 

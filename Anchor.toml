@@ -8,11 +8,17 @@ url = "https://anchor.projectserum.com"
 test = "npx ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
 
 [provider]
-cluster = "localnet"
+cluster = "testnet"
 wallet = "~/.config/solana/id.json"
 
 [programs.localnet]
-omnisol = "9SfbhzHrx5xczfoiTo2VVpG5oukcS5Schgy2ppLH3zQd"
+omnisol = "6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7"
+
+[programs.devnet]
+omnisol = "6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7"
+
+[programs.testnet]
+omnisol = "6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7"
 
 [[test.genesis]]
 address = "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"

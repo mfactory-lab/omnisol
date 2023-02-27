@@ -1,4 +1,3 @@
-use std::str::FromStr;
 use anchor_lang::prelude::*;
 
 pub const ADMIN: &str = "4kMtMnYWFbsMc7M3jcdnfCceHaiXmrqaMz2QZQAmn88i";
@@ -35,14 +34,14 @@ pub struct Oracle {
     pub priority_queue: Vec<QueueMember>,
 }
 
+impl Oracle {
+    pub const SIZE: usize = 10240;
+}
+
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct QueueMember {
     pub collateral: Pubkey,
     pub amount: u64,
-}
-
-impl Oracle {
-    pub const SIZE: usize = 10240;
 }
 
 #[account]
@@ -133,9 +132,13 @@ pub struct User {
     pub rate: u64,
     /// Flag that indicates that the user is blocked or not
     pub is_blocked: bool,
+    /// Current amount of pending withdraw requests
+    pub requests_amount: u32,
+    /// Index of last made withdraw request
+    pub last_withdraw_index: u32,
 }
 
 impl User {
     pub const SEED: &'static [u8] = b"user";
-    pub const SIZE: usize = 8 + 32 + 8 + 1;
+    pub const SIZE: usize = 8 + 32 + 8 + 1 + 4 + 4;
 }

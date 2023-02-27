@@ -3,10 +3,9 @@ use anchor_spl::token;
 
 use crate::{
     events::*,
-    state::{Collateral, Pool, User},
+    state::{Collateral, Pool, User, MINT_AUTHORITY_SEED},
     ErrorCode,
 };
-use crate::state::MINT_AUTHORITY_SEED;
 
 /// The user can use their deposit to mint omniSOL.
 /// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.

@@ -1088,6 +1088,20 @@ export interface Omnisol {
             ]
             'type': 'bool'
           },
+          {
+            'name': 'requestsAmount'
+            'docs': [
+              'Current amount of pending withdraw requests',
+            ]
+            'type': 'u32'
+          },
+          {
+            'name': 'lastWithdrawIndex'
+            'docs': [
+              'Index of last made withdraw request',
+            ]
+            'type': 'u32'
+          },
         ]
       }
     },
@@ -2405,6 +2419,20 @@ export const IDL: Omnisol = {
               'Flag that indicates that the user is blocked or not',
             ],
             type: 'bool',
+          },
+          {
+            name: 'requestsAmount',
+            docs: [
+              'Current amount of pending withdraw requests',
+            ],
+            type: 'u32',
+          },
+          {
+            name: 'lastWithdrawIndex',
+            docs: [
+              'Index of last made withdraw request',
+            ],
+            type: 'u32',
           },
         ],
       },

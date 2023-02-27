@@ -1087,6 +1087,20 @@
               "Flag that indicates that the user is blocked or not"
             ],
             "type": "bool"
+          },
+          {
+            "name": "requestsAmount",
+            "docs": [
+              "Current amount of pending withdraw requests"
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "lastWithdrawIndex",
+            "docs": [
+              "Index of last made withdraw request"
+            ],
+            "type": "u32"
           }
         ]
       }
@@ -1315,7 +1329,7 @@
     }
   ],
   "metadata": {
-    "address": "9SfbhzHrx5xczfoiTo2VVpG5oukcS5Schgy2ppLH3zQd",
+    "address": "6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7",
     "origin": "anchor",
     "binaryVersion": "0.25.0",
     "libVersion": "0.25.0"

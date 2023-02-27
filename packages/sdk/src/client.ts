@@ -88,6 +88,21 @@ export class OmnisolClient {
     return await this.program.account.withdrawInfo.fetchNullable(address) as unknown as WithdrawInfo
   }
 
+  async getCurrentRate(address: Address) {
+    return (await this.fetchUser(address)).rate
+  }
+
+  async getLiquidationRate(address: Address) {
+    const oracle = await this.fetchOracle(address)
+    const queueMember = oracle.priorityQueue.at(0)
+    if (queueMember === undefined) {
+      return undefined
+    }
+    const collateral = await this.fetchCollateral(queueMember.collateral)
+    const user = await this.fetchUser(collateral.user)
+    return user.rate
+  }
+
   async createPool(props: CreatePoolProps) {
     const payer = this.wallet.publicKey
     const pool = props.pool
@@ -151,7 +166,7 @@ export class OmnisolClient {
     }
   }
 
-  async closeGlobalPool(props: CloseGlobalPoolProps) {
+  async closePool(props: ClosePoolProps) {
     const payer = this.wallet.publicKey
     const instruction = createClosePoolInstruction(
       {
@@ -408,6 +423,7 @@ export class OmnisolClient {
     const [poolAuthority] = await this.pda.poolAuthority(props.pool)
     const [user] = await this.pda.user(payer)
     const [collateral] = await this.pda.collateral(props.stakeAccount, user)
+    const stakeProgram = props.stakeProgram ?? web3.StakeProgram.programId
     const instruction = createWithdrawStakeInstruction(
       {
         authority: payer,
@@ -418,7 +434,7 @@ export class OmnisolClient {
         poolMint: props.poolMint,
         sourceStake: props.stakeAccount,
         splitStake: props.splitStake,
-        stakeProgram: props.stakeProgram,
+        stakeProgram,
         user,
         userPoolToken: props.userPoolToken,
       },
@@ -531,7 +547,9 @@ export class OmnisolClient {
   async burnOmnisol(props: BurnOmnisolProps) {
     const payer = this.wallet.publicKey
     const [user] = await this.pda.user(payer)
-    const [withdrawInfo] = await this.pda.withdrawInfo(payer)
+    const userData = await this.fetchUser(user)
+    const withdrawIndex = userData.lastWithdrawIndex === undefined ? 0 : userData.lastWithdrawIndex
+    const [withdrawInfo] = await this.pda.withdrawInfo(payer, withdrawIndex + 1)
     const ix = createBurnOmnisolInstruction(
       {
         authority: payer,
@@ -591,14 +609,24 @@ class OmnisolPDA {
     new web3.PublicKey(wallet).toBuffer(),
   ])
 
-  withdrawInfo = (wallet: Address) => this.pda([
+  withdrawInfo = (wallet: Address, index: number) => this.pda([
     Buffer.from(WITHDRAW_INFO_PREFIX),
     new web3.PublicKey(wallet).toBuffer(),
+    toLeInt32Bytes(index),
   ])
 
   private async pda(seeds: Array<Buffer | Uint8Array>) {
     return await web3.PublicKey.findProgramAddress(seeds, OmnisolClient.programId)
   }
+}
+
+export function toLeInt32Bytes(num: number) {
+  return new Uint8Array([
+    (num & 0x000000FF),
+    (num & 0x0000FF00) >> 8,
+    (num & 0x00FF0000) >> 16,
+    (num & 0xFF000000) >> 24,
+  ])
 }
 
 export interface Wallet {
@@ -619,7 +647,7 @@ interface CreatePoolProps {
   stakeSource: PublicKey
 }
 
-interface CloseGlobalPoolProps {
+interface ClosePoolProps {
   pool: PublicKey
 }
 
@@ -632,14 +660,12 @@ interface ResumePoolProps {
 }
 
 interface AddToWhitelistProps {
-  pool: PublicKey
   tokenPool: PublicKey
   stakePool: PublicKey
   token: PublicKey
 }
 
 interface RemoveFromWhitelistProps {
-  pool: PublicKey
   token: PublicKey
 }
 
@@ -696,7 +722,7 @@ interface WithdrawStakeProps {
   userPoolToken: PublicKey
   stakeAccount: PublicKey
   splitStake: PublicKey
-  stakeProgram: PublicKey
+  stakeProgram?: PublicKey
   amount: BN
 }
 

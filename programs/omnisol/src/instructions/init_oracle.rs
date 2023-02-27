@@ -1,4 +1,5 @@
 use std::str::FromStr;
+
 use anchor_lang::prelude::*;
 
 use crate::state::{Oracle, ADMIN};
@@ -19,7 +20,7 @@ pub struct InitOracle<'info> {
     #[account(init, payer = authority, space = Oracle::SIZE)]
     pub oracle: Box<Account<'info, Oracle>>,
 
-    /// CHECK: Address of oracle manager to init
+    /// CHECK: Address of oracle manager to createPool
     pub oracle_authority: AccountInfo<'info>,
 
     pub system_program: Program<'info, System>,

@@ -9,6 +9,8 @@ export const clusterUrl = (c: Cluster) => {
       // return 'https://ssc-dao.genesysgo.net'
       // return 'https://jpoolone.genesysgo.net'
       return 'https://solana-api.projectserum.com/'
+    case 'testnet':
+      return 'https://testnet.rpcpool.com'
   }
   return clusterApiUrl(c as any)
 }

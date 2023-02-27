@@ -2,11 +2,10 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount};
 
 use crate::{
-    state::Pool,
+    events::WithdrawRequestCreationEvent,
+    state::{Pool, User, WithdrawInfo},
     ErrorCode,
 };
-use crate::events::WithdrawRequestCreationEvent;
-use crate::state::{User, WithdrawInfo};
 
 /// Withdraw a given amount of omniSOL (without an account).
 /// Caller provides some [amount] of omni-lamports that are to be burned in
@@ -35,6 +34,9 @@ pub fn handle(ctx: Context<BurnOmnisol>, amount: u64) -> Result<()> {
         return Err(ErrorCode::UserBlocked.into());
     }
 
+    user.last_withdraw_index += 1;
+    user.requests_amount += 1;
+
     token::burn(
         CpiContext::new(
             ctx.accounts.token_program.to_account_info(),
@@ -54,10 +56,10 @@ pub fn handle(ctx: Context<BurnOmnisol>, amount: u64) -> Result<()> {
     withdraw_info.created_at = clock.unix_timestamp;
 
     emit!(WithdrawRequestCreationEvent {
-         pool: pool_key,
-         user: user.key(),
-         amount,
-         timestamp: clock.unix_timestamp,
+        pool: pool_key,
+        user: user.key(),
+        amount,
+        timestamp: clock.unix_timestamp,
     });
 
     Ok(())
@@ -83,20 +85,24 @@ pub struct BurnOmnisol<'info> {
     pub authority: Signer<'info>,
 
     #[account(
-    init_if_needed,
-    seeds = [User::SEED, authority.key().as_ref()],
-    bump,
-    payer = authority,
-    space = User::SIZE,
+        init_if_needed,
+        seeds = [User::SEED, authority.key().as_ref()],
+        bump,
+        payer = authority,
+        space = User::SIZE,
     )]
     pub user: Box<Account<'info, User>>,
 
     #[account(
-    init,
-    seeds = [WithdrawInfo::SEED, authority.key().as_ref()],
-    bump,
-    payer = authority,
-    space = WithdrawInfo::SIZE
+        init,
+        seeds = [
+            WithdrawInfo::SEED,
+            authority.key().as_ref(),
+            (user.last_withdraw_index + 1).to_le_bytes().as_ref()
+        ],
+        bump,
+        payer = authority,
+        space = WithdrawInfo::SIZE
     )]
     pub withdraw_info: Box<Account<'info, WithdrawInfo>>,
 

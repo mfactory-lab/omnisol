@@ -1,5 +1,6 @@
-use anchor_lang::prelude::*;
 use std::str::FromStr;
+
+use anchor_lang::prelude::*;
 
 use crate::state::{Manager, ADMIN};
 
@@ -20,7 +21,8 @@ pub struct AddManager<'info> {
     /// CHECK: Address of manager to add
     pub manager_wallet: AccountInfo<'info>,
 
-    #[account(init,
+    #[account(
+        init,
         seeds = [Manager::SEED, manager_wallet.key().as_ref()],
         bump,
         payer = authority,

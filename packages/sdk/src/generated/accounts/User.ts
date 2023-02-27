@@ -18,6 +18,8 @@ export interface UserArgs {
   wallet: web3.PublicKey
   rate: beet.bignum
   isBlocked: boolean
+  requestsAmount: number
+  lastWithdrawIndex: number
 }
 
 export const userDiscriminator = [159, 117, 95, 227, 239, 151, 58, 236]
@@ -33,13 +35,21 @@ export class User implements UserArgs {
     readonly wallet: web3.PublicKey,
     readonly rate: beet.bignum,
     readonly isBlocked: boolean,
+    readonly requestsAmount: number,
+    readonly lastWithdrawIndex: number,
   ) {}
 
   /**
    * Creates a {@link User} instance from the provided args.
    */
   static fromArgs(args: UserArgs) {
-    return new User(args.wallet, args.rate, args.isBlocked)
+    return new User(
+      args.wallet,
+      args.rate,
+      args.isBlocked,
+      args.requestsAmount,
+      args.lastWithdrawIndex,
+    )
   }
 
   /**
@@ -82,7 +92,7 @@ export class User implements UserArgs {
    */
   static gpaBuilder(
     programId: web3.PublicKey = new web3.PublicKey(
-      '9SfbhzHrx5xczfoiTo2VVpG5oukcS5Schgy2ppLH3zQd',
+      '6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7',
     ),
   ) {
     return beetSolana.GpaBuilder.fromStruct(programId, userBeet)
@@ -158,6 +168,8 @@ export class User implements UserArgs {
         return x
       })(),
       isBlocked: this.isBlocked,
+      requestsAmount: this.requestsAmount,
+      lastWithdrawIndex: this.lastWithdrawIndex,
     }
   }
 }
@@ -177,6 +189,8 @@ export const userBeet = new beet.BeetStruct<
     ['wallet', beetSolana.publicKey],
     ['rate', beet.u64],
     ['isBlocked', beet.bool],
+    ['requestsAmount', beet.u32],
+    ['lastWithdrawIndex', beet.u32],
   ],
   User.fromArgs,
   'User',
