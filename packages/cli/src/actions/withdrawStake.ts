@@ -8,7 +8,6 @@ interface Opts {
   poolMint: string
   stakeAccount: string
   userPoolToken: string
-  stakeProgram?: string
 }
 
 export async function withdrawStake(opts: Opts) {
@@ -17,18 +16,13 @@ export async function withdrawStake(opts: Opts) {
   const splitKeypair = web3.Keypair.generate()
   const splitAccount = splitKeypair.publicKey
 
-  let stakeProgram
-  if (opts.stakeProgram !== undefined) {
-    stakeProgram = new web3.PublicKey(opts.stakeProgram)
-  }
-
   const { transaction, user, collateral } = await client.withdrawStake({
     amount: new BN(opts.amount),
     pool: new web3.PublicKey(opts.pool),
     poolMint: new web3.PublicKey(opts.poolMint),
     splitStake: new web3.PublicKey(splitAccount),
     stakeAccount: new web3.PublicKey(opts.stakeAccount),
-    stakeProgram,
+    stakeProgram: web3.StakeProgram.programId,
     userPoolToken: new web3.PublicKey(opts.userPoolToken),
   })
 

@@ -286,7 +286,6 @@ describe('omnisol', () => {
     //   console.log(e)
     // }
     const { tx, whitelist } = await client.addToWhitelist({
-      pool,
       token: poolMint,
       tokenPool: new web3.PublicKey('SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy'),
       stakePool,
@@ -307,7 +306,6 @@ describe('omnisol', () => {
 
   it('can remove from whitelist', async () => {
     const { tx } = await client.removeFromWhitelist({
-      pool,
       token: poolMint,
     })
 
@@ -349,7 +347,6 @@ describe('omnisol', () => {
     assert.equal(sourceBalance.value.amount, 100)
 
     const { tx: transaction } = await client.addToWhitelist({
-      pool,
       token: lpToken,
       tokenPool: new web3.PublicKey('SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy'),
       stakePool,

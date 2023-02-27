@@ -660,14 +660,12 @@ interface ResumePoolProps {
 }
 
 interface AddToWhitelistProps {
-  pool: PublicKey
   tokenPool: PublicKey
   stakePool: PublicKey
   token: PublicKey
 }
 
 interface RemoveFromWhitelistProps {
-  pool: PublicKey
   token: PublicKey
 }
 

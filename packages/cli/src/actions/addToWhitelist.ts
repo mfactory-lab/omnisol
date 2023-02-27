@@ -3,7 +3,6 @@ import log from 'loglevel'
 import { useContext } from '../context'
 
 interface Opts {
-  pool: string
   stakePool: string
   token: string
   tokenPool: string
@@ -13,7 +12,6 @@ export async function addToWhitelist(opts: Opts) {
   const { provider, client } = useContext()
 
   const { tx } = await client.addToWhitelist({
-    pool: new web3.PublicKey(opts.pool),
     stakePool: new web3.PublicKey(opts.stakePool),
     token: new web3.PublicKey(opts.token),
     tokenPool: new web3.PublicKey(opts.tokenPool),

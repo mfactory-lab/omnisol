@@ -1,4 +1,4 @@
-import {BN, web3} from '@project-serum/anchor'
+import { web3 } from '@project-serum/anchor'
 import log from 'loglevel'
 import { useContext } from '../context'
 

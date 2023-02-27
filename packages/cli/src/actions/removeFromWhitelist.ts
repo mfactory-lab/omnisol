@@ -3,7 +3,6 @@ import log from 'loglevel'
 import { useContext } from '../context'
 
 interface Opts {
-  pool: string
   token: string
 }
 
@@ -11,7 +10,6 @@ export async function removeFromWhitelist(opts: Opts) {
   const { provider, client } = useContext()
 
   const { tx } = await client.removeFromWhitelist({
-    pool: new web3.PublicKey(opts.pool),
     token: new web3.PublicKey(opts.token),
   })
 
