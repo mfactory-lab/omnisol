@@ -52,6 +52,11 @@ pool.command('close')
   .requiredOption('-p, --pool <POOL>', 'Pool address to close')
   .action(actions.closePool)
 
+pool.command('show')
+  .description('Show pool info')
+  .argument('<ADDRESS>', 'Pool address')
+  .action(actions.showPool)
+
 // -------------------------------------------------------
 // Liquidator
 // -------------------------------------------------------
@@ -68,6 +73,11 @@ liquidator.command('remove')
   .requiredOption('-l, --liquidator <LIQUIDATOR>', 'Liquidator wallet address')
   .action(actions.removeLiquidator)
 
+pool.command('show')
+  .description('Show liquidator info')
+  .argument('<ADDRESS>', 'Liquidator wallet address')
+  .action(actions.showLiquidator)
+
 // -------------------------------------------------------
 // Manager
 // -------------------------------------------------------
@@ -83,6 +93,11 @@ manager.command('remove')
   .description('Remove manager')
   .requiredOption('-m, --manager <MANAGER>', 'Manager wallet address')
   .action(actions.removeManager)
+
+manager.command('show')
+  .description('Show manager info')
+  .argument('<ADDRESS>', 'Manager wallet address')
+  .action(actions.showManager)
 
 // -------------------------------------------------------
 // Whitelist
@@ -102,6 +117,11 @@ whitelist.command('remove')
   .requiredOption('-t, --token <TOKEN>', 'Token mint address to remove from whitelist')
   .action(actions.removeFromWhitelist)
 
+pool.command('show')
+  .description('Show whitelist info')
+  .argument('<ADDRESS>', 'Whitelisted token address')
+  .action(actions.showWhitelist)
+
 // -------------------------------------------------------
 // User
 // -------------------------------------------------------
@@ -117,6 +137,11 @@ user.command('unblock')
   .description('Unblock user')
   .requiredOption('-u, --user <USER>', 'Address of user wallet to unblock')
   .action(actions.unblockUser)
+
+pool.command('show')
+  .description('Show user info')
+  .argument('<ADDRESS>', 'User wallet address')
+  .action(actions.showUser)
 
 // -------------------------------------------------------
 // Oracle
@@ -140,6 +165,11 @@ oracle.command('update')
   .requiredOption('-a, --addresses <ADDRESSES>', 'Addresses of collaterals in priority queue (separated by comma)')
   .requiredOption('-v, --values <VALUES>', 'Values of liquidation amounts of collaterals (separated by comma)')
   .action(actions.updateOracleInfo)
+
+pool.command('show')
+  .description('Show oracle info')
+  .argument('<ADDRESS>', 'Oracle address')
+  .action(actions.showOracle)
 
 // -------------------------------------------------------
 // Deposit
@@ -212,6 +242,30 @@ cli.command('mint')
   .requiredOption('-s, --stake <STAKED_ADDRESS>', 'Address of lp token or native stake')
   .requiredOption('-at, --assoc-token <USER_POOL_TOKEN>', 'Associated token account for Omnisol token and user')
   .action(actions.mintOmnisol)
+
+// -------------------------------------------------------
+// Collateral
+// -------------------------------------------------------
+
+const collateral = cli.command('collateral')
+
+collateral.command('show')
+  .description('Show collateral info')
+  .argument('<SOURCE_STAKE>', 'Address of lp token or native stake account')
+  .argument('<USER>', 'Address of user pda')
+  .action(actions.showCollateral)
+
+// -------------------------------------------------------
+// WithdrawInfo
+// -------------------------------------------------------
+
+const withdrawInfo = cli.command('withdrawInfo')
+
+withdrawInfo.command('show')
+  .description('Show withdraw request info')
+  .argument('<ADDRESS>', 'User wallet address')
+  .argument('<INDEX>', 'Index of withdraw request')
+  .action(actions.showWithdrawInfo)
 
 cli.parseAsync(process.argv).then(
   () => {},
