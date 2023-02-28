@@ -1,13 +1,13 @@
-import {BN, web3} from '@project-serum/anchor'
+import { BN, web3 } from '@project-serum/anchor'
 import log from 'loglevel'
 import { useContext } from '../context'
 
 interface Opts {
   amount: string
   pool: string
-  poolMint: string
+  mint: string
   userPoolToken: string
-  lpToken: string
+  token: string
   source: string
   destination: string
 }
@@ -18,9 +18,9 @@ export async function withdrawLpTokens(opts: Opts) {
   const { transaction, user, collateral } = await client.withdrawLPTokens({
     amount: new BN(opts.amount),
     destination: new web3.PublicKey(opts.destination),
-    lpToken: new web3.PublicKey(opts.lpToken),
+    lpToken: new web3.PublicKey(opts.token),
     pool: new web3.PublicKey(opts.pool),
-    poolMint: new web3.PublicKey(opts.poolMint),
+    poolMint: new web3.PublicKey(opts.mint),
     source: new web3.PublicKey(opts.source),
     userPoolToken: new web3.PublicKey(opts.userPoolToken),
   })

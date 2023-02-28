@@ -5,7 +5,7 @@ import { useContext } from '../context'
 interface Opts {
   amount: string
   pool: string
-  poolMint: string
+  mint: string
   stakeAccount: string
   userPoolToken: string
 }
@@ -19,7 +19,7 @@ export async function withdrawStake(opts: Opts) {
   const { transaction, user, collateral } = await client.withdrawStake({
     amount: new BN(opts.amount),
     pool: new web3.PublicKey(opts.pool),
-    poolMint: new web3.PublicKey(opts.poolMint),
+    poolMint: new web3.PublicKey(opts.mint),
     splitStake: new web3.PublicKey(splitAccount),
     stakeAccount: new web3.PublicKey(opts.stakeAccount),
     stakeProgram: web3.StakeProgram.programId,

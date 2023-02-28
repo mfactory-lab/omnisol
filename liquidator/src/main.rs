@@ -2,6 +2,7 @@ mod cluster;
 mod utils;
 
 use std::{path::PathBuf, thread, time};
+use std::time::Duration;
 
 use clap::Parser;
 use log::{info, LevelFilter};
@@ -39,7 +40,7 @@ pub struct Args {
 
     /// Sleep duration in seconds
     #[arg(short, long)]
-    pub time: u64,
+    pub sleep_duration: Duration,
 }
 
 fn main() {
@@ -87,7 +88,7 @@ fn main() {
                 for queue_member in &oracle_data.priority_queue {
                     // TODO send transaction
 
-                    thread::sleep(time::Duration::from_secs(args.time));
+                    thread::sleep(args.sleep_duration);
 
                     if amount_to_liquidate < queue_member.amount {
                         amount_to_liquidate = 0;

@@ -6,7 +6,7 @@ interface Opts {
   pool: string
   amount: string
   destination: string
-  lpToken: string
+  token: string
   source: string
 }
 
@@ -17,7 +17,7 @@ export async function depositLp(opts: Opts) {
     pool: new web3.PublicKey(opts.pool),
     amount: new BN(opts.amount),
     destination: new web3.PublicKey(opts.destination),
-    lpToken: new web3.PublicKey(opts.lpToken),
+    lpToken: new web3.PublicKey(opts.token),
     source: new web3.PublicKey(opts.source),
   })
 

@@ -13,13 +13,14 @@ export async function initOracle(opts: Opts) {
   const oracle = oracleKeypair.publicKey
 
   const { tx } = await client.initOracle({
-    oracle: new web3.PublicKey(oracle),
+    oracle,
     oracleAuthority: new web3.PublicKey(opts.oracleAuthority),
   })
 
   try {
-    const signature = await provider.sendAndConfirm(tx)
+    const signature = await provider.sendAndConfirm(tx, [oracleKeypair])
     log.info(`Signature: ${signature}`)
+    log.info(`Oracle: ${oracle}`)
     log.info('OK')
   } catch (e) {
     log.info('Error')
