@@ -88,7 +88,7 @@ export async function showOracle(address: string) {
 export async function showCollateral(sourceStake: string, user: string) {
   const { client } = useContext()
 
-  const [collateralKey] = await client.pda.collateral(user, sourceStake)
+  const [collateralKey] = await client.pda.collateral(sourceStake, user)
   const collateral = await client.fetchCollateral(collateralKey)
 
   log.info('--------------------------------------------------------------------------')
