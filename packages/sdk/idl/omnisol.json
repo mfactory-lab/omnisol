@@ -538,6 +538,10 @@
         {
           "name": "amount",
           "type": "u64"
+        },
+        {
+          "name": "withBurn",
+          "type": "bool"
         }
       ]
     },
@@ -614,6 +618,10 @@
         {
           "name": "amount",
           "type": "u64"
+        },
+        {
+          "name": "withBurn",
+          "type": "bool"
         }
       ]
     },

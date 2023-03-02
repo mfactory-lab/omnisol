@@ -205,6 +205,7 @@ withdraw.command('stake')
   .requiredOption('-m, --mint <MINT>', 'Omnisol token mint address')
   .requiredOption('-s, --stake-account <STAKE_ACCOUNT>', 'Address of stake account to withdraw from')
   .requiredOption('-u, --user-pool-token <USER_POOL_TOKEN>', 'Associated token account for token and user')
+  .requiredOption('-w, --with-burn <WITH_BURN>', 'Flag that indicates if user need to withdraw with burning your omnisol tokens or without')
   .action(actions.withdrawStake)
 
 withdraw.command('lp-token')
@@ -216,6 +217,7 @@ withdraw.command('lp-token')
   .requiredOption('-t, --token <TOKEN>', 'Staked LP token mint address')
   .requiredOption('-s, --source <SOURCE>', 'Associated token account for lp token and pool')
   .requiredOption('-d, --destination <DESTINATION>', 'Associated token account for lp token and user')
+  .requiredOption('-w, --with-burn <WITH_BURN>', 'Flag that indicates if user need to withdraw with burning your omnisol tokens or without')
   .action(actions.withdrawLpTokens)
 
 // -------------------------------------------------------

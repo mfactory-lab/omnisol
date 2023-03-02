@@ -65,15 +65,15 @@ pub mod omnisol {
         mint_omnisol::handle(ctx, amount)
     }
 
-    pub fn withdraw_lp_tokens(ctx: Context<WithdrawLPTokens>, amount: u64) -> Result<()> {
-        withdraw_lp_tokens::handle(ctx, amount)
+    pub fn withdraw_lp_tokens(ctx: Context<WithdrawLPTokens>, amount: u64, with_burn: bool) -> Result<()> {
+        withdraw_lp_tokens::handle(ctx, amount, with_burn)
     }
 
-    pub fn withdraw_stake(ctx: Context<WithdrawStake>, amount: u64) -> Result<()> {
-        withdraw_stake::handle(ctx, amount)
+    pub fn withdraw_stake(ctx: Context<WithdrawStake>, amount: u64, with_burn: bool) -> Result<()> {
+        withdraw_stake::handle(ctx, amount, with_burn)
     }
 
-    pub fn burn_omnisol<'info>(ctx: Context<'_, '_, '_, 'info, BurnOmnisol<'info>>, amount: u64) -> Result<()> {
+    pub fn burn_omnisol<'info>(ctx: Context<BurnOmnisol>, amount: u64) -> Result<()> {
         burn_omnisol::handle(ctx, amount)
     }
 

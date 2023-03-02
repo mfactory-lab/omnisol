@@ -1,11 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 
-use crate::{
-    events::*,
-    state::{Collateral, Pool, User, MINT_AUTHORITY_SEED},
-    ErrorCode,
-};
+use crate::{events::*, state::{Collateral, Pool, User, MINT_AUTHORITY_SEED}, ErrorCode, utils};
 
 /// The user can use their deposit to mint omniSOL.
 /// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
@@ -46,6 +42,11 @@ pub fn handle(ctx: Context<MintOmnisol>, amount: u64) -> Result<()> {
 
     collateral.amount += amount;
     user.rate -= amount;
+
+    if collateral.delegation_stake == collateral.liquidated_amount && collateral.amount == collateral.delegation_stake {
+        // close the collateral account
+        utils::close(collateral.to_account_info(), ctx.accounts.authority.to_account_info())?;
+    }
 
     emit!(MintOmnisolEvent {
         pool: pool.key(),

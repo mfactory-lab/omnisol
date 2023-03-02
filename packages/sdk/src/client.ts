@@ -407,6 +407,7 @@ export class OmnisolClient {
       },
       {
         amount: props.amount,
+        withBurn: props.withBurn,
       },
     )
     const transaction = new Transaction().add(instruction)
@@ -440,6 +441,7 @@ export class OmnisolClient {
       },
       {
         amount: props.amount,
+        withBurn: props.withBurn,
       },
     )
     const transaction = new Transaction().add(instruction)
@@ -714,6 +716,7 @@ interface WithdrawLPProps {
   source: PublicKey
   destination: PublicKey
   amount: BN
+  withBurn: boolean
 }
 
 interface WithdrawStakeProps {
@@ -724,6 +727,7 @@ interface WithdrawStakeProps {
   splitStake: PublicKey
   stakeProgram?: PublicKey
   amount: BN
+  withBurn: boolean
 }
 
 interface InitOracleProps {

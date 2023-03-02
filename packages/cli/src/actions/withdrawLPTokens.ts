@@ -10,6 +10,7 @@ interface Opts {
   token: string
   source: string
   destination: string
+  withBurn: string
 }
 
 export async function withdrawLpTokens(opts: Opts) {
@@ -23,6 +24,7 @@ export async function withdrawLpTokens(opts: Opts) {
     poolMint: new web3.PublicKey(opts.mint),
     source: new web3.PublicKey(opts.source),
     userPoolToken: new web3.PublicKey(opts.userPoolToken),
+    withBurn: opts.withBurn.includes('true'),
   })
 
   try {

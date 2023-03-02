@@ -16,6 +16,7 @@ import * as web3 from '@solana/web3.js'
  */
 export interface WithdrawStakeInstructionArgs {
   amount: beet.bignum
+  withBurn: boolean
 }
 /**
  * @category Instructions
@@ -30,6 +31,7 @@ export const withdrawStakeStruct = new beet.BeetArgsStruct<
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
     ['amount', beet.u64],
+    ['withBurn', beet.bool],
   ],
   'WithdrawStakeInstructionArgs',
 )

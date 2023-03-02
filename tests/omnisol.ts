@@ -957,6 +957,7 @@ describe('omnisol', () => {
       poolMint,
       source: source.address,
       userPoolToken: userPoolToken.address,
+      withBurn: true,
     })
 
     try {
@@ -1010,6 +1011,7 @@ describe('omnisol', () => {
       stakeAccount,
       stakeProgram: web3.StakeProgram.programId,
       userPoolToken: userPoolToken.address,
+      withBurn: true,
     })
 
     try {
@@ -1056,6 +1058,7 @@ describe('omnisol', () => {
       stakeAccount,
       stakeProgram: web3.StakeProgram.programId,
       userPoolToken: userPoolToken.address,
+      withBurn: true,
     })
 
     try {
@@ -1091,6 +1094,7 @@ describe('omnisol', () => {
       stakeAccount,
       stakeProgram: web3.StakeProgram.programId,
       userPoolToken: userPoolToken.address,
+      withBurn: true,
     })
 
     try {
@@ -1118,6 +1122,7 @@ describe('omnisol', () => {
       stakeAccount,
       stakeProgram: web3.StakeProgram.programId,
       userPoolToken: userPoolToken.address,
+      withBurn: true,
     })
 
     try {
@@ -1142,6 +1147,31 @@ describe('omnisol', () => {
     assert.equal(collateralData.liquidatedAmount, 0)
   })
 
+  it('can not withdraw stake without burn more than user can', async () => {
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+
+    const splitKeypair = web3.Keypair.generate()
+    const splitAccount = splitKeypair.publicKey
+
+    const { transaction } = await client.withdrawStake({
+      amount: new BN(5000000000),
+      pool,
+      poolMint,
+      splitStake: splitAccount,
+      stakeAccount,
+      stakeProgram: web3.StakeProgram.programId,
+      userPoolToken: userPoolToken.address,
+      withBurn: false,
+    })
+
+    try {
+      await provider.sendAndConfirm(transaction, [payerKeypair, splitKeypair])
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, 'InsufficientAmount')
+    }
+  })
+
   it('can withdraw stake', async () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
     let userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
@@ -1159,10 +1189,63 @@ describe('omnisol', () => {
       stakeAccount,
       stakeProgram: web3.StakeProgram.programId,
       userPoolToken: userPoolToken.address,
+      withBurn: true,
     })
 
     try {
       await provider.sendAndConfirm(transaction, [payerKeypair, splitKeypair])
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
+
+    assert.equal(userPoolBalance.value.amount, 50)
+
+    const poolData = await client.fetchGlobalPool(pool)
+    const userData = await client.fetchUser(user)
+    const collateralData = await client.fetchCollateral(collateral)
+
+    assert.equal(poolData.depositAmount.toString(), '0')
+    assert.equal(userData.rate.toString(), '100')
+    assert.equal(collateralData, null)
+  })
+
+  it('can withdraw stake without burn', async () => {
+    const { transaction } = await client.depositStake({
+      sourceStake: stakeAccount,
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(transaction)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+    let userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
+
+    assert.equal(userPoolBalance.value.amount, 50)
+
+    const splitKeypair = web3.Keypair.generate()
+    const splitAccount = splitKeypair.publicKey
+
+    const { transaction: tx, user, collateral } = await client.withdrawStake({
+      amount: new BN(5000000000),
+      pool,
+      poolMint,
+      splitStake: splitAccount,
+      stakeAccount,
+      stakeProgram: web3.StakeProgram.programId,
+      userPoolToken: userPoolToken.address,
+      withBurn: false,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx, [payerKeypair, splitKeypair])
     } catch (e) {
       console.log(e)
       throw e
@@ -1205,6 +1288,7 @@ describe('omnisol', () => {
       poolMint,
       source: source.address,
       userPoolToken: userPoolToken.address,
+      withBurn: true,
     })
 
     try {
@@ -1250,6 +1334,7 @@ describe('omnisol', () => {
       poolMint,
       source: source.address,
       userPoolToken: userPoolToken.address,
+      withBurn: true,
     })
 
     try {
@@ -1271,19 +1356,20 @@ describe('omnisol', () => {
     }
   })
 
-  it('can not withdraw lp tokens more than user can', async () => {
+  it('can not withdraw lp tokens without burn more than user can', async () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
     const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, provider.wallet.publicKey)
     const source = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, lpToken, poolForLPAuthority, true)
 
     const { transaction } = await client.withdrawLPTokens({
-      amount: new BN(51),
+      amount: new BN(151),
       destination: destination.address,
       lpToken,
       pool: poolForLP,
       poolMint,
       source: source.address,
       userPoolToken: userPoolToken.address,
+      withBurn: false,
     })
 
     try {
@@ -1337,6 +1423,7 @@ describe('omnisol', () => {
       poolMint,
       source: source.address,
       userPoolToken: userPoolToken.address,
+      withBurn: true,
     })
 
     try {

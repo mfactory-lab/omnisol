@@ -8,6 +8,7 @@ interface Opts {
   mint: string
   stakeAccount: string
   userPoolToken: string
+  withBurn: string
 }
 
 export async function withdrawStake(opts: Opts) {
@@ -24,6 +25,7 @@ export async function withdrawStake(opts: Opts) {
     stakeAccount: new web3.PublicKey(opts.stakeAccount),
     stakeProgram: web3.StakeProgram.programId,
     userPoolToken: new web3.PublicKey(opts.userPoolToken),
+    withBurn: opts.withBurn.includes('true'),
   })
 
   try {
