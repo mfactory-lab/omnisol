@@ -4,7 +4,7 @@ import { useContext } from '../context'
 
 interface Opts {
   stakePool: string
-  token: string
+  mint: string
   tokenPool: string
 }
 
@@ -13,7 +13,7 @@ export async function addToWhitelist(opts: Opts) {
 
   const { tx } = await client.addToWhitelist({
     stakePool: new web3.PublicKey(opts.stakePool),
-    token: new web3.PublicKey(opts.token),
+    token: new web3.PublicKey(opts.mint),
     tokenPool: new web3.PublicKey(opts.tokenPool),
   })
 

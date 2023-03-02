@@ -9,13 +9,14 @@ interface Opts {
 export async function addLiquidator(opts: Opts) {
   const { provider, client } = useContext()
 
-  const { tx } = await client.addLiquidator({
+  const { tx, liquidator } = await client.addLiquidator({
     liquidator_wallet: new web3.PublicKey(opts.liquidator),
   })
 
   try {
     const signature = await provider.sendAndConfirm(tx)
     log.info(`Signature: ${signature}`)
+    log.info(`Liquidator: ${liquidator}`)
     log.info('OK')
   } catch (e) {
     log.info('Error')

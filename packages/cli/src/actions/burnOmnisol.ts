@@ -5,7 +5,7 @@ import { useContext } from '../context'
 interface Opts {
   amount: string
   pool: string
-  poolMint: string
+  mint: string
   sourceTokenAccount: string
 }
 
@@ -15,7 +15,7 @@ export async function burnOmnisol(opts: Opts) {
   const { tx, withdrawInfo } = await client.burnOmnisol({
     amount: new BN(opts.amount),
     pool: new web3.PublicKey(opts.pool),
-    poolMint: new web3.PublicKey(opts.poolMint),
+    poolMint: new web3.PublicKey(opts.mint),
     sourceTokenAccount: new web3.PublicKey(opts.sourceTokenAccount),
   })
 

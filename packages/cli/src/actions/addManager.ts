@@ -9,13 +9,14 @@ interface Opts {
 export async function addManager(opts: Opts) {
   const { provider, client } = useContext()
 
-  const { tx } = await client.addManager({
+  const { tx, manager } = await client.addManager({
     managerWallet: new web3.PublicKey(opts.manager),
   })
 
   try {
     const signature = await provider.sendAndConfirm(tx)
     log.info(`Signature: ${signature}`)
+    log.info(`Manager PDA: ${manager}`)
     log.info('OK')
   } catch (e) {
     log.info('Error')

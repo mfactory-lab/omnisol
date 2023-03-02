@@ -1,7 +1,8 @@
 mod cluster;
 mod utils;
 
-use std::{path::PathBuf, thread, time};
+use std::{path::PathBuf, thread};
+use std::time::Duration;
 
 use clap::Parser;
 use log::{info, LevelFilter};
@@ -39,7 +40,7 @@ pub struct Args {
 
     /// Sleep duration in seconds
     #[arg(short, long)]
-    pub time: u64,
+    pub sleep_duration: Duration,
 }
 
 fn main() {
@@ -94,6 +95,6 @@ fn main() {
         let signature = client.send_transaction(&tx).expect("Transaction failed.");
         info!("Sent transaction successfully with signature: {}", signature);
 
-        thread::sleep(time::Duration::from_secs(args.time));
+        thread::sleep(args.sleep_duration);
     }
 }

@@ -52,6 +52,11 @@ pool.command('close')
   .requiredOption('-p, --pool <POOL>', 'Pool address to close')
   .action(actions.closePool)
 
+pool.command('show')
+  .description('Show pool info')
+  .argument('<ADDRESS>', 'Pool address')
+  .action(actions.showPool)
+
 // -------------------------------------------------------
 // Liquidator
 // -------------------------------------------------------
@@ -67,6 +72,11 @@ liquidator.command('remove')
   .description('Remove liquidator')
   .requiredOption('-l, --liquidator <LIQUIDATOR>', 'Liquidator wallet address')
   .action(actions.removeLiquidator)
+
+liquidator.command('show')
+  .description('Show liquidator info')
+  .argument('<ADDRESS>', 'Liquidator wallet address')
+  .action(actions.showLiquidator)
 
 // -------------------------------------------------------
 // Manager
@@ -84,6 +94,11 @@ manager.command('remove')
   .requiredOption('-m, --manager <MANAGER>', 'Manager wallet address')
   .action(actions.removeManager)
 
+manager.command('show')
+  .description('Show manager info')
+  .argument('<ADDRESS>', 'Manager wallet address')
+  .action(actions.showManager)
+
 // -------------------------------------------------------
 // Whitelist
 // -------------------------------------------------------
@@ -92,15 +107,20 @@ const whitelist = cli.command('whitelist')
 
 whitelist.command('add')
   .description('Add token to whitelist')
-  .requiredOption('-p, --pool <TOKEN_POOL>', 'Address of token pool program')
+  .requiredOption('-t, --token-pool <TOKEN_POOL>', 'Address of token pool program')
   .requiredOption('-s, --stake-pool <STAKE_POOL>', 'Address of staking pool of token')
-  .requiredOption('-t, --token <TOKEN>', 'Token mint address to add to whitelist')
+  .requiredOption('-m, --mint <TOKEN>', 'Token mint address to add to whitelist')
   .action(actions.addToWhitelist)
 
 whitelist.command('remove')
   .description('Remove token from whitelist')
   .requiredOption('-t, --token <TOKEN>', 'Token mint address to remove from whitelist')
   .action(actions.removeFromWhitelist)
+
+whitelist.command('show')
+  .description('Show whitelist info')
+  .argument('<ADDRESS>', 'Whitelisted token address')
+  .action(actions.showWhitelist)
 
 // -------------------------------------------------------
 // User
@@ -118,6 +138,11 @@ user.command('unblock')
   .requiredOption('-u, --user <USER>', 'Address of user wallet to unblock')
   .action(actions.unblockUser)
 
+user.command('show')
+  .description('Show user info')
+  .argument('<ADDRESS>', 'User wallet address')
+  .action(actions.showUser)
+
 // -------------------------------------------------------
 // Oracle
 // -------------------------------------------------------
@@ -126,7 +151,7 @@ const oracle = cli.command('oracle')
 
 oracle.command('init')
   .description('Init oracle')
-  .requiredOption('-a, --authority <ORACLE_AUTHORITY>', 'Address of oracle wallet to init')
+  .requiredOption('-o, --oracle-authority <ORACLE_AUTHORITY>', 'Address of oracle wallet to init')
   .action(actions.initOracle)
 
 oracle.command('close')
@@ -141,6 +166,11 @@ oracle.command('update')
   .requiredOption('-v, --values <VALUES>', 'Values of liquidation amounts of collaterals (separated by comma)')
   .action(actions.updateOracleInfo)
 
+oracle.command('show')
+  .description('Show oracle info')
+  .argument('<ADDRESS>', 'Oracle address')
+  .action(actions.showOracle)
+
 // -------------------------------------------------------
 // Deposit
 // -------------------------------------------------------
@@ -150,7 +180,7 @@ const deposit = cli.command('deposit')
 deposit.command('stake')
   .description('Deposit native stake account')
   .requiredOption('-p, --pool <POOL>', 'Omnisol pool address for native stake')
-  .requiredOption('-s, --stake <SOURCE_STAKE>', 'Stake account address')
+  .requiredOption('-s, --source-stake <SOURCE_STAKE>', 'Stake account address')
   .action(actions.depositStake)
 
 deposit.command('lp-token')
@@ -172,18 +202,18 @@ withdraw.command('stake')
   .description('Withdraw native stake')
   .requiredOption('-a, --amount <AMOUNT>', 'Amount of lamports to withdraw')
   .requiredOption('-p, --pool <POOL>', 'Omnisol pool address for native stake')
-  .requiredOption('-m, --mint <POOL_MINT>', 'Omnisol token mint address')
-  .requiredOption('-s, --stake <STAKE_ACCOUNT>', 'Address of stake account to withdraw from')
-  .requiredOption('-at, --assoc-token <USER_POOL_TOKEN>', 'Associated token account for token and user')
+  .requiredOption('-m, --mint <MINT>', 'Omnisol token mint address')
+  .requiredOption('-s, --stake-account <STAKE_ACCOUNT>', 'Address of stake account to withdraw from')
+  .requiredOption('-u, --user-pool-token <USER_POOL_TOKEN>', 'Associated token account for token and user')
   .action(actions.withdrawStake)
 
 withdraw.command('lp-token')
   .description('Withdraw lp-token')
   .requiredOption('-a, --amount <AMOUNT>', 'Amount of lamports to withdraw')
   .requiredOption('-p, --pool <POOL>', 'Omnisol pool address for native stake')
-  .requiredOption('-m, --mint <POOL_MINT>', 'Omnisol token mint address')
-  .requiredOption('-at, --assoc-token <USER_POOL_TOKEN>', 'Associated token account for Omnisol token and user')
-  .requiredOption('-t, --token <LP_TOKEN>', 'Staked LP token mint address')
+  .requiredOption('-m, --mint <MINT>', 'Omnisol token mint address')
+  .requiredOption('-u, --user-pool-token <USER_POOL_TOKEN>', 'Associated token account for Omnisol token and user')
+  .requiredOption('-t, --token <TOKEN>', 'Staked LP token mint address')
   .requiredOption('-s, --source <SOURCE>', 'Associated token account for lp token and pool')
   .requiredOption('-d, --destination <DESTINATION>', 'Associated token account for lp token and user')
   .action(actions.withdrawLpTokens)
@@ -196,8 +226,8 @@ cli.command('burn')
   .description('Burn Omnisol tokens and leave withdraw request')
   .requiredOption('-a, --amount <AMOUNT>', 'Amount of tokens to burn')
   .requiredOption('-p, --pool <POOL>', 'Any Omnisol pool (only for clarifying in contract)')
-  .requiredOption('-m, --mint <POOL_MINT>', 'Omnisol token mint address')
-  .requiredOption('-s, --source <SOURCE_TOKEN_ACCOUNT>', 'Associated token account for Omnisol token and user')
+  .requiredOption('-m, --mint <MINT>', 'Omnisol token mint address')
+  .requiredOption('-s, --source-token-account <SOURCE_TOKEN_ACCOUNT>', 'Associated token account for Omnisol token and user')
   .action(actions.burnOmnisol)
 
 // -------------------------------------------------------
@@ -208,10 +238,34 @@ cli.command('mint')
   .description('Mint Omnisol tokens')
   .requiredOption('-a, --amount <AMOUNT>', 'Amount of tokens to mint')
   .requiredOption('-p, --pool <POOL>', 'Omnisol pool of chosen collateral')
-  .requiredOption('-m, --mint <POOL_MINT>', 'Omnisol token mint address')
-  .requiredOption('-s, --stake <STAKED_ADDRESS>', 'Address of lp token or native stake')
-  .requiredOption('-at, --assoc-token <USER_POOL_TOKEN>', 'Associated token account for Omnisol token and user')
+  .requiredOption('-m, --mint <MINT>', 'Omnisol token mint address')
+  .requiredOption('-s, --staked-address <STAKED_ADDRESS>', 'Address of lp token or native stake')
+  .requiredOption('-u, --user-pool-token <USER_POOL_TOKEN>', 'Associated token account for Omnisol token and user')
   .action(actions.mintOmnisol)
+
+// -------------------------------------------------------
+// Collateral
+// -------------------------------------------------------
+
+const collateral = cli.command('collateral')
+
+collateral.command('show')
+  .description('Show collateral info')
+  .argument('<SOURCE_STAKE>', 'Address of lp token or native stake account')
+  .argument('<USER>', 'Address of user pda')
+  .action(actions.showCollateral)
+
+// -------------------------------------------------------
+// WithdrawInfo
+// -------------------------------------------------------
+
+const withdrawInfo = cli.command('withdrawInfo')
+
+withdrawInfo.command('show')
+  .description('Show withdraw request info')
+  .argument('<ADDRESS>', 'User wallet address')
+  .argument('<INDEX>', 'Index of withdraw request')
+  .action(actions.showWithdrawInfo)
 
 cli.parseAsync(process.argv).then(
   () => {},

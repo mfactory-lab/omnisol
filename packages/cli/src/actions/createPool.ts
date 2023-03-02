@@ -15,9 +15,9 @@ export async function createPool(opts: Opts) {
   const pool = poolKeypair.publicKey
 
   const { tx } = await client.createPool({
-    mint: pool,
-    oracle: new web3.PublicKey(opts.mint),
-    pool: new web3.PublicKey(opts.oracle),
+    mint: new web3.PublicKey(opts.mint),
+    oracle: new web3.PublicKey(opts.oracle),
+    pool,
     stakeSource: new web3.PublicKey(opts.stakeSource),
   })
 
