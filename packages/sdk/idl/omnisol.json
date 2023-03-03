@@ -387,6 +387,11 @@
           "isSigner": false
         },
         {
+          "name": "splitStake",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "authority",
           "isMut": true,
           "isSigner": true
@@ -407,7 +412,12 @@
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     },
     {
       "name": "mintOmnisol",
@@ -579,6 +589,11 @@
           "isSigner": false
         },
         {
+          "name": "delegatedStake",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "splitStake",
           "isMut": true,
           "isSigner": true
@@ -595,6 +610,11 @@
         },
         {
           "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "stakeHistory",
           "isMut": false,
           "isSigner": false
         },
@@ -934,6 +954,13 @@
             "docs": [
               "An account of staking pool or LP token",
               "TODO rename"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "delegatedStake",
+            "docs": [
+              "Delegated stake account (default for LP tokens deposit)"
             ],
             "type": "publicKey"
           },

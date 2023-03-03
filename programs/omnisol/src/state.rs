@@ -53,6 +53,8 @@ pub struct Collateral {
     /// An account of staking pool or LP token
     /// TODO rename
     pub source_stake: Pubkey,
+    /// Delegated stake account (default for LP tokens deposit)
+    pub delegated_stake: Pubkey,
     /// An amount of delegated staked tokens
     pub delegation_stake: u64,
     /// An amount of minted pool tokens
@@ -69,7 +71,7 @@ pub struct Collateral {
 
 impl Collateral {
     pub const SEED: &'static [u8] = b"collateral";
-    pub const SIZE: usize = 8 + 32 + 32 + 32 + 8 + 8 + 8 + 8 + 1 + 1;
+    pub const SIZE: usize = 8 + 32 + 32 + 32 + 32 + 8 + 8 + 8 + 8 + 1 + 1;
 }
 
 #[account]

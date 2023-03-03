@@ -333,7 +333,7 @@ export class OmnisolClient {
     const payer = this.wallet.publicKey
     const [poolAuthority] = await this.pda.poolAuthority(props.pool)
     const [user] = await this.pda.user(payer)
-    const [collateral, bump] = await this.pda.collateral(props.sourceStake, user)
+    const [collateral, bump] = await this.pda.collateral(props.splitStake, user)
     const instruction = createDepositStakeInstruction(
       {
         authority: payer,
@@ -344,6 +344,10 @@ export class OmnisolClient {
         sourceStake: props.sourceStake,
         stakeProgram: OmnisolClient.stakeProgram,
         user,
+        splitStake: props.splitStake,
+      },
+      {
+        amount: props.amount,
       },
     )
     const transaction = new Transaction().add(instruction)
@@ -423,10 +427,11 @@ export class OmnisolClient {
     const payer = this.wallet.publicKey
     const [poolAuthority] = await this.pda.poolAuthority(props.pool)
     const [user] = await this.pda.user(payer)
-    const [collateral] = await this.pda.collateral(props.stakeAccount, user)
+    const [collateral] = await this.pda.collateral(props.delegatedStake, user)
     const stakeProgram = props.stakeProgram ?? web3.StakeProgram.programId
     const instruction = createWithdrawStakeInstruction(
       {
+        stakeHistory: props.stakeHistory,
         authority: payer,
         clock: OmnisolClient.clock,
         collateral,
@@ -434,6 +439,7 @@ export class OmnisolClient {
         poolAuthority,
         poolMint: props.poolMint,
         sourceStake: props.stakeAccount,
+        delegatedStake: props.delegatedStake,
         splitStake: props.splitStake,
         stakeProgram,
         user,
@@ -690,6 +696,8 @@ interface DepositLPTokenProps {
 interface DepositStakeProps {
   pool: PublicKey
   sourceStake: PublicKey
+  splitStake: PublicKey
+  amount: BN
 }
 
 interface MintOmnisolProps {
@@ -724,7 +732,9 @@ interface WithdrawStakeProps {
   poolMint: PublicKey
   userPoolToken: PublicKey
   stakeAccount: PublicKey
+  delegatedStake: PublicKey
   splitStake: PublicKey
+  stakeHistory: PublicKey
   stakeProgram?: PublicKey
   amount: BN
   withBurn: boolean

@@ -13,10 +13,23 @@ import * as web3 from '@solana/web3.js'
  * @category DepositStake
  * @category generated
  */
-export const depositStakeStruct = new beet.BeetArgsStruct<{
-  instructionDiscriminator: number[] /* size: 8 */
-}>(
-  [['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)]],
+export interface DepositStakeInstructionArgs {
+  amount: beet.bignum
+}
+/**
+ * @category Instructions
+ * @category DepositStake
+ * @category generated
+ */
+export const depositStakeStruct = new beet.BeetArgsStruct<
+  DepositStakeInstructionArgs & {
+    instructionDiscriminator: number[] /* size: 8 */
+  }
+>(
+  [
+    ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
+    ['amount', beet.u64],
+  ],
   'DepositStakeInstructionArgs',
 )
 /**
@@ -27,6 +40,7 @@ export const depositStakeStruct = new beet.BeetArgsStruct<{
  * @property [_writable_] user
  * @property [_writable_] collateral
  * @property [_writable_] sourceStake
+ * @property [_writable_, **signer**] splitStake
  * @property [_writable_, **signer**] authority
  * @property [] clock
  * @property [] stakeProgram
@@ -40,6 +54,7 @@ export interface DepositStakeInstructionAccounts {
   user: web3.PublicKey
   collateral: web3.PublicKey
   sourceStake: web3.PublicKey
+  splitStake: web3.PublicKey
   authority: web3.PublicKey
   clock: web3.PublicKey
   stakeProgram: web3.PublicKey
@@ -55,16 +70,20 @@ export const depositStakeInstructionDiscriminator = [
  * Creates a _DepositStake_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
+ * @param args to provide as instruction data to the program
+ *
  * @category Instructions
  * @category DepositStake
  * @category generated
  */
 export function createDepositStakeInstruction(
   accounts: DepositStakeInstructionAccounts,
+  args: DepositStakeInstructionArgs,
   programId = new web3.PublicKey('6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7'),
 ) {
   const [data] = depositStakeStruct.serialize({
     instructionDiscriminator: depositStakeInstructionDiscriminator,
+    ...args,
   })
   const keys: web3.AccountMeta[] = [
     {
@@ -91,6 +110,11 @@ export function createDepositStakeInstruction(
       pubkey: accounts.sourceStake,
       isWritable: true,
       isSigner: false,
+    },
+    {
+      pubkey: accounts.splitStake,
+      isWritable: true,
+      isSigner: true,
     },
     {
       pubkey: accounts.authority,

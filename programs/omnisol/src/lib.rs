@@ -57,8 +57,8 @@ pub mod omnisol {
         deposit_lp_tokens::handle(ctx, amount)
     }
 
-    pub fn deposit_stake(ctx: Context<DepositStake>) -> Result<()> {
-        deposit_stake::handle(ctx)
+    pub fn deposit_stake(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
+        deposit_stake::handle(ctx, amount)
     }
 
     pub fn mint_omnisol(ctx: Context<MintOmnisol>, amount: u64) -> Result<()> {

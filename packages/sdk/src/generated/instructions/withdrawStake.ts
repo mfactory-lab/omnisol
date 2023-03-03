@@ -44,10 +44,12 @@ export const withdrawStakeStruct = new beet.BeetArgsStruct<
  * @property [_writable_] collateral
  * @property [_writable_] poolMint
  * @property [_writable_] sourceStake
+ * @property [_writable_] delegatedStake
  * @property [_writable_, **signer**] splitStake
  * @property [_writable_] userPoolToken
  * @property [_writable_, **signer**] authority
  * @property [] clock
+ * @property [] stakeHistory
  * @property [] stakeProgram
  * @category Instructions
  * @category WithdrawStake
@@ -60,10 +62,12 @@ export interface WithdrawStakeInstructionAccounts {
   collateral: web3.PublicKey
   poolMint: web3.PublicKey
   sourceStake: web3.PublicKey
+  delegatedStake: web3.PublicKey
   splitStake: web3.PublicKey
   userPoolToken: web3.PublicKey
   authority: web3.PublicKey
   clock: web3.PublicKey
+  stakeHistory: web3.PublicKey
   stakeProgram: web3.PublicKey
   tokenProgram?: web3.PublicKey
   systemProgram?: web3.PublicKey
@@ -125,6 +129,11 @@ export function createWithdrawStakeInstruction(
       isSigner: false,
     },
     {
+      pubkey: accounts.delegatedStake,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
       pubkey: accounts.splitStake,
       isWritable: true,
       isSigner: true,
@@ -141,6 +150,11 @@ export function createWithdrawStakeInstruction(
     },
     {
       pubkey: accounts.clock,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.stakeHistory,
       isWritable: false,
       isSigner: false,
     },

@@ -11,7 +11,7 @@ use crate::{
 /// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
 /// As their stake accounts continue to earn yield, the amount of lamports under them increases.
 /// Call the amount of lamports in excess of the initial deposit the **reserve amount.**
-pub fn handle(ctx: Context<DepositStake>) -> Result<()> {
+pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 
     if !pool.is_active {
@@ -27,18 +27,52 @@ pub fn handle(ctx: Context<DepositStake>) -> Result<()> {
     let pool_key = pool.key();
     let clock = &ctx.accounts.clock;
 
+    let stake_account = if amount < delegation.stake {
+        // Split new stake from existing stake
+        stake::split(
+            CpiContext::new(
+                ctx.accounts.stake_program.to_account_info(),
+                stake::Split {
+                    stake: ctx.accounts.source_stake.to_account_info(),
+                    split_stake: ctx.accounts.split_stake.to_account_info(),
+                    authority: ctx.accounts.authority.to_account_info(),
+                    system_program: ctx.accounts.system_program.to_account_info(),
+                },
+            ),
+            amount,
+        )?;
+        ctx.accounts.split_stake.to_account_info()
+    } else {
+        ctx.accounts.source_stake.to_account_info()
+    };
+
     // Authorize to `withdraw` the stake for the program
     stake::authorize(
         CpiContext::new(
             ctx.accounts.stake_program.to_account_info(),
             stake::Authorize {
-                stake: ctx.accounts.source_stake.to_account_info(),
+                stake: stake_account.to_account_info(),
                 authority: ctx.accounts.authority.to_account_info(),
                 new_authority: ctx.accounts.pool_authority.to_account_info(),
                 clock: clock.to_account_info(),
             },
         ),
         StakeAuthorize::Withdrawer,
+        None,
+    )?;
+
+    // Authorize to `stake` the stake for the program
+    stake::authorize(
+        CpiContext::new(
+            ctx.accounts.stake_program.to_account_info(),
+            stake::Authorize {
+                stake: stake_account.to_account_info(),
+                authority: ctx.accounts.authority.to_account_info(),
+                new_authority: ctx.accounts.pool_authority.to_account_info(),
+                clock: clock.to_account_info(),
+            },
+        ),
+        StakeAuthorize::Staker,
         None,
     )?;
 
@@ -60,11 +94,12 @@ pub fn handle(ctx: Context<DepositStake>) -> Result<()> {
         return Err(ErrorCode::UserBlocked.into());
     }
 
-    user.rate += delegation.stake;
+    user.rate += amount;
 
     collateral.user = ctx.accounts.user.key();
     collateral.pool = pool_key;
     collateral.source_stake = ctx.accounts.source_stake.key();
+    collateral.delegated_stake = stake_account.key();
     collateral.delegation_stake = delegation.stake;
     collateral.amount = 0;
     collateral.liquidated_amount = 0;
@@ -105,7 +140,7 @@ pub struct DepositStake<'info> {
 
     #[account(
         init,
-        seeds = [Collateral::SEED, user.key().as_ref(), source_stake.key().as_ref()],
+        seeds = [Collateral::SEED, user.key().as_ref(), split_stake.key().as_ref()],
         bump,
         payer = authority,
         space = Collateral::SIZE,
@@ -114,6 +149,10 @@ pub struct DepositStake<'info> {
 
     #[account(mut)]
     pub source_stake: Account<'info, stake::StakeAccount>,
+
+    /// CHECK:
+    #[account(mut, signer)]
+    pub split_stake: AccountInfo<'info>,
 
     #[account(mut)]
     pub authority: Signer<'info>,
