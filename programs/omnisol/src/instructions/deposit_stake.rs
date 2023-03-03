@@ -27,6 +27,8 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
     let pool_key = pool.key();
     let clock = &ctx.accounts.clock;
 
+    // TODO amount check
+
     let stake_account = if amount < delegation.stake {
         // Split new stake from existing stake
         stake::split(

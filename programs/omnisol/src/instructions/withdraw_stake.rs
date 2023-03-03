@@ -96,7 +96,7 @@ pub fn handle(ctx: Context<WithdrawStake>, amount: u64, with_burn: bool) -> Resu
             stake::Merge {
                 source_stake,
                 destination_stake: ctx.accounts.source_stake.to_account_info(),
-                authority: ctx.accounts.authority.to_account_info(),
+                authority: ctx.accounts.pool_authority.to_account_info(),
                 stake_history: ctx.accounts.stake_history.to_account_info(),
                 clock: clock.to_account_info(),
                 system_program: ctx.accounts.system_program.to_account_info(),
