@@ -29,7 +29,7 @@ export async function withdrawStake(opts: Opts) {
   })
 
   try {
-    const signature = await provider.sendAndConfirm(transaction)
+    const signature = await provider.sendAndConfirm(transaction, [splitKeypair])
     log.info(`Collateral Address: ${collateral.toBase58()}`)
     log.info(`User Address: ${user.toBase58()}`)
     log.info(`Signature: ${signature}`)
