@@ -1,24 +1,30 @@
 import { BN, web3 } from '@project-serum/anchor'
+import { getOrCreateAssociatedTokenAccount } from '@solana/spl-token'
 import log from 'loglevel'
 import { useContext } from '../context'
 
 interface Opts {
   pool: string
   amount: string
-  destination: string
   token: string
-  source: string
 }
 
 export async function depositLp(opts: Opts) {
-  const { provider, client } = useContext()
+  const { provider, client, keypair } = useContext()
+
+  const pool = new web3.PublicKey(opts.pool)
+  const lpToken = new web3.PublicKey(opts.token)
+  const [poolAuthority] = await client.pda.poolAuthority(new web3.PublicKey(opts.pool))
+
+  const source = await getOrCreateAssociatedTokenAccount(provider.connection, keypair, lpToken, provider.wallet.publicKey)
+  const destination = await getOrCreateAssociatedTokenAccount(provider.connection, keypair, lpToken, poolAuthority, true)
 
   const { tx, collateral, user } = await client.depositLPToken({
-    pool: new web3.PublicKey(opts.pool),
+    pool,
     amount: new BN(opts.amount),
-    destination: new web3.PublicKey(opts.destination),
-    lpToken: new web3.PublicKey(opts.token),
-    source: new web3.PublicKey(opts.source),
+    destination: destination.address,
+    lpToken,
+    source: source.address,
   })
 
   try {

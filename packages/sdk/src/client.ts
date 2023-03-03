@@ -1,4 +1,5 @@
 import type { Address, BN, Program } from '@project-serum/anchor'
+import {getOrCreateAssociatedTokenAccount} from "@solana/spl-token";
 import type { PublicKey } from '@solana/web3.js'
 import { Transaction } from '@solana/web3.js'
 import { web3 } from '@project-serum/anchor'

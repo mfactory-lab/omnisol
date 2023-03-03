@@ -1,4 +1,5 @@
 import { BN, web3 } from '@project-serum/anchor'
+import { getOrCreateAssociatedTokenAccount } from '@solana/spl-token'
 import log from 'loglevel'
 import { useContext } from '../context'
 
@@ -7,24 +8,27 @@ interface Opts {
   pool: string
   mint: string
   stakeAccount: string
-  userPoolToken: string
   withBurn: string
 }
 
 export async function withdrawStake(opts: Opts) {
-  const { provider, client } = useContext()
+  const { provider, client, keypair } = useContext()
 
   const splitKeypair = web3.Keypair.generate()
   const splitAccount = splitKeypair.publicKey
 
+  const poolMint = new web3.PublicKey(opts.mint)
+
+  const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, keypair, poolMint, provider.wallet.publicKey)
+
   const { transaction, user, collateral } = await client.withdrawStake({
     amount: new BN(opts.amount),
     pool: new web3.PublicKey(opts.pool),
-    poolMint: new web3.PublicKey(opts.mint),
+    poolMint,
     splitStake: new web3.PublicKey(splitAccount),
     stakeAccount: new web3.PublicKey(opts.stakeAccount),
     stakeProgram: web3.StakeProgram.programId,
-    userPoolToken: new web3.PublicKey(opts.userPoolToken),
+    userPoolToken: userPoolToken.address,
     withBurn: opts.withBurn.includes('true'),
   })
 

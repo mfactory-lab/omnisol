@@ -1,4 +1,5 @@
 import { BN, web3 } from '@project-serum/anchor'
+import { getOrCreateAssociatedTokenAccount } from '@solana/spl-token'
 import log from 'loglevel'
 import { useContext } from '../context'
 
@@ -7,18 +8,21 @@ interface Opts {
   pool: string
   mint: string
   stakedAddress: string
-  userPoolToken: string
 }
 
 export async function mintOmnisol(opts: Opts) {
-  const { provider, client } = useContext()
+  const { provider, client, keypair } = useContext()
+
+  const poolMint = new web3.PublicKey(opts.mint)
+
+  const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, keypair, poolMint, provider.wallet.publicKey)
 
   const { transaction, collateral, user } = await client.mintOmnisol({
     amount: new BN(opts.amount),
     pool: new web3.PublicKey(opts.pool),
-    poolMint: new web3.PublicKey(opts.mint),
+    poolMint,
     stakedAddress: new web3.PublicKey(opts.stakedAddress),
-    userPoolToken: new web3.PublicKey(opts.userPoolToken),
+    userPoolToken: userPoolToken.address,
   })
 
   try {
