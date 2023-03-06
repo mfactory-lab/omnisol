@@ -207,7 +207,7 @@ withdraw.command('stake')
   .requiredOption('-w, --with-burn <WITH_BURN>', 'Flag that indicates if user need to withdraw with burning your omnisol tokens or without')
   .requiredOption('-t, --to-merge <TO_MERGE>', 'Flag that indicates if user need to withdraw with merging stake account')
   .requiredOption('-d, --delegated-stake <DELEGATED_STAKE>', 'Delegated stake account')
-  .option('-m, -mergable-stake <MERGABLE_STAKE>', 'Mergable stake account to merge withdrew stake account')
+  .option('-m, --mergable-stake <MERGABLE_STAKE>', 'Mergable stake account to merge withdrew stake account')
   .action(actions.withdrawStake)
 
 withdraw.command('lp-token')
