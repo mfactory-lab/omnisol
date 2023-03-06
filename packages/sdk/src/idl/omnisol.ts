@@ -387,6 +387,11 @@ export interface Omnisol {
           'isSigner': false
         },
         {
+          'name': 'delegatedStake'
+          'isMut': true
+          'isSigner': false
+        },
+        {
           'name': 'splitStake'
           'isMut': true
           'isSigner': true
@@ -594,6 +599,11 @@ export interface Omnisol {
           'isSigner': false
         },
         {
+          'name': 'mergableStake'
+          'isMut': true
+          'isSigner': false
+        },
+        {
           'name': 'splitStake'
           'isMut': true
           'isSigner': true
@@ -641,6 +651,10 @@ export interface Omnisol {
         },
         {
           'name': 'withBurn'
+          'type': 'bool'
+        },
+        {
+          'name': 'withMerge'
           'type': 'bool'
         },
       ]
@@ -1754,6 +1768,11 @@ export const IDL: Omnisol = {
           isSigner: false,
         },
         {
+          name: 'delegatedStake',
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: 'splitStake',
           isMut: true,
           isSigner: true,
@@ -1961,6 +1980,11 @@ export const IDL: Omnisol = {
           isSigner: false,
         },
         {
+          name: 'mergableStake',
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: 'splitStake',
           isMut: true,
           isSigner: true,
@@ -2008,6 +2032,10 @@ export const IDL: Omnisol = {
         },
         {
           name: 'withBurn',
+          type: 'bool',
+        },
+        {
+          name: 'withMerge',
           type: 'bool',
         },
       ],

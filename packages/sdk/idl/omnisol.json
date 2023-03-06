@@ -387,6 +387,11 @@
           "isSigner": false
         },
         {
+          "name": "delegatedStake",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "splitStake",
           "isMut": true,
           "isSigner": true
@@ -594,6 +599,11 @@
           "isSigner": false
         },
         {
+          "name": "mergableStake",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "splitStake",
           "isMut": true,
           "isSigner": true
@@ -641,6 +651,10 @@
         },
         {
           "name": "withBurn",
+          "type": "bool"
+        },
+        {
+          "name": "withMerge",
           "type": "bool"
         }
       ]

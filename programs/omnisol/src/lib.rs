@@ -69,8 +69,8 @@ pub mod omnisol {
         withdraw_lp_tokens::handle(ctx, amount, with_burn)
     }
 
-    pub fn withdraw_stake(ctx: Context<WithdrawStake>, amount: u64, with_burn: bool) -> Result<()> {
-        withdraw_stake::handle(ctx, amount, with_burn)
+    pub fn withdraw_stake(ctx: Context<WithdrawStake>, amount: u64, with_burn: bool, with_merge: bool) -> Result<()> {
+        withdraw_stake::handle(ctx, amount, with_burn, with_merge)
     }
 
     pub fn burn_omnisol<'info>(ctx: Context<BurnOmnisol>, amount: u64) -> Result<()> {

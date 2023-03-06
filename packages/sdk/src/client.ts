@@ -333,9 +333,10 @@ export class OmnisolClient {
     const payer = this.wallet.publicKey
     const [poolAuthority] = await this.pda.poolAuthority(props.pool)
     const [user] = await this.pda.user(payer)
-    const [collateral, bump] = await this.pda.collateral(props.splitStake, user)
+    const [collateral, bump] = await this.pda.collateral(props.delegatedStake, user)
     const instruction = createDepositStakeInstruction(
       {
+        delegatedStake: props.delegatedStake,
         authority: payer,
         clock: OmnisolClient.clock,
         collateral,
@@ -429,8 +430,10 @@ export class OmnisolClient {
     const [user] = await this.pda.user(payer)
     const [collateral] = await this.pda.collateral(props.delegatedStake, user)
     const stakeProgram = props.stakeProgram ?? web3.StakeProgram.programId
+    const mergableStake = props.mergableStake ?? props.stakeAccount
     const instruction = createWithdrawStakeInstruction(
       {
+        mergableStake,
         stakeHistory: props.stakeHistory,
         authority: payer,
         clock: OmnisolClient.clock,
@@ -446,6 +449,7 @@ export class OmnisolClient {
         userPoolToken: props.userPoolToken,
       },
       {
+        withMerge: props.withMerge,
         amount: props.amount,
         withBurn: props.withBurn,
       },
@@ -697,6 +701,7 @@ interface DepositStakeProps {
   pool: PublicKey
   sourceStake: PublicKey
   splitStake: PublicKey
+  delegatedStake: PublicKey
   amount: BN
 }
 
@@ -733,11 +738,13 @@ interface WithdrawStakeProps {
   userPoolToken: PublicKey
   stakeAccount: PublicKey
   delegatedStake: PublicKey
+  mergableStake?: PublicKey
   splitStake: PublicKey
   stakeHistory: PublicKey
   stakeProgram?: PublicKey
   amount: BN
   withBurn: boolean
+  withMerge: boolean
 }
 
 interface InitOracleProps {

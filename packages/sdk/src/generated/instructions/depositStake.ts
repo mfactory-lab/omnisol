@@ -40,6 +40,7 @@ export const depositStakeStruct = new beet.BeetArgsStruct<
  * @property [_writable_] user
  * @property [_writable_] collateral
  * @property [_writable_] sourceStake
+ * @property [_writable_] delegatedStake
  * @property [_writable_, **signer**] splitStake
  * @property [_writable_, **signer**] authority
  * @property [] clock
@@ -54,6 +55,7 @@ export interface DepositStakeInstructionAccounts {
   user: web3.PublicKey
   collateral: web3.PublicKey
   sourceStake: web3.PublicKey
+  delegatedStake: web3.PublicKey
   splitStake: web3.PublicKey
   authority: web3.PublicKey
   clock: web3.PublicKey
@@ -108,6 +110,11 @@ export function createDepositStakeInstruction(
     },
     {
       pubkey: accounts.sourceStake,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.delegatedStake,
       isWritable: true,
       isSigner: false,
     },

@@ -13,7 +13,7 @@ use crate::{
 ///
 /// Any omniSOL minter can at any time return withdrawn omniSOL to their account.
 /// This burns the omniSOL, allowing the minter to withdraw their staked SOL.
-pub fn handle(ctx: Context<WithdrawStake>, amount: u64, with_burn: bool) -> Result<()> {
+pub fn handle(ctx: Context<WithdrawStake>, amount: u64, with_burn: bool, with_merge: bool) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 
     if !pool.is_active {
@@ -90,21 +90,31 @@ pub fn handle(ctx: Context<WithdrawStake>, amount: u64, with_burn: bool) -> Resu
         None,
     )?;
 
-    if source_stake.key() != ctx.accounts.source_stake.key() {
-        stake::merge(CpiContext::new_with_signer(
+    if source_stake.key() != ctx.accounts.source_stake.key() && ctx.accounts.source_stake.key() != ctx.accounts.delegated_stake.key() {
+        stake::merge(CpiContext::new(
             ctx.accounts.stake_program.to_account_info(),
             stake::Merge {
                 source_stake,
                 destination_stake: ctx.accounts.source_stake.to_account_info(),
-                authority: ctx.accounts.pool_authority.to_account_info(),
+                authority: ctx.accounts.authority.to_account_info(),
                 stake_history: ctx.accounts.stake_history.to_account_info(),
                 clock: clock.to_account_info(),
                 system_program: ctx.accounts.system_program.to_account_info(),
             },
-            &[&pool_authority_seeds],
+        ))?;
+    } else if with_merge {
+        stake::merge(CpiContext::new(
+            ctx.accounts.stake_program.to_account_info(),
+            stake::Merge {
+                source_stake: source_stake.to_account_info(),
+                destination_stake: ctx.accounts.mergable_stake.to_account_info(),
+                authority: ctx.accounts.authority.to_account_info(),
+                stake_history: ctx.accounts.stake_history.to_account_info(),
+                clock: clock.to_account_info(),
+                system_program: ctx.accounts.system_program.to_account_info(),
+            },
         ))?;
     }
-
 
     let mut burn_amount = 0;
 
@@ -175,7 +185,7 @@ pub struct WithdrawStake<'info> {
         seeds = [
             Collateral::SEED,
             user.key().as_ref(),
-            source_stake.key().as_ref()
+            delegated_stake.key().as_ref()
         ],
         bump,
     )]
@@ -190,6 +200,10 @@ pub struct WithdrawStake<'info> {
 
     #[account(mut, constraint = collateral.delegated_stake == delegated_stake.key())]
     pub delegated_stake: Box<Account<'info, stake::StakeAccount>>,
+
+    /// CHECK: optional stake account to merge
+    #[account(mut)]
+    pub mergable_stake: Box<Account<'info, stake::StakeAccount>>,
 
     /// CHECK:
     #[account(mut, signer)]

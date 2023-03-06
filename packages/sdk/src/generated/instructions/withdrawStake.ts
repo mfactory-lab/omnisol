@@ -17,6 +17,7 @@ import * as web3 from '@solana/web3.js'
 export interface WithdrawStakeInstructionArgs {
   amount: beet.bignum
   withBurn: boolean
+  withMerge: boolean
 }
 /**
  * @category Instructions
@@ -32,6 +33,7 @@ export const withdrawStakeStruct = new beet.BeetArgsStruct<
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
     ['amount', beet.u64],
     ['withBurn', beet.bool],
+    ['withMerge', beet.bool],
   ],
   'WithdrawStakeInstructionArgs',
 )
@@ -45,6 +47,7 @@ export const withdrawStakeStruct = new beet.BeetArgsStruct<
  * @property [_writable_] poolMint
  * @property [_writable_] sourceStake
  * @property [_writable_] delegatedStake
+ * @property [_writable_] mergableStake
  * @property [_writable_, **signer**] splitStake
  * @property [_writable_] userPoolToken
  * @property [_writable_, **signer**] authority
@@ -63,6 +66,7 @@ export interface WithdrawStakeInstructionAccounts {
   poolMint: web3.PublicKey
   sourceStake: web3.PublicKey
   delegatedStake: web3.PublicKey
+  mergableStake: web3.PublicKey
   splitStake: web3.PublicKey
   userPoolToken: web3.PublicKey
   authority: web3.PublicKey
@@ -130,6 +134,11 @@ export function createWithdrawStakeInstruction(
     },
     {
       pubkey: accounts.delegatedStake,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.mergableStake,
       isWritable: true,
       isSigner: false,
     },

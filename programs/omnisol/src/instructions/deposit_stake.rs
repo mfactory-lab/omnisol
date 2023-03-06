@@ -24,10 +24,12 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
         .delegation()
         .ok_or(ErrorCode::InvalidStakeAccount)?;
 
+    if amount == 0 || amount > delegation.stake {
+        return Err(ErrorCode::InsufficientAmount.into());
+    }
+
     let pool_key = pool.key();
     let clock = &ctx.accounts.clock;
-
-    // TODO amount check
 
     let stake_account = if amount < delegation.stake {
         // Split new stake from existing stake
@@ -102,14 +104,14 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
     collateral.pool = pool_key;
     collateral.source_stake = ctx.accounts.source_stake.key();
     collateral.delegated_stake = stake_account.key();
-    collateral.delegation_stake = delegation.stake;
+    collateral.delegation_stake = amount;
     collateral.amount = 0;
     collateral.liquidated_amount = 0;
     collateral.created_at = clock.unix_timestamp;
     collateral.bump = ctx.bumps["collateral"];
     collateral.is_native = true;
 
-    pool.deposit_amount = pool.deposit_amount.saturating_add(delegation.stake);
+    pool.deposit_amount = pool.deposit_amount.saturating_add(amount);
 
     emit!(DepositStakeEvent {
         pool: pool.key(),
@@ -141,8 +143,8 @@ pub struct DepositStake<'info> {
     pub user: Box<Account<'info, User>>,
 
     #[account(
-        init,
-        seeds = [Collateral::SEED, user.key().as_ref(), split_stake.key().as_ref()],
+        init_if_needed,
+        seeds = [Collateral::SEED, user.key().as_ref(), delegated_stake.key().as_ref()],
         bump,
         payer = authority,
         space = Collateral::SIZE,
@@ -151,6 +153,10 @@ pub struct DepositStake<'info> {
 
     #[account(mut)]
     pub source_stake: Account<'info, stake::StakeAccount>,
+
+    /// CHECK:
+    #[account(mut, constraint = delegated_stake.key() == source_stake.key() || delegated_stake.key() == split_stake.key())]
+    pub delegated_stake: AccountInfo<'info>,
 
     /// CHECK:
     #[account(mut, signer)]

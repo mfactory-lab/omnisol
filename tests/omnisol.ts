@@ -29,6 +29,7 @@ describe('omnisol', () => {
   let oracle: web3.PublicKey
   let stakePool: web3.PublicKey
   let mintAuthority: web3.PublicKey
+  let splitAccount: web3.PublicKey
 
   before(async () => {
     await provider.connection.confirmTransaction(
@@ -619,15 +620,19 @@ describe('omnisol', () => {
 
     await provider.sendAndConfirm(delegateTransaction, [payerKeypair, payerKeypair])
 
+    const splitKeypair = web3.Keypair.generate()
+    const splitStake = splitKeypair.publicKey
+
     const { transaction, user, collateral, bump } = await client.depositStake({
+      delegatedStake: stakeAccount,
       amount: new BN(10 * web3.LAMPORTS_PER_SOL),
-      splitStake: stakeAccount,
+      splitStake,
       sourceStake: stakeAccount,
       pool,
     })
 
     try {
-      await provider.sendAndConfirm(transaction, [stakeKeypair])
+      await provider.sendAndConfirm(transaction, [splitKeypair, payerKeypair])
     } catch (e) {
       console.log(e)
       throw e
@@ -686,15 +691,19 @@ describe('omnisol', () => {
     })
     await provider.sendAndConfirm(createAccountTransaction, [payerKeypair, stakeKeypair])
 
+    const splitKeypair = web3.Keypair.generate()
+    const splitStake = splitKeypair.publicKey
+
     const { transaction } = await client.depositStake({
+      delegatedStake: stake,
       amount: new BN(10 * web3.LAMPORTS_PER_SOL),
-      splitStake: stake,
+      splitStake,
       sourceStake: stake,
       pool,
     })
 
     try {
-      await provider.sendAndConfirm(transaction, [stakeKeypair])
+      await provider.sendAndConfirm(transaction, [splitKeypair])
       assert.ok(false)
     } catch (e: any) {
       assertErrorCode(e, '')
@@ -745,15 +754,19 @@ describe('omnisol', () => {
       throw e
     }
 
+    const splitKeypair = web3.Keypair.generate()
+    const splitStake = splitKeypair.publicKey
+
     const { transaction } = await client.depositStake({
+      delegatedStake: stake,
       amount: new BN(10 * web3.LAMPORTS_PER_SOL),
-      splitStake: stake,
+      splitStake,
       sourceStake: stake,
       pool,
     })
 
     try {
-      await provider.sendAndConfirm(transaction, [stakeKeypair])
+      await provider.sendAndConfirm(transaction, [splitKeypair])
       assert.ok(false)
     } catch (e: any) {
       assertErrorCode(e, 'PoolAlreadyPaused')
@@ -1011,6 +1024,7 @@ describe('omnisol', () => {
     }
 
     const { transaction } = await client.withdrawStake({
+      withMerge: false,
       delegatedStake: stakeAccount,
       stakeHistory: web3.SYSVAR_STAKE_HISTORY_PUBKEY,
       amount: new BN(10000000000),
@@ -1060,6 +1074,7 @@ describe('omnisol', () => {
     }
 
     const { transaction } = await client.withdrawStake({
+      withMerge: false,
       delegatedStake: stakeAccount,
       stakeHistory: web3.SYSVAR_STAKE_HISTORY_PUBKEY,
       amount: new BN(10000000000),
@@ -1098,6 +1113,7 @@ describe('omnisol', () => {
     const splitAccount = splitKeypair.publicKey
 
     const { transaction } = await client.withdrawStake({
+      withMerge: false,
       delegatedStake: stakeAccount,
       stakeHistory: web3.SYSVAR_STAKE_HISTORY_PUBKEY,
       amount: new BN(10000000001),
@@ -1125,9 +1141,10 @@ describe('omnisol', () => {
     assert.equal(userPoolBalance.value.amount, 10000000050)
 
     const splitKeypair = web3.Keypair.generate()
-    const splitAccount = splitKeypair.publicKey
+    splitAccount = splitKeypair.publicKey
 
     const { transaction, user, collateral } = await client.withdrawStake({
+      withMerge: false,
       delegatedStake: stakeAccount,
       stakeHistory: web3.SYSVAR_STAKE_HISTORY_PUBKEY,
       amount: new BN(5000000000),
@@ -1160,13 +1177,15 @@ describe('omnisol', () => {
     assert.equal(collateralData.amount.toString(), '5000000000')
     assert.equal(collateralData.delegationStake.toString(), '5000000000')
     assert.equal(collateralData.liquidatedAmount, 0)
+    assert.equal(collateralData.sourceStake.equals(stakeAccount), true)
+    assert.equal(collateralData.delegatedStake.equals(stakeAccount), true)
   })
 
   it('can not withdraw stake without burn more than user can', async () => {
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
 
     const splitKeypair = web3.Keypair.generate()
-    const splitAccount = splitKeypair.publicKey
+    const splitStakeAccount = splitKeypair.publicKey
 
     const { transaction } = await client.withdrawStake({
       delegatedStake: stakeAccount,
@@ -1174,11 +1193,13 @@ describe('omnisol', () => {
       amount: new BN(5000000000),
       pool,
       poolMint,
-      splitStake: splitAccount,
+      splitStake: splitStakeAccount,
       stakeAccount,
       stakeProgram: web3.StakeProgram.programId,
       userPoolToken: userPoolToken.address,
+      mergableStake: splitAccount,
       withBurn: false,
+      withMerge: true,
     })
 
     try {
@@ -1196,20 +1217,24 @@ describe('omnisol', () => {
     assert.equal(userPoolBalance.value.amount, 5000000050)
 
     const splitKeypair = web3.Keypair.generate()
-    const splitAccount = splitKeypair.publicKey
+    const splitStakeAccount = splitKeypair.publicKey
 
     const { transaction, user, collateral } = await client.withdrawStake({
+      withMerge: true,
       delegatedStake: stakeAccount,
       stakeHistory: web3.SYSVAR_STAKE_HISTORY_PUBKEY,
       amount: new BN(5000000000),
       pool,
       poolMint,
-      splitStake: splitAccount,
+      splitStake: splitStakeAccount,
       stakeAccount,
       stakeProgram: web3.StakeProgram.programId,
       userPoolToken: userPoolToken.address,
+      mergableStake: splitAccount,
       withBurn: true,
     })
+
+    stakeAccount = splitAccount
 
     try {
       await provider.sendAndConfirm(transaction, [payerKeypair, splitKeypair])
@@ -1236,6 +1261,7 @@ describe('omnisol', () => {
     const splitStake = splitStakeKeypair.publicKey
 
     const { transaction } = await client.depositStake({
+      delegatedStake: splitStake,
       amount: new BN(5000000000),
       splitStake,
       sourceStake: stakeAccount,
@@ -1243,7 +1269,7 @@ describe('omnisol', () => {
     })
 
     try {
-      await provider.sendAndConfirm(transaction)
+      await provider.sendAndConfirm(transaction, [splitStakeKeypair])
     } catch (e) {
       console.log(e)
       throw e
@@ -1255,15 +1281,17 @@ describe('omnisol', () => {
     assert.equal(userPoolBalance.value.amount, 50)
 
     const splitKeypair = web3.Keypair.generate()
-    const splitAccount = splitKeypair.publicKey
+    const splitStakeAccount = splitKeypair.publicKey
 
     const { transaction: tx, user, collateral } = await client.withdrawStake({
-      delegatedStake: stakeAccount,
+      withMerge: true,
+      delegatedStake: splitStake,
+      mergableStake: stakeAccount,
       stakeHistory: web3.SYSVAR_STAKE_HISTORY_PUBKEY,
       amount: new BN(5000000000),
       pool,
       poolMint,
-      splitStake: splitAccount,
+      splitStake: splitStakeAccount,
       stakeAccount,
       stakeProgram: web3.StakeProgram.programId,
       userPoolToken: userPoolToken.address,
@@ -1271,7 +1299,94 @@ describe('omnisol', () => {
     })
 
     try {
-      await provider.sendAndConfirm(tx, [payerKeypair, splitKeypair])
+      await provider.sendAndConfirm(tx, [splitKeypair])
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
+
+    assert.equal(userPoolBalance.value.amount, 50)
+
+    const poolData = await client.fetchGlobalPool(pool)
+    const userData = await client.fetchUser(user)
+    const collateralData = await client.fetchCollateral(collateral)
+
+    assert.equal(poolData.depositAmount.toString(), '0')
+    assert.equal(userData.rate.toString(), '100')
+    assert.equal(collateralData, null)
+  })
+
+  it('can withdraw split stake of delegated split', async () => {
+    const splitStakeKeypair = web3.Keypair.generate()
+    const splitStake = splitStakeKeypair.publicKey
+
+    const { transaction } = await client.depositStake({
+      delegatedStake: splitStake,
+      amount: new BN(5000000000),
+      splitStake,
+      sourceStake: stakeAccount,
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(transaction, [splitStakeKeypair])
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+    let userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
+
+    assert.equal(userPoolBalance.value.amount, 50)
+
+    const splitKeypair = web3.Keypair.generate()
+    const splitStakeAccount = splitKeypair.publicKey
+
+    const { transaction: tx } = await client.withdrawStake({
+      withMerge: true,
+      delegatedStake: splitStake,
+      mergableStake: stakeAccount,
+      stakeHistory: web3.SYSVAR_STAKE_HISTORY_PUBKEY,
+      amount: new BN(2500000000),
+      pool,
+      poolMint,
+      splitStake: splitStakeAccount,
+      stakeAccount,
+      stakeProgram: web3.StakeProgram.programId,
+      userPoolToken: userPoolToken.address,
+      withBurn: false,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx, [splitKeypair])
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const splitKeypair1 = web3.Keypair.generate()
+    const splitStakeAccount1 = splitKeypair1.publicKey
+
+    const { transaction: tx1, user, collateral } = await client.withdrawStake({
+      withMerge: true,
+      delegatedStake: splitStake,
+      mergableStake: stakeAccount,
+      stakeHistory: web3.SYSVAR_STAKE_HISTORY_PUBKEY,
+      amount: new BN(2500000000),
+      pool,
+      poolMint,
+      splitStake: splitStakeAccount1,
+      stakeAccount,
+      stakeProgram: web3.StakeProgram.programId,
+      userPoolToken: userPoolToken.address,
+      withBurn: false,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx1, [splitKeypair1])
     } catch (e) {
       console.log(e)
       throw e
@@ -1513,14 +1628,15 @@ describe('omnisol', () => {
     const splitStake = splitKeypair.publicKey
 
     const { transaction, user, collateral, bump } = await client.depositStake({
+      delegatedStake: stakeAccount,
       amount: new BN(web3.LAMPORTS_PER_SOL),
-      splitStake,
+      splitStake: stakeAccount,
       sourceStake: stakeAccount,
       pool,
     })
 
     try {
-      await provider.sendAndConfirm(transaction, [splitKeypair])
+      await provider.sendAndConfirm(transaction, [stakeKeypair])
     } catch (e) {
       console.log(e)
       throw e
