@@ -28,6 +28,12 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
         return Err(ErrorCode::InsufficientAmount.into());
     }
 
+    if (amount == delegation.stake && ctx.accounts.delegated_stake.key() == ctx.accounts.split_stake.key())
+        || (amount != delegation.stake && ctx.accounts.delegated_stake.key() == ctx.accounts.source_stake.key())
+    {
+        return Err(ErrorCode::InvalidStakeAccount.into());
+    }
+
     let pool_key = pool.key();
     let clock = &ctx.accounts.clock;
 
