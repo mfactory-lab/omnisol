@@ -1630,13 +1630,13 @@ describe('omnisol', () => {
     const { transaction, user, collateral, bump } = await client.depositStake({
       delegatedStake: stakeAccount,
       amount: new BN(web3.LAMPORTS_PER_SOL),
-      splitStake: stakeAccount,
+      splitStake,
       sourceStake: stakeAccount,
       pool,
     })
 
     try {
-      await provider.sendAndConfirm(transaction, [stakeKeypair])
+      await provider.sendAndConfirm(transaction, [splitKeypair])
     } catch (e) {
       console.log(e)
       throw e

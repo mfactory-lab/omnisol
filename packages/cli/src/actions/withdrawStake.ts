@@ -9,6 +9,9 @@ interface Opts {
   mint: string
   stakeAccount: string
   withBurn: string
+  delegatedStake: string
+  toMerge: string
+  mergableStake?: string
 }
 
 export async function withdrawStake(opts: Opts) {
@@ -18,10 +21,21 @@ export async function withdrawStake(opts: Opts) {
   const splitAccount = splitKeypair.publicKey
 
   const poolMint = new web3.PublicKey(opts.mint)
+  const withMerge = opts.toMerge.includes('true')
 
   const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, keypair, poolMint, provider.wallet.publicKey)
 
+  let mergableStake
+  if (opts.mergableStake !== undefined) {
+    mergableStake = new web3.PublicKey(opts.mergableStake)
+  } else {
+    mergableStake = undefined
+  }
+
   const { transaction, user, collateral } = await client.withdrawStake({
+    mergableStake,
+    delegatedStake: new web3.PublicKey(opts.delegatedStake),
+    withMerge,
     amount: new BN(opts.amount),
     pool: new web3.PublicKey(opts.pool),
     poolMint,
@@ -35,6 +49,9 @@ export async function withdrawStake(opts: Opts) {
   try {
     const signature = await provider.sendAndConfirm(transaction, [splitKeypair])
     log.info(`Collateral Address: ${collateral.toBase58()}`)
+    if (withMerge && mergableStake !== undefined) {
+      log.info(`Merge destination Stake Account Address: ${mergableStake.toBase58()}`)
+    }
     log.info(`User Address: ${user.toBase58()}`)
     log.info(`Signature: ${signature}`)
     log.info('OK')

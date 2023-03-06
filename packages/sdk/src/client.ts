@@ -431,11 +431,12 @@ export class OmnisolClient {
     const [user] = await this.pda.user(payer)
     const [collateral] = await this.pda.collateral(props.delegatedStake, user)
     const stakeProgram = props.stakeProgram ?? web3.StakeProgram.programId
+    const stakeHistory = props.stakeHistory ?? web3.SYSVAR_STAKE_HISTORY_PUBKEY
     const mergableStake = props.mergableStake ?? props.stakeAccount
     const instruction = createWithdrawStakeInstruction(
       {
         mergableStake,
-        stakeHistory: props.stakeHistory,
+        stakeHistory,
         authority: payer,
         clock: OmnisolClient.clock,
         collateral,
@@ -741,7 +742,7 @@ interface WithdrawStakeProps {
   delegatedStake: PublicKey
   mergableStake?: PublicKey
   splitStake: PublicKey
-  stakeHistory: PublicKey
+  stakeHistory?: PublicKey
   stakeProgram?: PublicKey
   amount: BN
   withBurn: boolean
