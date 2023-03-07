@@ -1,4 +1,5 @@
 use anchor_lang::prelude::borsh::BorshDeserialize;
+use arrayref::{array_ref, array_refs};
 use gimli::ReaderOffset;
 use omnisol::{
     state::{Collateral, User},
@@ -48,7 +49,16 @@ pub fn get_user_data(client: &RpcClient) -> Result<Vec<(Pubkey, User)>> {
     let mut user_data: Vec<(Pubkey, User)> = accounts
         .into_iter()
         .map(|(address, account)| {
-            let user = User::try_from_slice(account.data.as_slice()).expect("Failed to deserialize");
+            let src = array_ref![account.data, 0, User::SIZE];
+            let (_, wallet, rate, is_blocked, request_amount, last_withdraw_index) =
+                array_refs![src, 8, 32, 8, 1, 4, 4];
+            let user = User {
+                wallet: Pubkey::new_from_array(*wallet),
+                rate: u64::from_le_bytes(*rate),
+                is_blocked: is_blocked[0] != 0,
+                requests_amount: u32::from_le_bytes(*request_amount),
+                last_withdraw_index: u32::from_le_bytes(*last_withdraw_index),
+            };
             (address, user)
         })
         .collect::<Vec<_>>();
@@ -75,7 +85,21 @@ pub fn get_collateral_data(client: &RpcClient) -> Result<Vec<(Pubkey, Collateral
     let collateral_data = accounts
         .into_iter()
         .map(|(address, account)| {
-            let collateral = Collateral::try_from_slice(account.data.as_slice()).expect("Failed to deserialize");
+            let src = array_ref![account.data, 0, Collateral::SIZE];
+            let (_, user, pool, source_stake, delegated_stake, delegation_stake, amount, liquidated_amount, created_at, bump, is_native) =
+                array_refs![src, 8, 32, 32, 32, 32, 8, 8, 8, 8, 1, 1];
+            let collateral = Collateral {
+                user: Pubkey::new_from_array(*user),
+                pool: Pubkey::new_from_array(*pool),
+                source_stake: Pubkey::new_from_array(*source_stake),
+                delegated_stake:Pubkey::new_from_array(*delegated_stake),
+                delegation_stake: u64::from_le_bytes(*delegation_stake),
+                amount: u64::from_le_bytes(*amount),
+                liquidated_amount: u64::from_le_bytes(*liquidated_amount),
+                created_at: i64::from_le_bytes(*created_at),
+                bump: u8::from_le_bytes(*bump),
+                is_native: is_native[0] != 0,
+            };
             (address, collateral)
         })
         .collect::<Vec<_>>();
