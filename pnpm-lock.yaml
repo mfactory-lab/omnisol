@@ -7,7 +7,7 @@ importers:
       '@antfu/eslint-config-vue': ^0.34.0
       '@omnisol/sdk': '*'
       '@project-serum/anchor': ^0.25.0
-      '@project-serum/spl-token': 0.26.0
+      '@soceanfi/solana-stake-sdk': ^0.1.2
       '@solana/spl-stake-pool': git+https://github.com/mfactory-lab/jfactory-stake-pool.git
       '@solana/spl-token': ^0.3.6
       '@types/bn.js': ^5.1.0
@@ -22,10 +22,10 @@ importers:
     dependencies:
       '@omnisol/sdk': link:packages/sdk
       '@project-serum/anchor': 0.25.0
-      '@project-serum/spl-token': 0.26.0
     devDependencies:
       '@antfu/eslint-config-vue': 0.34.1_yygwinqv3a2io74xmwofqb7uka
-      '@solana/spl-stake-pool': github.com/mfactory-lab/jfactory-stake-pool/c31c48aeadf3dcf3287d4f08b65e97d101437059
+      '@soceanfi/solana-stake-sdk': 0.1.2
+      '@solana/spl-stake-pool': github.com/mfactory-lab/jfactory-stake-pool/1beecfbe7c38d9ca8f9e484a5b50ecacf3d6c45e
       '@solana/spl-token': 0.3.6
       '@types/bn.js': 5.1.1
       '@types/bs58': 4.0.1
@@ -278,17 +278,6 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@coral-xyz/borsh/0.26.0_@solana+web3.js@1.73.0:
-    resolution: {integrity: sha512-uCZ0xus0CszQPHYfWAqKS5swS1UxvePu83oOF+TWpUkedsNlg6p2p4azxZNSSqwXb9uXMFgxhuMBX9r3Xoi0vQ==}
-    engines: {node: '>=10'}
-    peerDependencies:
-      '@solana/web3.js': ^1.68.0
-    dependencies:
-      '@solana/web3.js': 1.73.0
-      bn.js: 5.2.1
-      buffer-layout: 1.2.2
-    dev: false
-
   /@esbuild/android-arm/0.15.10:
     resolution: {integrity: sha512-FNONeQPy/ox+5NBkcSbYJxoXj9GWu8gVGJTVmUyoOCKQFDTrHVKgNSzChdNt0I8Aj/iKcsDf2r9BFwv+FSNUXg==}
     engines: {node: '>=12'}
@@ -536,17 +525,6 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@native-to-anchor/buffer-layout/0.1.0:
-    resolution: {integrity: sha512-7Ykz9KRAm53XqHj5blDUKPX+OXAPO4GZBW4zJhfHGIAbzmqsUFh9kMqR66Bak3mp6wyv1OVTwSr8ZGHKswPxDg==}
-    dependencies:
-      '@solana/buffer-layout': 4.0.0
-      '@solana/buffer-layout-utils': 0.2.0
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - utf-8-validate
-    dev: false
-
   /@ngraveio/bc-ur/1.1.6:
     resolution: {integrity: sha512-G+2XgjXde2IOcEQeCwR250aS43/Swi7gw0FuETgJy2c3HqF8f88SXDMsIGgJlZ8jXd0GeHR4aX0MfjXf523UZg==}
     dependencies:
@@ -635,32 +613,6 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@project-serum/anchor/0.26.0:
-    resolution: {integrity: sha512-Nq+COIjE1135T7qfnOHEn7E0q39bQTgXLFk837/rgFe6Hkew9WML7eHsS+lSYD2p3OJaTiUOHTAq1lHy36oIqQ==}
-    engines: {node: '>=11'}
-    dependencies:
-      '@coral-xyz/borsh': 0.26.0_@solana+web3.js@1.73.0
-      '@solana/web3.js': 1.73.0
-      base64-js: 1.5.1
-      bn.js: 5.2.1
-      bs58: 4.0.1
-      buffer-layout: 1.2.2
-      camelcase: 6.3.0
-      cross-fetch: 3.1.5
-      crypto-hash: 1.3.0
-      eventemitter3: 4.0.7
-      js-sha256: 0.9.0
-      pako: 2.0.4
-      snake-case: 3.0.4
-      superstruct: 0.15.5
-      toml: 3.0.0
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - supports-color
-      - utf-8-validate
-    dev: false
-
   /@project-serum/borsh/0.2.5_@solana+web3.js@1.64.0:
     resolution: {integrity: sha512-UmeUkUoKdQ7rhx6Leve1SssMR/Ghv8qrEiyywyxSWg7ooV7StdpPBhciiy5eB3T0qU1BXvdRNC8TdrkxK7WC5Q==}
     engines: {node: '>=10'}
@@ -703,18 +655,6 @@ packages:
       '@solana/web3.js': 1.64.0
       bs58: 4.0.1
       eventemitter3: 4.0.7
-    dev: false
-
-  /@project-serum/spl-token/0.26.0:
-    resolution: {integrity: sha512-eup0+wPruntReBKKjVaW4IW/NAgu6xngtjUjXPlLX7jnn3PjTcFxJ7NY3h+HGi8Nx2xso0HItbQ/mW7cjLaypw==}
-    dependencies:
-      '@native-to-anchor/buffer-layout': 0.1.0
-      '@project-serum/anchor': 0.26.0
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - supports-color
-      - utf-8-validate
     dev: false
 
   /@quasar/extras/1.15.4:
@@ -763,6 +703,14 @@ packages:
     dependencies:
       estree-walker: 2.0.2
       picomatch: 2.3.1
+    dev: true
+
+  /@soceanfi/solana-stake-sdk/0.1.2:
+    resolution: {integrity: sha512-taXS2jB7qj1kB2R1HXqfBDxR8vIvwMhewAh63Ev6LCwGCueqV5Y/InLa+WWEWKVMhxTwmNgkCXbWz8YJ78XRgg==}
+    peerDependencies:
+      '@solana/web3.js': ^1
+      bn.js: ^5
+      superstruct: ^0.14.2
     dev: true
 
   /@socket.io/component-emitter/3.1.0:
@@ -1433,6 +1381,7 @@ packages:
       - encoding
       - supports-color
       - utf-8-validate
+    dev: true
 
   /@solflare-wallet/sdk/1.1.0_@solana+web3.js@1.64.0:
     resolution: {integrity: sha512-h/OmjgRMDC6CkPHlkUQgOIRv1QXEZp+kQg132zU1KAcikZvc25xf0yMMRU0APUypQ6EJEz6bgQR6BRvvVA9/ZA==}
@@ -2404,6 +2353,7 @@ packages:
       humanize-ms: 1.2.1
     transitivePeerDependencies:
       - supports-color
+    dev: true
 
   /ajv/6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
@@ -2829,6 +2779,7 @@ packages:
   /camelcase/6.3.0:
     resolution: {integrity: sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==}
     engines: {node: '>=10'}
+    dev: true
 
   /cbor-sync/1.0.4:
     resolution: {integrity: sha512-GWlXN4wiz0vdWWXBU71Dvc1q3aBo0HytqwAZnXF1wOwjqNnDWA1vZ1gDMFLlqohak31VQzmhiYfiCX5QSSfagA==}
@@ -3171,6 +3122,7 @@ packages:
   /depd/1.1.2:
     resolution: {integrity: sha512-7emPTl6Dpo6JRXOXjLRxck+FlLRX5847cLKEn00PLAgc3g2hTZZgr+e4c2v6QpSmLeFP3n5yUo7ft6avBK/5jQ==}
     engines: {node: '>= 0.6'}
+    dev: true
 
   /des.js/1.0.1:
     resolution: {integrity: sha512-Q0I4pfFrv2VPd34/vfLrFOoRmlYj3OV50i7fskps1jZWK1kApMWWT9G6RRUeYedLcBDIhnSDaUvJMb3AhUlaEA==}
@@ -4492,6 +4444,7 @@ packages:
     resolution: {integrity: sha512-Fl70vYtsAFb/C06PTS9dZBo7ihau+Tu/DNCk/OyHhea07S+aeMWpFFkUaXRa8fI+ScZbEI8dfSxwY7gxZ9SAVQ==}
     dependencies:
       ms: 2.1.3
+    dev: true
 
   /ieee754/1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
@@ -5174,6 +5127,7 @@ packages:
 
   /ms/2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
+    dev: true
 
   /multiformats/9.9.0:
     resolution: {integrity: sha512-HoMUjhH9T8DDBNT+6xzkrd9ga/XiBI4xLr58LJACwK6G3HTOPeMz4nB4KJs33L2BelrIJa7P0VuNaVF3hMYfjg==}
@@ -6878,10 +6832,10 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  github.com/mfactory-lab/jfactory-stake-pool/c31c48aeadf3dcf3287d4f08b65e97d101437059:
-    resolution: {tarball: https://codeload.github.com/mfactory-lab/jfactory-stake-pool/tar.gz/c31c48aeadf3dcf3287d4f08b65e97d101437059}
+  github.com/mfactory-lab/jfactory-stake-pool/1beecfbe7c38d9ca8f9e484a5b50ecacf3d6c45e:
+    resolution: {tarball: https://codeload.github.com/mfactory-lab/jfactory-stake-pool/tar.gz/1beecfbe7c38d9ca8f9e484a5b50ecacf3d6c45e}
     name: '@solana/spl-stake-pool'
-    version: 0.6.9
+    version: 0.6.10
     dependencies:
       '@project-serum/borsh': 0.2.5_@solana+web3.js@1.73.0
       '@solana/buffer-layout': 4.0.0

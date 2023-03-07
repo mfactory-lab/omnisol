@@ -1,7 +1,7 @@
 mod cluster;
 mod utils;
 
-use std::{path::PathBuf, thread, time};
+use std::{path::PathBuf, thread};
 use std::time::Duration;
 
 use clap::Parser;
@@ -9,14 +9,16 @@ use log::{info, LevelFilter};
 use omnisol::ID;
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 use solana_client::rpc_client::RpcClient;
-use solana_sdk::{
-    commitment_config::CommitmentConfig,
-    instruction::{AccountMeta, Instruction},
-    pubkey::Pubkey,
-    signature::{read_keypair_file, Signer},
-    system_program,
-    transaction::Transaction,
-};
+
+use std::rc::Rc;
+use std::str::FromStr;
+
+use anchor_client::solana_sdk::commitment_config::CommitmentConfig;
+use anchor_client::solana_sdk::pubkey::Pubkey;
+use anchor_client::solana_sdk::signature::{read_keypair_file, Signer};
+use anchor_client::solana_sdk::signer::keypair::Keypair;
+use anchor_client::solana_sdk::system_program;
+use anchor_client::Client;
 
 use crate::{
     cluster::Cluster,
@@ -54,46 +56,59 @@ fn main() {
     )
     .expect("Can't createPool logger");
 
-    // get cluster and establish connection
-    let client = RpcClient::new_with_commitment(args.cluster.url(), CommitmentConfig::confirmed());
-    info!("Established connection: {}", client.url());
-
     // get signer wallet
     let wallet_keypair = read_keypair_file(args.keypair).expect("Can't open keypair");
     let wallet_pubkey = wallet_keypair.pubkey();
     info!("Read oracle keypair file: {}", wallet_pubkey);
 
+    let client = Client::new_with_options(
+        anchor_client::Cluster::from_str(args.cluster.url()).unwrap(),
+        Rc::new(wallet_keypair),
+        CommitmentConfig::confirmed()
+    );
+    info!("Established connection: {}", args.cluster.url());
+
+    // get program public key
+    let program = client.program(omnisol::id());
+
+    let mut previous_collaterals = vec![];
+    let mut previous_values = vec![];
+
     loop {
-        let user_data = get_user_data(&client).expect("Can't get user accounts");
+        let user_data = get_user_data(&program).expect("Can't get user accounts");
         info!("Got user data");
-        let collateral_data = get_collateral_data(&client).expect("Can't get collateral accounts");
+        let collateral_data = get_collateral_data(&program).expect("Can't get collateral accounts");
         info!("Got collateral data");
 
         // find collaterals by user list and make priority queue
         let (collaterals, values) = generate_priority_queue(user_data, collateral_data);
-        info!(
-            "Generated priority queue: \n\t\tCollaterals - {:?} \n\t\tAmounts - {:?}",
-            collaterals, values
-        );
+        info!("Generated priority queue");
+        info!("Collaterals - {:?}", collaterals);
+        info!("Amounts - {:?}", values);
+
+        if collaterals == previous_collaterals && values == previous_values {
+            continue
+        }
 
         // send tx to contract
-        let instructions = vec![Instruction::new_with_borsh(
-            Pubkey::new_from_array(ID.to_bytes()),
-            &omnisol::instruction::UpdateOracleInfo {
-                addresses: collaterals,
-                values,
-            },
-            vec![
-                AccountMeta::new(wallet_pubkey, true),
-                AccountMeta::new(args.oracle, false),
-                AccountMeta::new(system_program::id(), false),
-            ],
-        )];
-        let mut tx = Transaction::new_with_payer(&instructions, Some(&wallet_pubkey));
-        let recent_blockhash = client.get_latest_blockhash().expect("Can't get blockhash");
-        tx.sign(&vec![&wallet_keypair], recent_blockhash);
-        let signature = client.send_transaction(&tx).expect("Transaction failed.");
+        let signature = program
+            .request()
+            .accounts(omnisol::accounts::UpdateOracleInfo {
+                authority: wallet_pubkey,
+                oracle: args.oracle,
+                system_program: system_program::id(),
+            })
+            .args(omnisol::instruction::UpdateOracleInfo {
+                addresses: collaterals.clone(),
+                values: values.clone(),
+            })
+            .send()
+            .expect("Transaction failed.");
+
         info!("Sent transaction successfully with signature: {}", signature);
+
+        previous_collaterals = collaterals;
+        previous_values = values;
 
         thread::sleep(Duration::from_secs(args.sleep_duration));
     }

@@ -7,104 +7,48 @@ use omnisol::{
 };
 use solana_account_decoder::UiAccountEncoding;
 use solana_client::{
-    client_error::Result,
     rpc_client::RpcClient,
     rpc_config::{RpcAccountInfoConfig, RpcProgramAccountsConfig},
     rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType},
 };
 use solana_sdk::{account::Account, pubkey::Pubkey};
+use anchor_client::{ClientError, Program};
 
 pub const PRIORITY_QUEUE_LENGTH: usize = 255;
 pub const USER_DISCRIMINATOR: [u8; 8] = [159, 117, 95, 227, 239, 151, 58, 236];
 pub const COLLATERAL_DISCRIMINATOR: [u8; 8] = [123, 130, 234, 63, 255, 240, 255, 92];
 
-pub fn get_accounts(filters: Option<Vec<RpcFilterType>>, client: &RpcClient) -> Result<Vec<(Pubkey, Account)>> {
-    client.get_program_accounts_with_config(
-        &Pubkey::new_from_array(ID.to_bytes()),
-        RpcProgramAccountsConfig {
-            filters,
-            account_config: RpcAccountInfoConfig {
-                encoding: Some(UiAccountEncoding::Base64),
-                commitment: Some(client.commitment()),
-                ..RpcAccountInfoConfig::default()
-            },
-            ..RpcProgramAccountsConfig::default()
-        },
-    )
-}
+pub fn get_user_data(program: &Program) -> Result<Vec<(Pubkey, User)>, ClientError> {
+    let filters = vec![
+        RpcFilterType::DataSize(User::SIZE.into_u64()),
+        RpcFilterType::Memcmp(Memcmp {
+            offset: 0,
+            bytes: MemcmpEncodedBytes::Bytes(USER_DISCRIMINATOR.to_vec()),
+            encoding: None,
+        }),
+    ];
 
-pub fn get_user_data(client: &RpcClient) -> Result<Vec<(Pubkey, User)>> {
-    let accounts = get_accounts(
-        Some(vec![
-            RpcFilterType::DataSize(User::SIZE.into_u64()),
-            RpcFilterType::Memcmp(Memcmp {
-                offset: 0,
-                bytes: MemcmpEncodedBytes::Bytes(USER_DISCRIMINATOR.to_vec()),
-                encoding: None,
-            }),
-        ]),
-        client,
-    )?;
-
-    let mut user_data: Vec<(Pubkey, User)> = accounts
-        .into_iter()
-        .map(|(address, account)| {
-            let src = array_ref![account.data, 0, User::SIZE];
-            let (_, wallet, rate, is_blocked, request_amount, last_withdraw_index) =
-                array_refs![src, 8, 32, 8, 1, 4, 4];
-            let user = User {
-                wallet: Pubkey::new_from_array(*wallet),
-                rate: u64::from_le_bytes(*rate),
-                is_blocked: is_blocked[0] != 0,
-                requests_amount: u32::from_le_bytes(*request_amount),
-                last_withdraw_index: u32::from_le_bytes(*last_withdraw_index),
-            };
-            (address, user)
-        })
-        .collect::<Vec<_>>();
+    let mut accounts = program.accounts::<User>(filters)?;
 
     // sort by rate
-    user_data.sort_by(|(_, a), (_, b)| a.rate.cmp(&b.rate));
+    accounts.sort_by(|(_, a), (_, b)| a.rate.cmp(&b.rate));
 
-    Ok(user_data)
+    Ok(accounts)
 }
 
-pub fn get_collateral_data(client: &RpcClient) -> Result<Vec<(Pubkey, Collateral)>> {
-    let accounts = get_accounts(
-        Some(vec![
-            RpcFilterType::DataSize(Collateral::SIZE.into_u64()),
-            RpcFilterType::Memcmp(Memcmp {
-                offset: 0,
-                bytes: MemcmpEncodedBytes::Bytes(COLLATERAL_DISCRIMINATOR.to_vec()),
-                encoding: None,
-            }),
-        ]),
-        client,
-    )?;
+pub fn get_collateral_data(program: &Program) -> Result<Vec<(Pubkey, Collateral)>, ClientError> {
+    let filters = vec![
+        RpcFilterType::DataSize(Collateral::SIZE.into_u64()),
+        RpcFilterType::Memcmp(Memcmp {
+            offset: 0,
+            bytes: MemcmpEncodedBytes::Bytes(COLLATERAL_DISCRIMINATOR.to_vec()),
+            encoding: None,
+        }),
+    ];
 
-    let collateral_data = accounts
-        .into_iter()
-        .map(|(address, account)| {
-            let src = array_ref![account.data, 0, Collateral::SIZE];
-            let (_, user, pool, source_stake, delegated_stake, delegation_stake, amount, liquidated_amount, created_at, bump, is_native) =
-                array_refs![src, 8, 32, 32, 32, 32, 8, 8, 8, 8, 1, 1];
-            let collateral = Collateral {
-                user: Pubkey::new_from_array(*user),
-                pool: Pubkey::new_from_array(*pool),
-                source_stake: Pubkey::new_from_array(*source_stake),
-                delegated_stake:Pubkey::new_from_array(*delegated_stake),
-                delegation_stake: u64::from_le_bytes(*delegation_stake),
-                amount: u64::from_le_bytes(*amount),
-                liquidated_amount: u64::from_le_bytes(*liquidated_amount),
-                created_at: i64::from_le_bytes(*created_at),
-                bump: u8::from_le_bytes(*bump),
-                is_native: is_native[0] != 0,
-            };
-            (address, collateral)
-        })
-        .collect::<Vec<_>>();
+    let accounts = program.accounts::<Collateral>(filters)?;
 
-    Ok(collateral_data)
+    Ok(accounts)
 }
 
 pub fn generate_priority_queue(
