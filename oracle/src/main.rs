@@ -71,6 +71,8 @@ fn main() {
     let mut previous_queue = HashMap::new();
 
     loop {
+        thread::sleep(args.sleep_duration);
+
         let user_data = get_user_data(&program).expect("Can't get user accounts");
         info!("Got {} user(s)", user_data.len());
         let collateral_data = get_collateral_data(&program).expect("Can't get collateral accounts");
@@ -95,21 +97,19 @@ fn main() {
                 });
 
         // send tx to contract
-        let signature = program
-            .request()
-            .accounts(omnisol::accounts::UpdateOracleInfo {
-                authority: wallet_pubkey,
-                oracle: args.oracle,
-                system_program: system_program::id(),
-            })
-            .args(omnisol::instruction::UpdateOracleInfo { addresses, values })
-            .send()
-            .expect("Transaction failed.");
-
-        info!("Sent transaction successfully with signature: {}", signature);
+        // let signature = program
+        //     .request()
+        //     .accounts(omnisol::accounts::UpdateOracleInfo {
+        //         authority: wallet_pubkey,
+        //         oracle: args.oracle,
+        //         system_program: system_program::id(),
+        //     })
+        //     .args(omnisol::instruction::UpdateOracleInfo { addresses, values })
+        //     .send()
+        //     .expect("Transaction failed.");
+        //
+        // info!("Sent transaction successfully with signature: {}", signature);
 
         previous_queue = queue;
-
-        thread::sleep(args.sleep_duration);
     }
 }
