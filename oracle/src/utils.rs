@@ -1,18 +1,9 @@
-use anchor_lang::prelude::borsh::BorshDeserialize;
-use arrayref::{array_ref, array_refs};
+use std::collections::HashMap;
+
+use anchor_client::{solana_sdk::pubkey::Pubkey, ClientError, Program};
 use gimli::ReaderOffset;
-use omnisol::{
-    state::{Collateral, User},
-    ID,
-};
-use solana_account_decoder::UiAccountEncoding;
-use solana_client::{
-    rpc_client::RpcClient,
-    rpc_config::{RpcAccountInfoConfig, RpcProgramAccountsConfig},
-    rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType},
-};
-use solana_sdk::{account::Account, pubkey::Pubkey};
-use anchor_client::{ClientError, Program};
+use omnisol::state::{Collateral, User};
+use solana_client::rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType};
 
 pub const PRIORITY_QUEUE_LENGTH: usize = 255;
 pub const USER_DISCRIMINATOR: [u8; 8] = [159, 117, 95, 227, 239, 151, 58, 236];
@@ -54,29 +45,24 @@ pub fn get_collateral_data(program: &Program) -> Result<Vec<(Pubkey, Collateral)
 pub fn generate_priority_queue(
     user_data: Vec<(Pubkey, User)>,
     collateral_data: Vec<(Pubkey, Collateral)>,
-) -> (Vec<Pubkey>, Vec<u64>) {
-    let mut collaterals = vec![];
-    let mut values = vec![];
+) -> HashMap<Pubkey, u64> {
+    let mut map = HashMap::new();
 
-    for (user_address, _) in user_data {
-        if collaterals.len() > PRIORITY_QUEUE_LENGTH {
-            break;
-        }
+    'outer: for (user_address, _) in user_data {
         for (address, collateral) in &collateral_data {
-            if collaterals.len() > PRIORITY_QUEUE_LENGTH {
-                break;
+            if map.len() > PRIORITY_QUEUE_LENGTH {
+                break 'outer;
             }
             if collateral.user == user_address {
                 let rest_amount = collateral.delegation_stake - collateral.liquidated_amount;
                 if rest_amount > 0 {
-                    collaterals.push(*address);
-                    values.push(rest_amount);
+                    map.insert(*address, rest_amount);
                 }
             }
         }
     }
 
-    (collaterals, values)
+    map
 }
 
 #[cfg(test)]
@@ -118,6 +104,7 @@ mod tests {
             user: pubkey_1,
             pool: Default::default(),
             source_stake: Default::default(),
+            delegated_stake: Default::default(),
             delegation_stake: 100,
             amount: 0,
             liquidated_amount: 100,
@@ -129,6 +116,7 @@ mod tests {
             user: pubkey_1,
             pool: Default::default(),
             source_stake: Default::default(),
+            delegated_stake: Default::default(),
             delegation_stake: 100,
             amount: 0,
             liquidated_amount: 0,
@@ -140,6 +128,7 @@ mod tests {
             user: pubkey_2,
             pool: Default::default(),
             source_stake: Default::default(),
+            delegated_stake: Default::default(),
             delegation_stake: 100,
             amount: 0,
             liquidated_amount: 50,
@@ -151,6 +140,7 @@ mod tests {
             user: pubkey_3,
             pool: Default::default(),
             source_stake: Default::default(),
+            delegated_stake: Default::default(),
             delegation_stake: 100,
             amount: 0,
             liquidated_amount: 0,
@@ -162,6 +152,7 @@ mod tests {
             user: pubkey_3,
             pool: Default::default(),
             source_stake: Default::default(),
+            delegated_stake: Default::default(),
             delegation_stake: 100,
             amount: 0,
             liquidated_amount: 99,
@@ -177,16 +168,12 @@ mod tests {
             (collateral_address_4, collateral_4),
             (collateral_address_5, collateral_5),
         ];
-        let result_1 = vec![
-            collateral_address_2,
-            collateral_address_3,
-            collateral_address_4,
-            collateral_address_5,
-        ];
-        let result_2 = vec![100, 50, 100, 1];
-        assert_eq!(
-            generate_priority_queue(user_data, collateral_data),
-            (result_1, result_2)
-        );
+        let mut result = HashMap::new();
+        result.insert(collateral_address_2, 100);
+        result.insert(collateral_address_3, 50);
+        result.insert(collateral_address_4, 100);
+        result.insert(collateral_address_5, 1);
+
+        assert_eq!(generate_priority_queue(user_data, collateral_data), result);
     }
 }
