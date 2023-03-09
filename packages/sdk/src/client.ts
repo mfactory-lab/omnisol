@@ -1,5 +1,5 @@
 import type { Address, BN, Program } from '@project-serum/anchor'
-import {getOrCreateAssociatedTokenAccount} from "@solana/spl-token";
+import { getOrCreateAssociatedTokenAccount } from '@solana/spl-token'
 import type { PublicKey } from '@solana/web3.js'
 import { Transaction } from '@solana/web3.js'
 import { web3 } from '@project-serum/anchor'
@@ -25,7 +25,7 @@ import {
   createResumePoolInstruction,
   createUnblockUserInstruction,
   createUpdateOracleInfoInstruction,
-  createWithdrawLpTokensInstruction, createWithdrawStakeInstruction,
+  createWithdrawLpTokensInstruction, createWithdrawStakeInstruction, createLiquidateCollateralInstruction,
 } from './generated'
 import { IDL } from './idl/omnisol'
 
@@ -102,6 +102,24 @@ export class OmnisolClient {
     const collateral = await this.fetchCollateral(queueMember.collateral)
     const user = await this.fetchUser(collateral.user)
     return user.rate
+  }
+
+  async findCollaterals() {
+    return await this.program.account.collateral.all()
+  }
+
+  async findUserCollaterals(user: web3.PublicKey) {
+    const accounts = await this.program.account.collateral.all()
+    return accounts.filter(a => a.account.user.toBase58() === user.toBase58())
+  }
+
+  async findPoolCollaterals(pool: web3.PublicKey) {
+    const accounts = await this.program.account.collateral.all()
+    return accounts.filter(a => a.account.pool.toBase58() === pool.toBase58())
+  }
+
+  async findUsers() {
+    return await this.program.account.user.all()
   }
 
   async createPool(props: CreatePoolProps) {
@@ -586,6 +604,50 @@ export class OmnisolClient {
       withdrawInfo,
     }
   }
+
+  async liquidateCollateral(props: LiquidateCollateralProps) {
+    const payer = this.wallet.publicKey
+    const [userOwner] = await this.pda.user(props.userOwner)
+    const userWallet = props.userWallet
+    const [user] = await this.pda.user(userWallet)
+    const [collateral] = await this.pda.collateral(props.sourceStake, userOwner)
+    const [poolAuthority] = await this.pda.poolAuthority(props.pool)
+    const userData = await this.fetchUser(user)
+    const withdrawIndex = userData.lastWithdrawIndex - userData.requestsAmount
+    const [withdrawInfo] = await this.pda.withdrawInfo(payer, withdrawIndex + 1)
+    const ix = createLiquidateCollateralInstruction(
+      {
+        authority: payer,
+        clock: OmnisolClient.clock,
+        collateral,
+        feeAccount: props.feeAccount,
+        oracle: props.oracle,
+        pool: props.pool,
+        poolAccount: props.poolAccount,
+        poolAuthority,
+        protocolFee: props.protocolFee,
+        protocolFeeDestination: props.protocolFeeDestination,
+        solReserves: props.solReserves,
+        sourceStake: props.sourceStake,
+        stakeAccountRecord: props.stakeAccountRecord,
+        stakeProgram: web3.StakeProgram.programId,
+        user,
+        userOwner,
+        userWallet,
+        withdrawInfo,
+      },
+      {
+        amount: props.amount,
+      },
+    )
+    const tx = new Transaction().add(ix)
+
+    return {
+      tx,
+      user,
+      withdrawInfo,
+    }
+  }
 }
 
 class OmnisolPDA {
@@ -776,5 +838,20 @@ interface BurnOmnisolProps {
   pool: PublicKey
   poolMint: PublicKey
   sourceTokenAccount: PublicKey
+  amount: BN
+}
+
+interface LiquidateCollateralProps {
+  pool: PublicKey
+  sourceStake: PublicKey
+  userOwner: PublicKey
+  userWallet: PublicKey
+  oracle: PublicKey
+  poolAccount: PublicKey
+  solReserves: PublicKey
+  protocolFee: PublicKey
+  protocolFeeDestination: PublicKey
+  feeAccount: PublicKey
+  stakeAccountRecord: PublicKey
   amount: BN
 }

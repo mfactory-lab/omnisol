@@ -138,10 +138,18 @@ user.command('unblock')
   .requiredOption('-u, --user <USER>', 'Address of user wallet to unblock')
   .action(actions.unblockUser)
 
+user.command('find')
+  .description('Find user and show info')
+  .argument('<ADDRESS>', 'User wallet address')
+  .action(actions.findUser)
+
 user.command('show')
   .description('Show user info')
-  .argument('<ADDRESS>', 'User wallet address')
+  .argument('<USER_ADDRESS>', 'Address of user')
   .action(actions.showUser)
+  .command('all')
+  .description('Show the list of users')
+  .action(actions.showUsers)
 
 // -------------------------------------------------------
 // Oracle
@@ -248,11 +256,19 @@ cli.command('mint')
 
 const collateral = cli.command('collateral')
 
-collateral.command('show')
-  .description('Show collateral info')
+collateral.command('find')
+  .description('Find collateral and show info')
   .argument('<SOURCE_STAKE>', 'Address of lp token or native stake account')
   .argument('<USER>', 'Address of user pda')
+  .action(actions.findCollateral)
+
+collateral.command('show')
+  .description('Show collateral info')
+  .argument('<COLLATERAL_ADDRESS>', 'Address of collateral')
   .action(actions.showCollateral)
+  .command('all')
+  .description('Show the list of collaterals')
+  .action(actions.showCollaterals)
 
 // -------------------------------------------------------
 // WithdrawInfo

@@ -1,8 +1,9 @@
+import { web3 } from '@project-serum/anchor'
 import log from 'loglevel'
 import { useContext } from '../context'
 
 export async function showPool(address: string) {
-  const { client } = useContext()
+  const { client, cluster } = useContext()
 
   const [poolAuthorityKey] = await client.pda.poolAuthority(address)
   const pool = await client.fetchGlobalPool(address)
@@ -17,6 +18,17 @@ export async function showPool(address: string) {
   log.info(`Deposit amount: ${pool.depositAmount}`)
   log.info(`Is active: ${pool.isActive}`)
   log.info(`Authority bump: ${pool.authorityBump}`)
+  const accounts = await client.findPoolCollaterals(new web3.PublicKey(address))
+  for (const account of accounts) {
+    log.info('--------------------------------------------------------------------------')
+    log.info(`Collateral: ${account.publicKey}`)
+    if (account.account.isNative) {
+      log.info(`Delegated stake: ${account.account.delegatedStake}`)
+    } else {
+      log.info(`LP token: ${account.account.sourceStake}`)
+    }
+    log.info(`See all info: "pnpm cli -c ${cluster} collateral show ${account.publicKey}"`)
+  }
   log.info('--------------------------------------------------------------------------')
 }
 
@@ -58,19 +70,46 @@ export async function showWhitelist(address: string) {
   log.info('--------------------------------------------------------------------------')
 }
 
-export async function showUser(address: string) {
+export async function findUser(address: string) {
   const { client } = useContext()
 
   const [userKey] = await client.pda.user(address)
-  const user = await client.fetchUser(userKey)
+  await showUser(userKey.toString())
+}
+
+export async function showUser(userAddress: string) {
+  const { client } = useContext()
+
+  const user = await client.fetchUser(userAddress)
 
   log.info('--------------------------------------------------------------------------')
-  log.info(`User pda: ${userKey}`)
+  log.info(`User pda: ${userAddress}`)
   log.info(`User wallet: ${user.wallet}`)
   log.info(`User rate: ${user.rate}`)
   log.info(`User withdraw requests amount: ${user.requestsAmount}`)
   log.info(`Last withdraw request index: ${user.lastWithdrawIndex}`)
   log.info(`Is blocked: ${user.isBlocked}`)
+  const collaterals = await client.findUserCollaterals(new web3.PublicKey(userAddress))
+  const keys = collaterals.map(collateral => collateral.publicKey)
+  log.info(`Collaterals owned by user: ${keys}`)
+  log.info('See all info about collateral: "pnpm cli collateral show <COLLATERAL_ADDRESS>"')
+  log.info('--------------------------------------------------------------------------')
+}
+
+export async function showUsers() {
+  const { client, cluster } = useContext()
+
+  const accounts = await client.findUsers()
+  for (const account of accounts) {
+    log.info('--------------------------------------------------------------------------')
+    log.info(`User: ${account.publicKey}`)
+    log.info(`User wallet: ${account.account.wallet}`)
+    log.info(`See all info: "pnpm cli -c ${cluster} user show ${account.publicKey}"`)
+    const collaterals = await client.findUserCollaterals(account.publicKey)
+    let amount = 0
+    collaterals.forEach(collateral => amount += +collateral.account.amount)
+    log.info(`Omnisol minted: ${amount}`)
+  }
   log.info('--------------------------------------------------------------------------')
 }
 
@@ -85,23 +124,51 @@ export async function showOracle(address: string) {
   log.info('--------------------------------------------------------------------------')
 }
 
-export async function showCollateral(sourceStake: string, user: string) {
+export async function findCollateral(sourceStake: string, user: string) {
   const { client } = useContext()
 
   const [collateralKey] = await client.pda.collateral(sourceStake, user)
-  const collateral = await client.fetchCollateral(collateralKey)
+  showCollateral(collateralKey.toString())
+}
+
+export async function showCollateral(collateralAddress: string) {
+  const { client } = useContext()
+
+  const collateral = await client.fetchCollateral(collateralAddress)
+  const rest_to_mint = +collateral.delegationStake - +collateral.amount
 
   log.info('--------------------------------------------------------------------------')
-  log.info(`Collateral pda: ${collateralKey}`)
   log.info(`User pda: ${collateral.user}`)
   log.info(`Pool: ${collateral.pool}`)
+  log.info(`Delegated amount: ${collateral.delegationStake}`)
   log.info(`Minted amount: ${collateral.amount}`)
-  log.info(`Address of lp token or native stake account deposited: ${collateral.sourceStake}`)
-  log.info(`Bump: ${collateral.bump}`)
   log.info(`Liquidated amount: ${collateral.liquidatedAmount}`)
+  log.info(`Can be minted: ${rest_to_mint}`)
+  log.info(`Address of lp token or native stake account deposited: ${collateral.sourceStake}`)
+  if (collateral.isNative) {
+    log.info(`Delegated stake account: ${collateral.delegatedStake}`)
+  }
   log.info(`Is native stake: ${collateral.isNative}`)
-  log.info(`Amount of stake delegated: ${collateral.delegationStake}`)
   log.info(`Created at: ${collateral.createdAt}`)
+  log.info('--------------------------------------------------------------------------')
+}
+
+export async function showCollaterals() {
+  const { client, cluster } = useContext()
+
+  const accounts = await client.findCollaterals()
+  for (const account of accounts) {
+    log.info('--------------------------------------------------------------------------')
+    log.info(`Collateral: ${account.publicKey}`)
+    const user = await client.fetchUser(account.account.user)
+    log.info(`User wallet: ${user.wallet}`)
+    if (account.account.isNative) {
+      log.info(`Delegated stake: ${account.account.delegatedStake}`)
+    } else {
+      log.info(`LP token: ${account.account.sourceStake}`)
+    }
+    log.info(`See all info: "pnpm cli -c ${cluster} collateral show ${account.publicKey}"`)
+  }
   log.info('--------------------------------------------------------------------------')
 }
 
