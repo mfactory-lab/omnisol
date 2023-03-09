@@ -97,18 +97,18 @@ fn main() {
                 });
 
         // send tx to contract
-        // let signature = program
-        //     .request()
-        //     .accounts(omnisol::accounts::UpdateOracleInfo {
-        //         authority: wallet_pubkey,
-        //         oracle: args.oracle,
-        //         system_program: system_program::id(),
-        //     })
-        //     .args(omnisol::instruction::UpdateOracleInfo { addresses, values })
-        //     .send()
-        //     .expect("Transaction failed.");
-        //
-        // info!("Sent transaction successfully with signature: {}", signature);
+        let signature = program
+            .request()
+            .accounts(omnisol::accounts::UpdateOracleInfo {
+                authority: wallet_pubkey,
+                oracle: args.oracle,
+                system_program: system_program::id(),
+            })
+            .args(omnisol::instruction::UpdateOracleInfo { addresses, values })
+            .send()
+            .expect("Transaction failed.");
+
+        info!("Sent transaction successfully with signature: {}", signature);
 
         previous_queue = queue;
     }
