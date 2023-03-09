@@ -78,7 +78,7 @@ export async function findUser(address: string) {
 }
 
 export async function showUser(userAddress: string) {
-  const { client } = useContext()
+  const { client, cluster } = useContext()
 
   const user = await client.fetchUser(userAddress)
 
@@ -92,7 +92,7 @@ export async function showUser(userAddress: string) {
   const collaterals = await client.findUserCollaterals(new web3.PublicKey(userAddress))
   const keys = collaterals.map(collateral => collateral.publicKey)
   log.info(`Collaterals owned by user: ${keys}`)
-  log.info('See all info about collateral: "pnpm cli collateral show <COLLATERAL_ADDRESS>"')
+  log.info(`See all info about collateral: "pnpm cli -c ${cluster} collateral show ` + '<COLLATERAL_ADDRESS>"')
   log.info('--------------------------------------------------------------------------')
 }
 
@@ -104,11 +104,11 @@ export async function showUsers() {
     log.info('--------------------------------------------------------------------------')
     log.info(`User: ${account.publicKey}`)
     log.info(`User wallet: ${account.account.wallet}`)
-    log.info(`See all info: "pnpm cli -c ${cluster} user show ${account.publicKey}"`)
     const collaterals = await client.findUserCollaterals(account.publicKey)
     let amount = 0
     collaterals.forEach(collateral => amount += +collateral.account.amount)
     log.info(`Omnisol minted: ${amount}`)
+    log.info(`See all info: "pnpm cli -c ${cluster} user show ${account.publicKey}"`)
   }
   log.info('--------------------------------------------------------------------------')
 }
