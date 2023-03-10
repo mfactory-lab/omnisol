@@ -102,7 +102,7 @@ export async function showUsers() {
   const accounts = await client.findUsers()
   for (const account of accounts) {
     log.info('--------------------------------------------------------------------------')
-    log.info(`User: ${account.publicKey}`)
+    log.info(`User pda: ${account.publicKey}`)
     log.info(`User wallet: ${account.account.wallet}`)
     const collaterals = await client.findUserCollaterals(account.publicKey)
     let amount = 0
@@ -159,7 +159,7 @@ export async function showCollaterals() {
   const accounts = await client.findCollaterals()
   for (const account of accounts) {
     log.info('--------------------------------------------------------------------------')
-    log.info(`Collateral: ${account.publicKey}`)
+    log.info(`Collateral pda: ${account.publicKey}`)
     const user = await client.fetchUser(account.account.user)
     log.info(`User wallet: ${user.wallet}`)
     if (account.account.isNative) {
