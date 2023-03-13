@@ -7,11 +7,11 @@ importers:
       '@antfu/eslint-config-vue': ^0.34.0
       '@omnisol/sdk': '*'
       '@project-serum/anchor': ^0.25.0
-      '@soceanfi/solana-stake-sdk': ^0.1.2
-      '@solana/spl-stake-pool': git+https://github.com/mfactory-lab/jfactory-stake-pool.git
+      '@solana/spl-stake-pool': mfactory-lab/jfactory-stake-pool#85efd1930097f8053bcfee78216b36febc388ca0
       '@solana/spl-token': ^0.3.6
       '@types/bn.js': ^5.1.0
       '@types/bs58': ^4.0.1
+      '@types/chai': ^4.3
       '@types/mocha': ^10.0.0
       chai: ^4.3.7
       eslint: ^8.32.0
@@ -24,11 +24,11 @@ importers:
       '@project-serum/anchor': 0.25.0
     devDependencies:
       '@antfu/eslint-config-vue': 0.34.1_yygwinqv3a2io74xmwofqb7uka
-      '@soceanfi/solana-stake-sdk': 0.1.2
-      '@solana/spl-stake-pool': github.com/mfactory-lab/jfactory-stake-pool/1beecfbe7c38d9ca8f9e484a5b50ecacf3d6c45e
+      '@solana/spl-stake-pool': github.com/mfactory-lab/jfactory-stake-pool/85efd1930097f8053bcfee78216b36febc388ca0
       '@solana/spl-token': 0.3.6
       '@types/bn.js': 5.1.1
       '@types/bs58': 4.0.1
+      '@types/chai': 4.3.4
       '@types/mocha': 10.0.1
       chai: 4.3.7
       eslint: 8.32.0
@@ -425,12 +425,13 @@ packages:
       '@keystonehq/bc-ur-registry': 0.5.0
       '@keystonehq/bc-ur-registry-sol': 0.3.1
       '@keystonehq/sdk': 0.13.1
-      '@solana/web3.js': 1.64.0
+      '@solana/web3.js': 1.73.0
       bs58: 5.0.0
       uuid: 8.3.2
     transitivePeerDependencies:
       - bufferutil
       - encoding
+      - supports-color
       - utf-8-validate
     dev: false
 
@@ -705,14 +706,6 @@ packages:
       picomatch: 2.3.1
     dev: true
 
-  /@soceanfi/solana-stake-sdk/0.1.2:
-    resolution: {integrity: sha512-taXS2jB7qj1kB2R1HXqfBDxR8vIvwMhewAh63Ev6LCwGCueqV5Y/InLa+WWEWKVMhxTwmNgkCXbWz8YJ78XRgg==}
-    peerDependencies:
-      '@solana/web3.js': ^1
-      bn.js: ^5
-      superstruct: ^0.14.2
-    dev: true
-
   /@socket.io/component-emitter/3.1.0:
     resolution: {integrity: sha512-+9jVqKhRSpsc591z5vX+X5Yyw+he/HCB4iQ/RYxw35CEPaY1gnsNE43nf9n9AaYjAQrTiI/mOwKUKdUs9vf7Xg==}
     dev: false
@@ -962,6 +955,7 @@ packages:
     transitivePeerDependencies:
       - bufferutil
       - encoding
+      - supports-color
       - utf-8-validate
     dev: false
 
@@ -1178,6 +1172,7 @@ packages:
     transitivePeerDependencies:
       - bufferutil
       - encoding
+      - supports-color
       - utf-8-validate
     dev: false
 
@@ -1381,7 +1376,6 @@ packages:
       - encoding
       - supports-color
       - utf-8-validate
-    dev: true
 
   /@solflare-wallet/sdk/1.1.0_@solana+web3.js@1.64.0:
     resolution: {integrity: sha512-h/OmjgRMDC6CkPHlkUQgOIRv1QXEZp+kQg132zU1KAcikZvc25xf0yMMRU0APUypQ6EJEz6bgQR6BRvvVA9/ZA==}
@@ -1521,13 +1515,14 @@ packages:
   /@strike-protocols/solana-wallet-adapter/0.1.7:
     resolution: {integrity: sha512-WePD1kml3JPatU9rHIRYsP76BsD8T8j7n60ED1sFbIgKId34pvdQoQsuv/c7kpEYsRZvYJhaR2nODEE1FMR3CA==}
     dependencies:
-      '@solana/web3.js': 1.64.0
+      '@solana/web3.js': 1.73.0
       bs58: 4.0.1
       eventemitter3: 4.0.7
       uuid: 8.3.2
     transitivePeerDependencies:
       - bufferutil
       - encoding
+      - supports-color
       - utf-8-validate
     dev: false
 
@@ -1661,7 +1656,7 @@ packages:
     peerDependencies:
       '@babel/runtime': 7.x
     dependencies:
-      '@solana/web3.js': 1.64.0
+      '@solana/web3.js': 1.73.0
       '@toruslabs/base-controllers': 2.2.6
       '@toruslabs/http-helpers': 3.2.0
       '@toruslabs/openlogin-jrpc': 2.6.0
@@ -1688,6 +1683,10 @@ packages:
     resolution: {integrity: sha512-yfAgiWgVLjFCmRv8zAcOIHywYATEwiTVccTLnRp6UxTNavT55M9d/uhK3T03St/+8/z/wW+CRjGKUNmEqoHHCA==}
     dependencies:
       base-x: 3.0.9
+    dev: true
+
+  /@types/chai/4.3.4:
+    resolution: {integrity: sha512-KnRanxnpfpjUTqTCXslZSEdLfXExwgNxYPdiO2WGUj8+HDjFi8R3k5RVKPeSCzLjCcshCAtVO2QBbVuAV4kTnw==}
     dev: true
 
   /@types/connect/3.4.35:
@@ -2353,7 +2352,6 @@ packages:
       humanize-ms: 1.2.1
     transitivePeerDependencies:
       - supports-color
-    dev: true
 
   /ajv/6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
@@ -3122,7 +3120,6 @@ packages:
   /depd/1.1.2:
     resolution: {integrity: sha512-7emPTl6Dpo6JRXOXjLRxck+FlLRX5847cLKEn00PLAgc3g2hTZZgr+e4c2v6QpSmLeFP3n5yUo7ft6avBK/5jQ==}
     engines: {node: '>= 0.6'}
-    dev: true
 
   /des.js/1.0.1:
     resolution: {integrity: sha512-Q0I4pfFrv2VPd34/vfLrFOoRmlYj3OV50i7fskps1jZWK1kApMWWT9G6RRUeYedLcBDIhnSDaUvJMb3AhUlaEA==}
@@ -4444,7 +4441,6 @@ packages:
     resolution: {integrity: sha512-Fl70vYtsAFb/C06PTS9dZBo7ihau+Tu/DNCk/OyHhea07S+aeMWpFFkUaXRa8fI+ScZbEI8dfSxwY7gxZ9SAVQ==}
     dependencies:
       ms: 2.1.3
-    dev: true
 
   /ieee754/1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
@@ -5127,7 +5123,6 @@ packages:
 
   /ms/2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
-    dev: true
 
   /multiformats/9.9.0:
     resolution: {integrity: sha512-HoMUjhH9T8DDBNT+6xzkrd9ga/XiBI4xLr58LJACwK6G3HTOPeMz4nB4KJs33L2BelrIJa7P0VuNaVF3hMYfjg==}
@@ -6832,8 +6827,8 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  github.com/mfactory-lab/jfactory-stake-pool/1beecfbe7c38d9ca8f9e484a5b50ecacf3d6c45e:
-    resolution: {tarball: https://codeload.github.com/mfactory-lab/jfactory-stake-pool/tar.gz/1beecfbe7c38d9ca8f9e484a5b50ecacf3d6c45e}
+  github.com/mfactory-lab/jfactory-stake-pool/85efd1930097f8053bcfee78216b36febc388ca0:
+    resolution: {tarball: https://codeload.github.com/mfactory-lab/jfactory-stake-pool/tar.gz/85efd1930097f8053bcfee78216b36febc388ca0}
     name: '@solana/spl-stake-pool'
     version: 0.6.10
     dependencies:
