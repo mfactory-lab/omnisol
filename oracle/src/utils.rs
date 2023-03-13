@@ -1,114 +1,68 @@
-use anchor_lang::prelude::borsh::BorshDeserialize;
+use std::collections::HashMap;
+
+use anchor_client::{solana_sdk::pubkey::Pubkey, ClientError, Program};
 use gimli::ReaderOffset;
-use omnisol::{
-    state::{Collateral, User},
-    ID,
-};
-use solana_account_decoder::UiAccountEncoding;
-use solana_client::{
-    client_error::Result,
-    rpc_client::RpcClient,
-    rpc_config::{RpcAccountInfoConfig, RpcProgramAccountsConfig},
-    rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType},
-};
-use solana_sdk::{account::Account, pubkey::Pubkey};
+use omnisol::state::{Collateral, User};
+use solana_client::rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType};
 
 pub const PRIORITY_QUEUE_LENGTH: usize = 255;
 pub const USER_DISCRIMINATOR: [u8; 8] = [159, 117, 95, 227, 239, 151, 58, 236];
 pub const COLLATERAL_DISCRIMINATOR: [u8; 8] = [123, 130, 234, 63, 255, 240, 255, 92];
 
-pub fn get_accounts(filters: Option<Vec<RpcFilterType>>, client: &RpcClient) -> Result<Vec<(Pubkey, Account)>> {
-    client.get_program_accounts_with_config(
-        &Pubkey::new_from_array(ID.to_bytes()),
-        RpcProgramAccountsConfig {
-            filters,
-            account_config: RpcAccountInfoConfig {
-                encoding: Some(UiAccountEncoding::Base64),
-                commitment: Some(client.commitment()),
-                ..RpcAccountInfoConfig::default()
-            },
-            ..RpcProgramAccountsConfig::default()
-        },
-    )
-}
+pub fn get_user_data(program: &Program) -> Result<Vec<(Pubkey, User)>, ClientError> {
+    let filters = vec![
+        RpcFilterType::DataSize(User::SIZE.into_u64()),
+        RpcFilterType::Memcmp(Memcmp {
+            offset: 0,
+            bytes: MemcmpEncodedBytes::Bytes(USER_DISCRIMINATOR.to_vec()),
+            encoding: None,
+        }),
+    ];
 
-pub fn get_user_data(client: &RpcClient) -> Result<Vec<(Pubkey, User)>> {
-    let accounts = get_accounts(
-        Some(vec![
-            RpcFilterType::DataSize(User::SIZE.into_u64()),
-            RpcFilterType::Memcmp(Memcmp {
-                offset: 0,
-                bytes: MemcmpEncodedBytes::Bytes(USER_DISCRIMINATOR.to_vec()),
-                encoding: None,
-            }),
-        ]),
-        client,
-    )?;
-
-    let mut user_data: Vec<(Pubkey, User)> = accounts
-        .into_iter()
-        .map(|(address, account)| {
-            let user = User::try_from_slice(account.data.as_slice()).expect("Failed to deserialize");
-            (address, user)
-        })
-        .collect::<Vec<_>>();
+    let mut accounts = program.accounts::<User>(filters)?;
 
     // sort by rate
-    user_data.sort_by(|(_, a), (_, b)| a.rate.cmp(&b.rate));
+    accounts.sort_by(|(_, a), (_, b)| a.rate.cmp(&b.rate));
 
-    Ok(user_data)
+    Ok(accounts)
 }
 
-pub fn get_collateral_data(client: &RpcClient) -> Result<Vec<(Pubkey, Collateral)>> {
-    let accounts = get_accounts(
-        Some(vec![
-            RpcFilterType::DataSize(Collateral::SIZE.into_u64()),
-            RpcFilterType::Memcmp(Memcmp {
-                offset: 0,
-                bytes: MemcmpEncodedBytes::Bytes(COLLATERAL_DISCRIMINATOR.to_vec()),
-                encoding: None,
-            }),
-        ]),
-        client,
-    )?;
+pub fn get_collateral_data(program: &Program) -> Result<Vec<(Pubkey, Collateral)>, ClientError> {
+    let filters = vec![
+        RpcFilterType::DataSize(Collateral::SIZE.into_u64()),
+        RpcFilterType::Memcmp(Memcmp {
+            offset: 0,
+            bytes: MemcmpEncodedBytes::Bytes(COLLATERAL_DISCRIMINATOR.to_vec()),
+            encoding: None,
+        }),
+    ];
 
-    let collateral_data = accounts
-        .into_iter()
-        .map(|(address, account)| {
-            let collateral = Collateral::try_from_slice(account.data.as_slice()).expect("Failed to deserialize");
-            (address, collateral)
-        })
-        .collect::<Vec<_>>();
+    let accounts = program.accounts::<Collateral>(filters)?;
 
-    Ok(collateral_data)
+    Ok(accounts)
 }
 
 pub fn generate_priority_queue(
     user_data: Vec<(Pubkey, User)>,
     collateral_data: Vec<(Pubkey, Collateral)>,
-) -> (Vec<Pubkey>, Vec<u64>) {
-    let mut collaterals = vec![];
-    let mut values = vec![];
+) -> HashMap<Pubkey, u64> {
+    let mut map = HashMap::new();
 
-    for (user_address, _) in user_data {
-        if collaterals.len() > PRIORITY_QUEUE_LENGTH {
-            break;
-        }
+    'outer: for (user_address, _) in user_data {
         for (address, collateral) in &collateral_data {
-            if collaterals.len() > PRIORITY_QUEUE_LENGTH {
-                break;
+            if map.len() > PRIORITY_QUEUE_LENGTH {
+                break 'outer;
             }
             if collateral.user == user_address {
                 let rest_amount = collateral.delegation_stake - collateral.liquidated_amount;
                 if rest_amount > 0 {
-                    collaterals.push(*address);
-                    values.push(rest_amount);
+                    map.insert(*address, rest_amount);
                 }
             }
         }
     }
 
-    (collaterals, values)
+    map
 }
 
 #[cfg(test)]
@@ -150,6 +104,7 @@ mod tests {
             user: pubkey_1,
             pool: Default::default(),
             source_stake: Default::default(),
+            delegated_stake: Default::default(),
             delegation_stake: 100,
             amount: 0,
             liquidated_amount: 100,
@@ -161,6 +116,7 @@ mod tests {
             user: pubkey_1,
             pool: Default::default(),
             source_stake: Default::default(),
+            delegated_stake: Default::default(),
             delegation_stake: 100,
             amount: 0,
             liquidated_amount: 0,
@@ -172,6 +128,7 @@ mod tests {
             user: pubkey_2,
             pool: Default::default(),
             source_stake: Default::default(),
+            delegated_stake: Default::default(),
             delegation_stake: 100,
             amount: 0,
             liquidated_amount: 50,
@@ -183,6 +140,7 @@ mod tests {
             user: pubkey_3,
             pool: Default::default(),
             source_stake: Default::default(),
+            delegated_stake: Default::default(),
             delegation_stake: 100,
             amount: 0,
             liquidated_amount: 0,
@@ -194,6 +152,7 @@ mod tests {
             user: pubkey_3,
             pool: Default::default(),
             source_stake: Default::default(),
+            delegated_stake: Default::default(),
             delegation_stake: 100,
             amount: 0,
             liquidated_amount: 99,
@@ -209,16 +168,12 @@ mod tests {
             (collateral_address_4, collateral_4),
             (collateral_address_5, collateral_5),
         ];
-        let result_1 = vec![
-            collateral_address_2,
-            collateral_address_3,
-            collateral_address_4,
-            collateral_address_5,
-        ];
-        let result_2 = vec![100, 50, 100, 1];
-        assert_eq!(
-            generate_priority_queue(user_data, collateral_data),
-            (result_1, result_2)
-        );
+        let mut result = HashMap::new();
+        result.insert(collateral_address_2, 100);
+        result.insert(collateral_address_3, 50);
+        result.insert(collateral_address_4, 100);
+        result.insert(collateral_address_5, 1);
+
+        assert_eq!(generate_priority_queue(user_data, collateral_data), result);
     }
 }

@@ -138,10 +138,18 @@ user.command('unblock')
   .requiredOption('-u, --user <USER>', 'Address of user wallet to unblock')
   .action(actions.unblockUser)
 
+user.command('find')
+  .description('Find user and show info')
+  .argument('<ADDRESS>', 'User wallet address')
+  .action(actions.findUser)
+
 user.command('show')
   .description('Show user info')
-  .argument('<ADDRESS>', 'User wallet address')
+  .argument('<USER_ADDRESS>', 'Address of user')
   .action(actions.showUser)
+  .command('all')
+  .description('Show the list of users')
+  .action(actions.showUsers)
 
 // -------------------------------------------------------
 // Oracle
@@ -181,15 +189,15 @@ deposit.command('stake')
   .description('Deposit native stake account')
   .requiredOption('-p, --pool <POOL>', 'Omnisol pool address for native stake')
   .requiredOption('-s, --source-stake <SOURCE_STAKE>', 'Stake account address')
+  .requiredOption('-a, --amount <AMOUNT>', 'Amount to stake')
+  .requiredOption('-w, --with-split <WITH_SPLIT>', 'Flag that indicates if account need to be split')
   .action(actions.depositStake)
 
 deposit.command('lp-token')
   .description('Deposit lp token')
   .requiredOption('-p, --pool <POOL>', 'Omnisol pool address for lp token')
   .requiredOption('-a, --amount <AMOUNT>', 'Amount of tokens to stake')
-  .requiredOption('-d, --destination <DESTINATION>', 'Associated token account for token and pool')
   .requiredOption('-t, --token <TOKEN>', 'Token to stake')
-  .requiredOption('-s, --source <SOURCE>', 'Associated token account for token and user')
   .action(actions.depositLp)
 
 // -------------------------------------------------------
@@ -203,8 +211,11 @@ withdraw.command('stake')
   .requiredOption('-a, --amount <AMOUNT>', 'Amount of lamports to withdraw')
   .requiredOption('-p, --pool <POOL>', 'Omnisol pool address for native stake')
   .requiredOption('-m, --mint <MINT>', 'Omnisol token mint address')
-  .requiredOption('-s, --stake-account <STAKE_ACCOUNT>', 'Address of stake account to withdraw from')
-  .requiredOption('-u, --user-pool-token <USER_POOL_TOKEN>', 'Associated token account for token and user')
+  .requiredOption('-s, --stake-account <STAKE_ACCOUNT>', 'Address of source stake account')
+  .requiredOption('-w, --with-burn <WITH_BURN>', 'Flag that indicates if user need to withdraw with burning your omnisol tokens or without')
+  .requiredOption('-t, --to-merge <TO_MERGE>', 'Flag that indicates if user need to withdraw with merging stake account')
+  .requiredOption('-d, --delegated-stake <DELEGATED_STAKE>', 'Delegated stake account')
+  .option('-m, --mergable-stake <MERGABLE_STAKE>', 'Mergable stake account to merge withdrew stake account')
   .action(actions.withdrawStake)
 
 withdraw.command('lp-token')
@@ -212,10 +223,8 @@ withdraw.command('lp-token')
   .requiredOption('-a, --amount <AMOUNT>', 'Amount of lamports to withdraw')
   .requiredOption('-p, --pool <POOL>', 'Omnisol pool address for native stake')
   .requiredOption('-m, --mint <MINT>', 'Omnisol token mint address')
-  .requiredOption('-u, --user-pool-token <USER_POOL_TOKEN>', 'Associated token account for Omnisol token and user')
   .requiredOption('-t, --token <TOKEN>', 'Staked LP token mint address')
-  .requiredOption('-s, --source <SOURCE>', 'Associated token account for lp token and pool')
-  .requiredOption('-d, --destination <DESTINATION>', 'Associated token account for lp token and user')
+  .requiredOption('-w, --with-burn <WITH_BURN>', 'Flag that indicates if user need to withdraw with burning your omnisol tokens or without')
   .action(actions.withdrawLpTokens)
 
 // -------------------------------------------------------
@@ -227,7 +236,6 @@ cli.command('burn')
   .requiredOption('-a, --amount <AMOUNT>', 'Amount of tokens to burn')
   .requiredOption('-p, --pool <POOL>', 'Any Omnisol pool (only for clarifying in contract)')
   .requiredOption('-m, --mint <MINT>', 'Omnisol token mint address')
-  .requiredOption('-s, --source-token-account <SOURCE_TOKEN_ACCOUNT>', 'Associated token account for Omnisol token and user')
   .action(actions.burnOmnisol)
 
 // -------------------------------------------------------
@@ -240,7 +248,6 @@ cli.command('mint')
   .requiredOption('-p, --pool <POOL>', 'Omnisol pool of chosen collateral')
   .requiredOption('-m, --mint <MINT>', 'Omnisol token mint address')
   .requiredOption('-s, --staked-address <STAKED_ADDRESS>', 'Address of lp token or native stake')
-  .requiredOption('-u, --user-pool-token <USER_POOL_TOKEN>', 'Associated token account for Omnisol token and user')
   .action(actions.mintOmnisol)
 
 // -------------------------------------------------------
@@ -249,11 +256,19 @@ cli.command('mint')
 
 const collateral = cli.command('collateral')
 
-collateral.command('show')
-  .description('Show collateral info')
+collateral.command('find')
+  .description('Find collateral and show info')
   .argument('<SOURCE_STAKE>', 'Address of lp token or native stake account')
   .argument('<USER>', 'Address of user pda')
+  .action(actions.findCollateral)
+
+collateral.command('show')
+  .description('Show collateral info')
+  .argument('<COLLATERAL_ADDRESS>', 'Address of collateral')
   .action(actions.showCollateral)
+  .command('all')
+  .description('Show the list of collaterals')
+  .action(actions.showCollaterals)
 
 // -------------------------------------------------------
 // WithdrawInfo

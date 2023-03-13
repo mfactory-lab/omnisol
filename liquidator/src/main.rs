@@ -40,7 +40,7 @@ pub struct Args {
 
     /// Sleep duration in seconds
     #[arg(short, long)]
-    pub sleep_duration: Duration,
+    pub sleep_duration: u64,
 }
 
 fn main() {
@@ -88,7 +88,7 @@ fn main() {
                 for queue_member in &oracle_data.priority_queue {
                     // TODO send transaction
 
-                    thread::sleep(args.sleep_duration);
+                    thread::sleep(Duration::from_secs(args.sleep_duration));
 
                     if amount_to_liquidate < queue_member.amount {
                         amount_to_liquidate = 0;

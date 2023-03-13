@@ -1,4 +1,5 @@
 import { BN, web3 } from '@project-serum/anchor'
+import { getOrCreateAssociatedTokenAccount } from '@solana/spl-token'
 import log from 'loglevel'
 import { useContext } from '../context'
 
@@ -6,23 +7,31 @@ interface Opts {
   amount: string
   pool: string
   mint: string
-  userPoolToken: string
   token: string
-  source: string
-  destination: string
+  withBurn: string
 }
 
 export async function withdrawLpTokens(opts: Opts) {
-  const { provider, client } = useContext()
+  const { provider, client, keypair } = useContext()
+
+  const pool = new web3.PublicKey(opts.pool)
+  const lpToken = new web3.PublicKey(opts.token)
+  const poolMint = new web3.PublicKey(opts.mint)
+  const [poolAuthority] = await client.pda.poolAuthority(new web3.PublicKey(opts.pool))
+
+  const destination = await getOrCreateAssociatedTokenAccount(provider.connection, keypair, lpToken, provider.wallet.publicKey)
+  const source = await getOrCreateAssociatedTokenAccount(provider.connection, keypair, lpToken, poolAuthority, true)
+  const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, keypair, poolMint, provider.wallet.publicKey)
 
   const { transaction, user, collateral } = await client.withdrawLPTokens({
     amount: new BN(opts.amount),
-    destination: new web3.PublicKey(opts.destination),
-    lpToken: new web3.PublicKey(opts.token),
-    pool: new web3.PublicKey(opts.pool),
-    poolMint: new web3.PublicKey(opts.mint),
-    source: new web3.PublicKey(opts.source),
-    userPoolToken: new web3.PublicKey(opts.userPoolToken),
+    destination: destination.address,
+    lpToken,
+    pool,
+    poolMint,
+    source: source.address,
+    userPoolToken: userPoolToken.address,
+    withBurn: opts.withBurn.includes('true'),
   })
 
   try {

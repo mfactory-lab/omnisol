@@ -9,7 +9,7 @@ use crate::{
 
 /// The user can use their deposit as collateral and mint omniSOL.
 /// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
-pub fn handle(ctx: Context<WithdrawLPTokens>, amount: u64) -> Result<()> {
+pub fn handle(ctx: Context<WithdrawLPTokens>, amount: u64, with_burn: bool) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 
     if !pool.is_active {
@@ -26,7 +26,10 @@ pub fn handle(ctx: Context<WithdrawLPTokens>, amount: u64) -> Result<()> {
 
     let rest_amount = collateral.delegation_stake - collateral.liquidated_amount;
 
-    if amount == 0 || amount > collateral.amount || amount > rest_amount {
+    if amount == 0
+        || with_burn && amount > rest_amount
+        || !with_burn && amount > rest_amount - collateral.amount
+    {
         return Err(ErrorCode::InsufficientAmount.into());
     }
 
@@ -48,27 +51,39 @@ pub fn handle(ctx: Context<WithdrawLPTokens>, amount: u64) -> Result<()> {
         amount,
     )?;
 
-    collateral.amount -= amount;
+    let mut burn_amount = 0;
+
+    if with_burn {
+        burn_amount = if amount > collateral.amount {
+            collateral.amount
+        } else {
+            amount
+        };
+
+        token::burn(
+            CpiContext::new(
+                ctx.accounts.token_program.to_account_info(),
+                token::Burn {
+                    mint: ctx.accounts.pool_mint.to_account_info(),
+                    from: ctx.accounts.user_pool_token.to_account_info(),
+                    authority: ctx.accounts.authority.to_account_info(),
+                },
+            ),
+            burn_amount,
+        )?;
+
+        collateral.amount -= burn_amount;
+    }
+
     collateral.delegation_stake -= amount;
+    user.rate -= amount - burn_amount;
 
     pool.deposit_amount = pool
         .deposit_amount
         .checked_sub(amount)
         .ok_or(ErrorCode::InsufficientAmount)?;
 
-    token::burn(
-        CpiContext::new(
-            ctx.accounts.token_program.to_account_info(),
-            token::Burn {
-                mint: ctx.accounts.pool_mint.to_account_info(),
-                from: ctx.accounts.user_pool_token.to_account_info(),
-                authority: ctx.accounts.authority.to_account_info(),
-            },
-        ),
-        amount,
-    )?;
-
-    if collateral.delegation_stake - collateral.liquidated_amount == 0 {
+    if collateral.delegation_stake == collateral.liquidated_amount && collateral.amount == collateral.delegation_stake {
         // close the collateral account
         utils::close(collateral.to_account_info(), ctx.accounts.authority.to_account_info())?;
     }

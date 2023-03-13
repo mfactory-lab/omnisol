@@ -72,6 +72,6 @@ impl std::fmt::Display for Cluster {
             Cluster::Localnet => "localnet",
             Cluster::Custom(url, _ws_url) => url,
         };
-        write!(f, "{cluster}")
+        write!(f, "{}", cluster)
     }
 }

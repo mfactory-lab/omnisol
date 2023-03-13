@@ -1,7 +1,7 @@
-import { OmnisolClient } from '@omnisol/sdk';
+import { OmnisolClient } from '@omnisol/sdk'
 import { Buffer } from 'buffer'
 import fs from 'fs'
-import {AnchorProvider, Program, Wallet, web3} from '@project-serum/anchor'
+import { AnchorProvider, Program, Wallet, web3 } from '@project-serum/anchor'
 import type { Cluster } from '@solana/web3.js'
 import { Keypair } from '@solana/web3.js'
 import { clusterUrl } from './utils'
@@ -10,6 +10,7 @@ export interface Context {
   cluster: Cluster | string
   provider: AnchorProvider
   client: OmnisolClient
+  keypair: Keypair
 }
 
 const context: Context = {
@@ -24,7 +25,8 @@ export function initContext({ cluster, keypair }: { cluster: Cluster; keypair: s
   const opts = AnchorProvider.defaultOptions()
   const endpoint = cluster.startsWith('http') ? cluster : clusterUrl(cluster)
   const connection = new web3.Connection(endpoint, opts.commitment)
-  const wallet = new Wallet(Keypair.fromSecretKey(Buffer.from(JSON.parse(fs.readFileSync(keypair).toString()))))
+  const walletKeypair = Keypair.fromSecretKey(Buffer.from(JSON.parse(fs.readFileSync(keypair).toString())))
+  const wallet = new Wallet(walletKeypair)
 
   context.cluster = cluster
   context.provider = new AnchorProvider(connection, wallet, opts)
@@ -32,6 +34,7 @@ export function initContext({ cluster, keypair }: { cluster: Cluster; keypair: s
     program: new Program(OmnisolClient.IDL, OmnisolClient.programId, context.provider),
     wallet: context.provider.wallet,
   })
+  context.keypair = walletKeypair
 
   return context
 }

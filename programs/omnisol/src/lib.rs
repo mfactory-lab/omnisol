@@ -57,23 +57,23 @@ pub mod omnisol {
         deposit_lp_tokens::handle(ctx, amount)
     }
 
-    pub fn deposit_stake(ctx: Context<DepositStake>) -> Result<()> {
-        deposit_stake::handle(ctx)
+    pub fn deposit_stake(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
+        deposit_stake::handle(ctx, amount)
     }
 
     pub fn mint_omnisol(ctx: Context<MintOmnisol>, amount: u64) -> Result<()> {
         mint_omnisol::handle(ctx, amount)
     }
 
-    pub fn withdraw_lp_tokens(ctx: Context<WithdrawLPTokens>, amount: u64) -> Result<()> {
-        withdraw_lp_tokens::handle(ctx, amount)
+    pub fn withdraw_lp_tokens(ctx: Context<WithdrawLPTokens>, amount: u64, with_burn: bool) -> Result<()> {
+        withdraw_lp_tokens::handle(ctx, amount, with_burn)
     }
 
-    pub fn withdraw_stake(ctx: Context<WithdrawStake>, amount: u64) -> Result<()> {
-        withdraw_stake::handle(ctx, amount)
+    pub fn withdraw_stake(ctx: Context<WithdrawStake>, amount: u64, with_burn: bool, with_merge: bool) -> Result<()> {
+        withdraw_stake::handle(ctx, amount, with_burn, with_merge)
     }
 
-    pub fn burn_omnisol<'info>(ctx: Context<'_, '_, '_, 'info, BurnOmnisol<'info>>, amount: u64) -> Result<()> {
+    pub fn burn_omnisol<'info>(ctx: Context<BurnOmnisol>, amount: u64) -> Result<()> {
         burn_omnisol::handle(ctx, amount)
     }
 
