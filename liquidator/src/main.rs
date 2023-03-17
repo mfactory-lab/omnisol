@@ -1,8 +1,7 @@
 mod cluster;
 mod utils;
 
-use std::{path::PathBuf, thread, time};
-use std::time::Duration;
+use std::{path::PathBuf, thread, time, time::Duration};
 
 use clap::Parser;
 use log::{info, LevelFilter};
