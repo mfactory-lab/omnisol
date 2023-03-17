@@ -143,4 +143,10 @@ pub struct User {
 impl User {
     pub const SEED: &'static [u8] = b"user";
     pub const SIZE: usize = 8 + 32 + 8 + 1 + 4 + 4;
+    pub fn get_index(&self) -> u32 {
+        self.last_withdraw_index - self.requests_amount + 1
+    }
+    pub fn next_index(&self) -> u32 {
+        self.last_withdraw_index + 1
+    }
 }

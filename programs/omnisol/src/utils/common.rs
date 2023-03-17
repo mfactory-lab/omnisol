@@ -4,11 +4,7 @@ use std::{
 };
 
 use anchor_lang::{
-    error,
-    error::ErrorCode,
-    solana_program::{account_info::AccountInfo, system_program},
-    Result,
-    __private::CLOSED_ACCOUNT_DISCRIMINATOR,
+    error, error::ErrorCode, solana_program::account_info::AccountInfo, Result, __private::CLOSED_ACCOUNT_DISCRIMINATOR,
 };
 
 pub fn close<'info>(info: AccountInfo<'info>, sol_destination: AccountInfo<'info>) -> Result<()> {

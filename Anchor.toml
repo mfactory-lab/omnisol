@@ -23,3 +23,7 @@ omnisol = "6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7"
 [[test.genesis]]
 address = "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"
 program = "target/deploy/stake_pool.so"
+
+[[test.genesis]]
+address = "unpXTU2Ndrc7WWNyEhQWe4udTzSibLPi25SXv2xbCHQ"
+program = "target/deploy/unstake_it.so"

@@ -98,7 +98,7 @@ pub struct BurnOmnisol<'info> {
         seeds = [
             WithdrawInfo::SEED,
             authority.key().as_ref(),
-            (user.last_withdraw_index + 1).to_le_bytes().as_ref()
+            user.next_index().to_le_bytes().as_ref()
         ],
         bump,
         payer = authority,
