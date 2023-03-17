@@ -858,6 +858,132 @@ export interface Omnisol {
       ]
       'args': []
     },
+    {
+      'name': 'liquidateCollateral'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'poolAuthority'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'collateral'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'collateralOwner'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'collateralOwnerWallet'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'userWallet'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'user'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'withdrawInfo'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'oracle'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'sourceStake'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'liquidator'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'poolAccount'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'solReserves'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'protocolFee'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'protocolFeeDestination'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'feeAccount'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'stakeAccountRecord'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'unstakeItProgram'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'clock'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'tokenProgram'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'stakeProgram'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'systemProgram'
+          'isMut': false
+          'isSigner': false
+        },
+      ]
+      'args': [
+        {
+          'name': 'amount'
+          'type': 'u64'
+        },
+      ]
+    },
   ]
   'accounts': [
     {
@@ -1235,7 +1361,7 @@ export interface Omnisol {
       ]
     },
     {
-      'name': 'WithdrawSolEvent'
+      'name': 'LiquidationEvent'
       'fields': [
         {
           'name': 'pool'
@@ -1248,7 +1374,17 @@ export interface Omnisol {
           'index': false
         },
         {
+          'name': 'collateral'
+          'type': 'publicKey'
+          'index': false
+        },
+        {
           'name': 'amount'
+          'type': 'u64'
+          'index': false
+        },
+        {
+          'name': 'restAmount'
           'type': 'u64'
           'index': false
         },
@@ -2239,6 +2375,132 @@ export const IDL: Omnisol = {
       ],
       args: [],
     },
+    {
+      name: 'liquidateCollateral',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'poolAuthority',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'collateral',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'collateralOwner',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'collateralOwnerWallet',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'userWallet',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'user',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'withdrawInfo',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'oracle',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'sourceStake',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'liquidator',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'poolAccount',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'solReserves',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'protocolFee',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'protocolFeeDestination',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'feeAccount',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'stakeAccountRecord',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'unstakeItProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'clock',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'stakeProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: 'amount',
+          type: 'u64',
+        },
+      ],
+    },
   ],
   accounts: [
     {
@@ -2616,7 +2878,7 @@ export const IDL: Omnisol = {
       ],
     },
     {
-      name: 'WithdrawSolEvent',
+      name: 'LiquidationEvent',
       fields: [
         {
           name: 'pool',
@@ -2629,7 +2891,17 @@ export const IDL: Omnisol = {
           index: false,
         },
         {
+          name: 'collateral',
+          type: 'publicKey',
+          index: false,
+        },
+        {
           name: 'amount',
+          type: 'u64',
+          index: false,
+        },
+        {
+          name: 'restAmount',
           type: 'u64',
           index: false,
         },
