@@ -4,16 +4,14 @@
   "scripts": {
     "api:gen": "pnpm --filter=sdk run api:gen && eslint --fix --ext .ts ./packages/sdk/src/**",
     "ui:dev": "pnpm --filter=ui run dev",
-    "lint:fix": "eslint --cache --fix --ext .js,.vue,.ts ./packages/**",
-    "amman:start": "CI=1 DEBUG='amman:(error|info|debug)*' amman start",
-    "amman:stop": "amman stop"
+    "lint:fix": "eslint --cache --fix --ext .js,.vue,.ts ./packages/**"
   },
   "dependencies": {
     "@project-serum/anchor": "^0.25.0",
     "@omnisol/sdk": "*"
   },
   "devDependencies": {
-    "@solana/spl-stake-pool": "mfactory-lab/jfactory-stake-pool#85efd1930097f8053bcfee78216b36febc388ca0",
+    "@solana/spl-stake-pool": "mfactory-lab/jfactory-stake-pool#7fc7dd2f7a23e7d91a62ca08301ee0890c1cb2a9",
     "@antfu/eslint-config-vue": "^0.34.0",
     "@types/bn.js": "^5.1.0",
     "@types/bs58": "^4.0.1",
