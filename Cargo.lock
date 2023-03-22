@@ -2046,6 +2046,7 @@ checksum = "f051f77a7c8e6957c0696eac88f26b0117e54f52d3fc682ab19397a8812846a4"
 name = "liquidator"
 version = "0.1.0"
 dependencies = [
+ "anchor-client",
  "anchor-lang",
  "anyhow",
  "arrayref",
@@ -2055,9 +2056,6 @@ dependencies = [
  "log",
  "omnisol",
  "simplelog",
- "solana-account-decoder",
- "solana-client",
- "solana-sdk",
 ]
 
 [[package]]
@@ -2428,16 +2426,12 @@ version = "0.1.0"
 dependencies = [
  "anchor-client",
  "anchor-lang",
- "anyhow",
  "arrayref",
  "clap 4.1.6",
  "gimli",
  "log",
  "omnisol",
  "simplelog",
- "solana-account-decoder",
- "solana-client",
- "solana-sdk",
 ]
 
 [[package]]

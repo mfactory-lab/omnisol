@@ -1,13 +1,32 @@
 use std::collections::HashMap;
 
-use anchor_client::{solana_sdk::pubkey::Pubkey, ClientError, Program};
+use anchor_client::{
+    solana_client::rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType},
+    solana_sdk::pubkey::Pubkey,
+    ClientError, Program,
+};
 use gimli::ReaderOffset;
-use omnisol::state::{Collateral, User};
-use solana_client::rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType};
+use omnisol::state::{Collateral, Pool, User};
 
 pub const PRIORITY_QUEUE_LENGTH: usize = 255;
 pub const USER_DISCRIMINATOR: [u8; 8] = [159, 117, 95, 227, 239, 151, 58, 236];
 pub const COLLATERAL_DISCRIMINATOR: [u8; 8] = [123, 130, 234, 63, 255, 240, 255, 92];
+pub const POOL_DISCRIMINATOR: [u8; 8] = [241, 154, 109, 4, 17, 177, 109, 188];
+
+pub fn get_pool_data(program: &Program) -> Result<Vec<(Pubkey, Pool)>, ClientError> {
+    let filters = vec![
+        RpcFilterType::DataSize(Pool::SIZE.into_u64()),
+        RpcFilterType::Memcmp(Memcmp {
+            offset: 0,
+            bytes: MemcmpEncodedBytes::Bytes(POOL_DISCRIMINATOR.to_vec()),
+            encoding: None,
+        }),
+    ];
+
+    let accounts = program.accounts::<Pool>(filters)?;
+
+    Ok(accounts)
+}
 
 pub fn get_user_data(program: &Program) -> Result<Vec<(Pubkey, User)>, ClientError> {
     let filters = vec![
@@ -45,13 +64,22 @@ pub fn get_collateral_data(program: &Program) -> Result<Vec<(Pubkey, Collateral)
 pub fn generate_priority_queue(
     user_data: Vec<(Pubkey, User)>,
     collateral_data: Vec<(Pubkey, Collateral)>,
+    pool_data: Vec<(Pubkey, Pool)>,
 ) -> HashMap<Pubkey, u64> {
     let mut map = HashMap::new();
 
     'outer: for (user_address, _) in user_data {
+        // TODO: maybe should validate the state of user (if it blocked -> continue)
         for (address, collateral) in &collateral_data {
             if map.len() > PRIORITY_QUEUE_LENGTH {
                 break 'outer;
+            }
+            if pool_data
+                .iter()
+                .find(|(address, pool)| *address == collateral.pool && !pool.is_active)
+                .is_some()
+            {
+                continue;
             }
             if collateral.user == user_address {
                 let rest_amount = collateral.delegation_stake - collateral.liquidated_amount;
