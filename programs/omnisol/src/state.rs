@@ -70,6 +70,13 @@ pub struct Collateral {
 }
 
 impl Collateral {
+    pub fn get_source_stake(&self) -> Pubkey {
+        if self.is_native {
+            self.source_stake
+        } else {
+            self.delegated_stake
+        }
+    }
     pub const SEED: &'static [u8] = b"collateral";
     pub const SIZE: usize = 8 + 32 + 32 + 32 + 32 + 8 + 8 + 8 + 8 + 1 + 1;
 }

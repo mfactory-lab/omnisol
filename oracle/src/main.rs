@@ -68,6 +68,7 @@ fn main() {
     let mut previous_queue = HashMap::new();
 
     loop {
+        info!("Thread is paused for {} seconds", args.sleep_duration.as_secs());
         thread::sleep(args.sleep_duration);
 
         let user_data = get_user_data(&program).expect("Can't get user accounts");
@@ -81,6 +82,7 @@ fn main() {
         info!("Generated priority queue: {:?}", queue);
 
         if previous_queue == queue {
+            info!("No changes in priority queue");
             continue;
         }
 
