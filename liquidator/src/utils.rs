@@ -43,7 +43,7 @@ pub fn get_user_data(program: &Program) -> Result<HashMap<Pubkey, User>, ClientE
         }),
     ];
 
-    let accounts = program.accounts::<User>(filters)?;
+    let mut accounts = program.accounts::<User>(filters)?;
 
     let map = accounts.into_iter().collect::<HashMap<_, _>>();
 

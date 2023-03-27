@@ -11,7 +11,9 @@ use anchor_client::{solana_sdk::{
     sysvar::clock,
     stake,
 }, Client, Cluster, Program};
+use anchor_client::solana_client::rpc_client::RpcClient;
 use anchor_client::solana_sdk::signature::Keypair;
+use anchor_client::solana_sdk::transaction::Transaction;
 use anchor_lang::prelude::AccountMeta;
 use anchor_spl::token::spl_token;
 use clap::Parser;
@@ -193,8 +195,10 @@ fn liquidate(
             amount_to_liquidate
         };
 
+        let wallet_keypair = read_keypair_file(&args.keypair).expect("Can't open keypair");
+
         // send tx to contract
-        let result = program
+        let request = program
             .request()
             .accounts(omnisol::accounts::LiquidateCollateral {
                 pool: collateral.pool,
@@ -221,10 +225,29 @@ fn liquidate(
                 stake_program: stake::program::id(),
                 system_program: system_program::id(),
             })
-            .accounts(remaining_accounts)
-            .args(omnisol::instruction::LiquidateCollateral { amount })
-            .signer(&additional_signer)
-            .send();
+            // .accounts(remaining_accounts)
+            .args(omnisol::instruction::LiquidateCollateral { amount });
+            // .signer(&wallet_keypair)
+            // .signer(&additional_signer);
+
+        let instructions = request.instructions().expect("");
+
+        let mut signers:Vec<& dyn Signer> = vec![&wallet_keypair];
+
+        let rpc_client = RpcClient::new_with_commitment("https://api.testnet.solana.com", CommitmentConfig::confirmed());
+
+        let tx = {
+            let latest_hash = rpc_client.get_latest_blockhash().expect("");
+            Transaction::new_signed_with_payer(
+                &instructions,
+                Some(&wallet_keypair.pubkey()),
+                &signers,
+                latest_hash,
+            )
+        };
+        info!("{}", base64::encode(&tx.message_data()));
+
+        let result = request.send();
 
         if let Ok(signature) = result.map_err(|e| error!("Liquidation failed with error - {}", e)) {
             info!("Sent transaction successfully with signature: {}", signature);
@@ -254,11 +277,12 @@ fn get_remaining_accounts(args: &Args, split_stake: Pubkey, collateral: &Collate
         (stake_account_record, remaining_accounts)
     } else {
         let (stake_account_record, _) = Pubkey::find_program_address(&[args.pool.as_ref(), source_stake.as_ref()], &args.unstake_it);
+        // TODO: get another accounts
         let remaining_accounts = vec![
             AccountMeta {
-                pubkey: Default::default(),
-                is_signer: false,
-                is_writable: false,
+                pubkey: split_stake,
+                is_signer: true,
+                is_writable: true,
             },
         ];
         (stake_account_record, remaining_accounts)
