@@ -45,10 +45,12 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
         return Err(ErrorCode::InsufficientAmount.into());
     }
 
-    oracle.priority_queue
+    let mut queue_member = oracle.priority_queue
         .iter_mut()
         .find(|queue_member| queue_member.collateral == collateral.key() && queue_member.amount == rest_amount)
         .ok_or::<Error>(ErrorCode::WrongData.into())?;
+
+    queue_member.amount -= amount;
 
     let pool_key = pool.key();
     let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
@@ -217,6 +219,8 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
             withdraw_info.to_account_info(),
             ctx.accounts.user_wallet.to_account_info(),
         )?;
+
+        user.requests_amount -= 1;
     }
 
     pool.deposit_amount = pool
