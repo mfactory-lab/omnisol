@@ -45,10 +45,10 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
         return Err(ErrorCode::InsufficientAmount.into());
     }
 
-    // oracle.priority_queue
-    //     .iter_mut()
-    //     .find(|queue_member| queue_member.collateral == collateral.key() && queue_member.amount == rest_amount)
-    //     .ok_or::<Error>(ErrorCode::WrongData.into())?;
+    oracle.priority_queue
+        .iter_mut()
+        .find(|queue_member| queue_member.collateral == collateral.key() && queue_member.amount == rest_amount)
+        .ok_or::<Error>(ErrorCode::WrongData.into())?;
 
     let pool_key = pool.key();
     let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
@@ -112,16 +112,15 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
             return Err(ErrorCode::InvalidToken.into());
         }
 
-        let whitelist = ctx.remaining_accounts.get(0).expect("Expect #0 account");
-        let stake_pool = ctx.remaining_accounts.get(1).expect("Expect #1 account");
-        let stake_pool_withdraw_authority = ctx.remaining_accounts.get(2).expect("Expect #2 account");
-        let reserve_stake_account = ctx.remaining_accounts.get(3).expect("Expect #3 account");
-        let manager_fee_account = ctx.remaining_accounts.get(4).expect("Expect #4 account");
-        let stake_history = ctx.remaining_accounts.get(5).expect("Expect #5 account");
-        let validator_list_storage = ctx.remaining_accounts.get(6).expect("Expect #6 account");
-        let stake_to_split = ctx.remaining_accounts.get(7).expect("Expect #7 account");
-        let stake_to_receive = ctx.remaining_accounts.get(8).expect("Expect #8 account");
-        let pool_token_account = ctx.remaining_accounts.get(9).expect("Expect #9 account");
+        let stake_pool = ctx.remaining_accounts.get(0).expect("Expect #0 account");
+        let stake_pool_withdraw_authority = ctx.remaining_accounts.get(1).expect("Expect #1 account");
+        let reserve_stake_account = ctx.remaining_accounts.get(2).expect("Expect #2 account");
+        let manager_fee_account = ctx.remaining_accounts.get(3).expect("Expect #3 account");
+        let stake_history = ctx.remaining_accounts.get(4).expect("Expect #4 account");
+        let validator_list_storage = ctx.remaining_accounts.get(5).expect("Expect #5 account");
+        let stake_to_split = ctx.remaining_accounts.get(6).expect("Expect #6 account");
+        let stake_to_receive = ctx.remaining_accounts.get(7).expect("Expect #7 account");
+        let pool_token_account = ctx.remaining_accounts.get(8).expect("Expect #8 account");
 
         let ix = withdraw_sol(
             &id(),
