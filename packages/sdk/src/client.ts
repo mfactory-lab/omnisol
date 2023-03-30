@@ -1,6 +1,6 @@
 import type { Address, BN, Program } from '@project-serum/anchor'
 import type { PublicKey } from '@solana/web3.js'
-import { Transaction } from '@solana/web3.js'
+import { SYSVAR_STAKE_HISTORY_PUBKEY, Transaction } from '@solana/web3.js'
 import { web3 } from '@project-serum/anchor'
 import type { Collateral, Liquidator, Manager, Oracle, Pool, User, Whitelist, WithdrawInfo } from './generated'
 import {
@@ -630,7 +630,63 @@ export class OmnisolClient {
         isSigner: true,
       }]
     } else {
-      anchorRemainingAccounts = []
+      const stakePool = props.stakePool ?? web3.Keypair.generate().publicKey
+      const stakePoolWithdrawAuthority = props.stakePoolWithdrawAuthority ?? web3.Keypair.generate().publicKey
+      const reserveStakeAccount = props.reserveStakeAccount ?? web3.Keypair.generate().publicKey
+      const managerFeeAccount = props.managerFeeAccount ?? web3.Keypair.generate().publicKey
+      const stakeHistory = SYSVAR_STAKE_HISTORY_PUBKEY
+      const validatorListStorage = props.validatorListStorage ?? web3.Keypair.generate().publicKey
+      const stakeToSplit = props.stakeToSplit ?? web3.Keypair.generate().publicKey
+      const splitStake = props.splitStake ?? web3.Keypair.generate().publicKey
+      const poolTokenAccount = props.poolTokenAccount ?? web3.Keypair.generate().publicKey
+
+      anchorRemainingAccounts = [
+        {
+          pubkey: stakePool,
+          isWritable: true,
+          isSigner: false,
+        },
+        {
+          pubkey: stakePoolWithdrawAuthority,
+          isWritable: false,
+          isSigner: false,
+        },
+        {
+          pubkey: reserveStakeAccount,
+          isWritable: true,
+          isSigner: false,
+        },
+        {
+          pubkey: managerFeeAccount,
+          isWritable: true,
+          isSigner: false,
+        },
+        {
+          pubkey: stakeHistory,
+          isWritable: false,
+          isSigner: false,
+        },
+        {
+          pubkey: validatorListStorage,
+          isWritable: true,
+          isSigner: false,
+        },
+        {
+          pubkey: stakeToSplit,
+          isWritable: true,
+          isSigner: false,
+        },
+        {
+          pubkey: splitStake,
+          isWritable: true,
+          isSigner: true,
+        },
+        {
+          pubkey: poolTokenAccount,
+          isWritable: true,
+          isSigner: false,
+        },
+      ]
     }
     const ix = createLiquidateCollateralInstruction(
       {
@@ -668,7 +724,7 @@ export class OmnisolClient {
       user,
       withdrawInfo,
       collateral,
-      poolAuthority,
+      pool,
     }
   }
 }
@@ -878,5 +934,12 @@ interface LiquidateCollateralProps {
   stakeAccountRecord: PublicKey
   unstakeItProgram: PublicKey
   splitStake?: PublicKey
+  stakePool?: PublicKey
+  stakePoolWithdrawAuthority?: PublicKey
+  reserveStakeAccount?: PublicKey
+  managerFeeAccount?: PublicKey
+  validatorListStorage?: PublicKey
+  stakeToSplit?: PublicKey
+  poolTokenAccount?: PublicKey
   amount: BN
 }
