@@ -1,15 +1,22 @@
 import {
   TOKEN_PROGRAM_ID,
   createAssociatedTokenAccount,
-  createInitializeAccountInstruction,
   createMint,
   getOrCreateAssociatedTokenAccount, mintTo,
 } from '@solana/spl-token'
 import { AnchorProvider, BN, Program, Wallet, web3 } from '@project-serum/anchor'
-import {LAMPORTS_PER_SOL} from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, PublicKey, Transaction } from '@solana/web3.js'
 import { assert } from 'chai'
 import { OmnisolClient } from '@omnisol/sdk'
-import { STAKE_POOL_PROGRAM_ID, depositSol, getStakePoolAccount, getStakePoolAccounts, initialize } from '@solana/spl-stake-pool'
+import { STAKE_POOL_PROGRAM_ID, depositSol, initialize } from '@solana/spl-stake-pool'
+import * as beet from '@metaplex-foundation/beet'
+import type {
+  AddLiquidityAccounts,
+  CreatePoolAccounts,
+  Fee,
+  Unstake,
+} from '@unstake-it/sol'
+import { IDL_JSON as UNSTAKE_IDL_JSON, addLiquidityTx, createPoolTx, findPoolFeeAccount, findPoolSolReserves, findProtocolFeeAccount } from '@unstake-it/sol'
 
 const payerKeypair = web3.Keypair.fromSecretKey(Uint8Array.from([46, 183, 156, 94, 55, 128, 248, 0, 49, 70, 183, 244, 178, 0, 0, 236, 212, 131, 76, 78, 112, 48, 25, 79, 249, 33, 43, 158, 199, 2, 168, 18, 55, 174, 166, 159, 57, 67, 197, 158, 255, 142, 177, 177, 47, 39, 35, 185, 148, 253, 191, 58, 219, 119, 104, 89, 225, 26, 244, 119, 160, 6, 156, 227]))
 const opts = AnchorProvider.defaultOptions()
@@ -19,11 +26,24 @@ const provider = new AnchorProvider(
   AnchorProvider.defaultOptions(),
 )
 
+const unstakeItProgram = new web3.PublicKey('unpXTU2Ndrc7WWNyEhQWe4udTzSibLPi25SXv2xbCHQ')
+
 describe('omnisol', () => {
   const client = new OmnisolClient({
     program: new Program(OmnisolClient.IDL, OmnisolClient.programId, provider),
     wallet: provider.wallet,
   })
+
+  const initProtocolFeeStruct = new beet.BeetArgsStruct<{
+    instructionDiscriminator: number[] /* size: 8 */
+  }>(
+    [['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)]],
+    'InitProtocolFeeIxArgs',
+  )
+
+  const initProtocolFeeInstructionDiscriminator = [
+    225, 155, 167, 170, 29, 145, 165, 90,
+  ]
 
   let pool: web3.PublicKey
   let poolForLP: web3.PublicKey
@@ -37,6 +57,13 @@ describe('omnisol', () => {
   let stakePool: web3.PublicKey
   let mintAuthority: web3.PublicKey
   let splitAccount: web3.PublicKey
+
+  // unstake.it accounts
+  let unstakeItPool: web3.PublicKey
+  let protocolFeeAccount: web3.PublicKey
+  let feeAccount: web3.PublicKey
+  let protocolFeeDestination: web3.PublicKey
+  let poolSolReserves: web3.PublicKey
 
   before(async () => {
     await provider.connection.confirmTransaction(
@@ -58,6 +85,117 @@ describe('omnisol', () => {
 
     const managerData = await client.fetchManager(manager)
     assert.equal(managerData.manager.equals(provider.wallet.publicKey), true)
+  })
+
+  it('unstake.it init', async () => {
+    const unstakeItPoolKeypair = web3.Keypair.generate()
+    unstakeItPool = unstakeItPoolKeypair.publicKey
+    const poolMintKeypair = web3.Keypair.generate()
+    const poolMint = poolMintKeypair.publicKey
+
+    const accounts: CreatePoolAccounts = {
+      feeAuthority: provider.wallet.publicKey,
+      poolAccount: unstakeItPool,
+      lpMint: poolMint,
+    }
+
+    const UNSTAKE_PROGRAM: Program<Unstake> = new Program(
+      UNSTAKE_IDL_JSON as Unstake,
+      unstakeItProgram,
+    )
+
+    const fee: Fee = {
+      fee: {
+        flat: {
+          ratio: {
+            num: new BN(0),
+            denom: new BN(2),
+          },
+        },
+      },
+    }
+
+    const tx1 = await createPoolTx(UNSTAKE_PROGRAM, fee, accounts)
+
+    try {
+      await provider.sendAndConfirm(tx1, [unstakeItPoolKeypair, poolMintKeypair])
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const mintLpTokensTo = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+
+    const accounts1: AddLiquidityAccounts = {
+      from: provider.wallet.publicKey,
+      poolAccount: unstakeItPool,
+      lpMint: poolMint,
+      mintLpTokensTo: mintLpTokensTo.address,
+    }
+
+    const tx2 = await addLiquidityTx(UNSTAKE_PROGRAM, new BN(1000 * LAMPORTS_PER_SOL), accounts1)
+
+    try {
+      await provider.sendAndConfirm(tx2)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const [initProtocolFeeData] = initProtocolFeeStruct.serialize({
+      instructionDiscriminator: initProtocolFeeInstructionDiscriminator,
+    })
+    const [pfAccount] = await findProtocolFeeAccount(unstakeItProgram)
+    const initProtocolFeeKeys: web3.AccountMeta[] = [
+      {
+        pubkey: provider.wallet.publicKey,
+        isWritable: true,
+        isSigner: true,
+      },
+      {
+        pubkey: pfAccount,
+        isWritable: true,
+        isSigner: false,
+      },
+      {
+        pubkey: web3.SystemProgram.programId,
+        isWritable: true,
+        isSigner: false,
+      },
+    ]
+
+    const ix = new web3.TransactionInstruction({
+      programId: unstakeItProgram,
+      keys: initProtocolFeeKeys,
+      data: initProtocolFeeData,
+    })
+
+    const tx = new Transaction().add(ix)
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    protocolFeeAccount = pfAccount
+
+    const [psReserves] = await findPoolSolReserves(
+      unstakeItProgram,
+      unstakeItPool,
+    )
+    poolSolReserves = psReserves
+    const [fAccount] = await findPoolFeeAccount(
+      unstakeItProgram,
+      unstakeItPool,
+    )
+    feeAccount = fAccount
+
+    const FETCHED_PROTOCOL_FEE_DATA = await UNSTAKE_PROGRAM.account.protocolFee.fetch(pfAccount)
+
+    const { destination } = FETCHED_PROTOCOL_FEE_DATA
+    protocolFeeDestination = destination
   })
 
   it('can init oracle', async () => {
@@ -1719,6 +1857,21 @@ describe('omnisol', () => {
     } catch (e: any) {
       assertErrorCode(e, 'InsufficientAmount')
     }
+
+    const addresses = [collateral]
+    const values = [new BN(collateralData.delegationStake)]
+    const { tx: tx2 } = await client.updateOracleInfo({
+      oracle,
+      addresses,
+      values,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx2)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
   })
 
   it('can not burn omnisol when pool paused', async () => {
@@ -1861,31 +2014,210 @@ describe('omnisol', () => {
     assert.equal(withdrawInfoData.authority.equals(provider.wallet.publicKey), true)
   })
 
-  it('can liquidate collateral', async () => {
-    const poolAddr = new web3.PublicKey('FypPtwbY3FUfzJUtXHSyVRokVKG2jKtH29FmK4ebxRSd')
-    const [stakeAccountRecord] = await web3.PublicKey.findProgramAddress(
-      [poolAddr.toBuffer(), stakeAccount.toBuffer()],
-      new web3.PublicKey('unpXTU2Ndrc7WWNyEhQWe4udTzSibLPi25SXv2xbCHQ'),
-    )
+  it('can not liquidate if pool paused', async () => {
+    const { tx: tx1 } = await client.pausePool({
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx1)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
 
     const splitKeypair = web3.Keypair.generate()
     const splitStake = splitKeypair.publicKey
 
+    const [stakeAccountRecord] = await web3.PublicKey.findProgramAddress(
+      [unstakeItPool.toBuffer(), splitStake.toBuffer()],
+      unstakeItProgram,
+    )
+
     const { tx } = await client.liquidateCollateral({
       amount: new BN(5000000000),
-      feeAccount: new web3.PublicKey('So11111111111111111111111111111111111111112'),
+      feeAccount,
       oracle,
       pool,
-      poolAccount: poolAddr,
-      protocolFee: new web3.PublicKey('2hN9UhvRFVfPYKL6rZJ5YiLEPCLTpN755pgwDJHWgFbU'),
-      protocolFeeDestination: new web3.PublicKey('GnRGTBrFuEwb85Zs4zeZWUzQYfTwmPxCPYmQQodDzYUK'),
-      solReserves: new web3.PublicKey('3rBnnH9TTgd3xwu48rnzGsaQkSr1hR64nY71DrDt6VrQ'),
+      poolAccount: unstakeItPool,
+      protocolFee: protocolFeeAccount,
+      protocolFeeDestination,
+      solReserves: poolSolReserves,
       sourceStake: stakeAccount,
       stakeAccountRecord,
       collateralOwnerWallet: provider.wallet.publicKey,
       userWallet: provider.wallet.publicKey,
       splitStake,
-      unstakeItProgram: new web3.PublicKey('unpXTU2Ndrc7WWNyEhQWe4udTzSibLPi25SXv2xbCHQ'),
+      unstakeItProgram,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx, [splitKeypair])
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, 'PoolAlreadyPaused')
+    }
+
+    const { tx: tx2 } = await client.resumePool({
+      pool,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx2)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+  })
+
+  it('can not liquidate if user blocked', async () => {
+    const { tx: tx1 } = await client.blockUser({
+      userWallet: provider.wallet.publicKey,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx1)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const splitKeypair = web3.Keypair.generate()
+    const splitStake = splitKeypair.publicKey
+
+    const [stakeAccountRecord] = await web3.PublicKey.findProgramAddress(
+      [unstakeItPool.toBuffer(), splitStake.toBuffer()],
+      unstakeItProgram,
+    )
+
+    const { tx } = await client.liquidateCollateral({
+      amount: new BN(5000000000),
+      feeAccount,
+      oracle,
+      pool,
+      poolAccount: unstakeItPool,
+      protocolFee: protocolFeeAccount,
+      protocolFeeDestination,
+      solReserves: poolSolReserves,
+      sourceStake: stakeAccount,
+      stakeAccountRecord,
+      collateralOwnerWallet: provider.wallet.publicKey,
+      userWallet: provider.wallet.publicKey,
+      splitStake,
+      unstakeItProgram,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx, [splitKeypair])
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, 'UserBlocked')
+    }
+
+    const { tx: tx2 } = await client.unblockUser({
+      userWallet: provider.wallet.publicKey,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx2)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+  })
+
+  it('can not liquidate if amount is 0', async () => {
+    const splitKeypair = web3.Keypair.generate()
+    const splitStake = splitKeypair.publicKey
+
+    const [stakeAccountRecord] = await web3.PublicKey.findProgramAddress(
+      [unstakeItPool.toBuffer(), splitStake.toBuffer()],
+      unstakeItProgram,
+    )
+
+    const { tx } = await client.liquidateCollateral({
+      amount: new BN(0),
+      feeAccount,
+      oracle,
+      pool,
+      poolAccount: unstakeItPool,
+      protocolFee: protocolFeeAccount,
+      protocolFeeDestination,
+      solReserves: poolSolReserves,
+      sourceStake: stakeAccount,
+      stakeAccountRecord,
+      collateralOwnerWallet: provider.wallet.publicKey,
+      userWallet: provider.wallet.publicKey,
+      splitStake,
+      unstakeItProgram,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx, [splitKeypair])
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, 'InsufficientAmount')
+    }
+  })
+
+  it('can not liquidate if amount greater than collateral`s rest amount', async () => {
+    const splitKeypair = web3.Keypair.generate()
+    const splitStake = splitKeypair.publicKey
+
+    const [stakeAccountRecord] = await web3.PublicKey.findProgramAddress(
+      [unstakeItPool.toBuffer(), splitStake.toBuffer()],
+      unstakeItProgram,
+    )
+
+    const { tx } = await client.liquidateCollateral({
+      amount: new BN(5000000001),
+      feeAccount,
+      oracle,
+      pool,
+      poolAccount: unstakeItPool,
+      protocolFee: protocolFeeAccount,
+      protocolFeeDestination,
+      solReserves: poolSolReserves,
+      sourceStake: stakeAccount,
+      stakeAccountRecord,
+      collateralOwnerWallet: provider.wallet.publicKey,
+      userWallet: provider.wallet.publicKey,
+      splitStake,
+      unstakeItProgram,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx, [splitKeypair])
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, 'InsufficientAmount')
+    }
+  })
+
+  it('can liquidate collateral', async () => {
+    const splitKeypair = web3.Keypair.generate()
+    const splitStake = splitKeypair.publicKey
+
+    const [stakeAccountRecord] = await web3.PublicKey.findProgramAddress(
+      [unstakeItPool.toBuffer(), splitStake.toBuffer()],
+      unstakeItProgram,
+    )
+
+    const { tx, user, pool: omnisolPool, collateral, withdrawInfo } = await client.liquidateCollateral({
+      amount: new BN(5000000000),
+      feeAccount,
+      oracle,
+      pool,
+      poolAccount: unstakeItPool,
+      protocolFee: protocolFeeAccount,
+      protocolFeeDestination,
+      solReserves: poolSolReserves,
+      sourceStake: stakeAccount,
+      stakeAccountRecord,
+      collateralOwnerWallet: provider.wallet.publicKey,
+      userWallet: provider.wallet.publicKey,
+      splitStake,
+      unstakeItProgram,
     })
 
     try {
@@ -1895,14 +2227,120 @@ describe('omnisol', () => {
       throw e
     }
 
-    // userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
-    //
-    // assert.equal(userPoolBalance.value.amount, '500000000')
-    //
-    // const withdrawInfoData = await client.fetchWithdrawInfo(withdrawInfo)
-    //
-    // assert.equal(withdrawInfoData.amount.toString(), '500000000')
-    // assert.equal(withdrawInfoData.authority.equals(provider.wallet.publicKey), true)
+    const poolData = await client.fetchGlobalPool(omnisolPool)
+    const userData = await client.fetchUser(user)
+    const collateralData = await client.fetchCollateral(collateral)
+    const withdrawInfoData = await client.fetchWithdrawInfo(withdrawInfo)
+
+    assert.equal(poolData.depositAmount, 5000000000)
+    assert.equal(userData.requestsAmount, 1)
+    assert.equal(collateralData.liquidatedAmount, 5000000000)
+    assert.equal(withdrawInfoData, undefined)
+  })
+
+  it('can not liquidate if collateral is not in priority queue', async () => {
+    const oracleData = await client.fetchOracle(oracle)
+    const testAddresses = [PublicKey.unique()]
+    const testValues = [new BN(5000000000)]
+    const { tx: tx1 } = await client.updateOracleInfo({
+      oracle,
+      addresses: testAddresses,
+      values: testValues,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx1)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const splitKeypair = web3.Keypair.generate()
+    const splitStake = splitKeypair.publicKey
+
+    const [stakeAccountRecord] = await web3.PublicKey.findProgramAddress(
+      [unstakeItPool.toBuffer(), splitStake.toBuffer()],
+      unstakeItProgram,
+    )
+
+    const { tx } = await client.liquidateCollateral({
+      amount: new BN(5000000000),
+      feeAccount,
+      oracle,
+      pool,
+      poolAccount: unstakeItPool,
+      protocolFee: protocolFeeAccount,
+      protocolFeeDestination,
+      solReserves: poolSolReserves,
+      sourceStake: stakeAccount,
+      stakeAccountRecord,
+      collateralOwnerWallet: provider.wallet.publicKey,
+      userWallet: provider.wallet.publicKey,
+      splitStake,
+      unstakeItProgram,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx, [splitKeypair])
+      assert.ok(false)
+    } catch (e: any) {
+      assertErrorCode(e, 'WrongData')
+    }
+
+    const queueMember = oracleData.priorityQueue.pop()
+    if (queueMember !== undefined) {
+      const addresses = [queueMember.collateral]
+      const values = [new BN(queueMember.amount)]
+      const { tx: tx2 } = await client.updateOracleInfo({
+        oracle,
+        addresses,
+        values,
+      })
+
+      try {
+        await provider.sendAndConfirm(tx2)
+      } catch (e) {
+        console.log(e)
+        throw e
+      }
+    }
+  })
+
+  it('should close collateral if all deposit is liquidated and all possible omnisol are minted', async () => {
+    const splitKeypair = web3.Keypair.generate()
+    const splitStake = splitKeypair.publicKey
+
+    const [stakeAccountRecord] = await web3.PublicKey.findProgramAddress(
+      [unstakeItPool.toBuffer(), stakeAccount.toBuffer()],
+      unstakeItProgram,
+    )
+
+    const { tx, collateral } = await client.liquidateCollateral({
+      amount: new BN(5000000000),
+      feeAccount,
+      oracle,
+      pool,
+      poolAccount: unstakeItPool,
+      protocolFee: protocolFeeAccount,
+      protocolFeeDestination,
+      solReserves: poolSolReserves,
+      sourceStake: stakeAccount,
+      stakeAccountRecord,
+      collateralOwnerWallet: provider.wallet.publicKey,
+      userWallet: provider.wallet.publicKey,
+      splitStake,
+      unstakeItProgram,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx, [splitKeypair])
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const collateralData = await client.fetchCollateral(collateral)
+    assert.equal(collateralData, undefined)
   })
 
   it('can close oracle', async () => {
