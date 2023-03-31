@@ -1,6 +1,6 @@
 use anchor_lang::{
     prelude::*,
-    solana_program::program::{invoke, invoke_signed},
+    solana_program::program::invoke_signed,
 };
 use anchor_spl::token;
 use spl_stake_pool::{
@@ -118,6 +118,7 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
         let stake_pool_withdraw_authority = ctx.remaining_accounts.get(1).expect("Expect #1 account");
         let reserve_stake_account = ctx.remaining_accounts.get(2).expect("Expect #2 account");
         let manager_fee_account = ctx.remaining_accounts.get(3).expect("Expect #3 account");
+        let stake_history = ctx.remaining_accounts.get(4).expect("Expect #4 account");
 
         let ix = withdraw_sol(
             &id(),
@@ -149,7 +150,6 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
         ];
 
         if let Err(_) = invoke_signed(&ix, &account_infos, &[&pool_authority_seeds]) {
-            let stake_history = ctx.remaining_accounts.get(4).expect("Expect #4 account");
             let validator_list_storage = ctx.remaining_accounts.get(5).expect("Expect #5 account");
             let stake_to_split = ctx.remaining_accounts.get(6).expect("Expect #6 account");
             let stake_to_receive = ctx.remaining_accounts.get(7).expect("Expect #7 account");
