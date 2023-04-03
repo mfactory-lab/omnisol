@@ -295,7 +295,7 @@ pub struct LiquidateCollateral<'info> {
         mut,
         seeds = [
             WithdrawInfo::SEED,
-            authority.key().as_ref(),
+            user_wallet.key().as_ref(),
             user.get_index().to_le_bytes().as_ref(),
         ],
         bump,

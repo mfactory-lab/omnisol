@@ -18,6 +18,7 @@ export async function updateOracleInfo(opts: Opts) {
     addresses: [...addresses].map(a => new web3.PublicKey(a)),
     oracle: new web3.PublicKey(opts.oracle),
     values: [...values].map(v => new BN(v)),
+    toClear: true,
   })
 
   try {

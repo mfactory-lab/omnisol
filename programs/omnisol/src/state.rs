@@ -74,9 +74,9 @@ pub struct Collateral {
 impl Collateral {
     pub fn get_source_stake(&self) -> Pubkey {
         if self.is_native {
-            self.source_stake
-        } else {
             self.delegated_stake
+        } else {
+            self.source_stake
         }
     }
     pub const SEED: &'static [u8] = b"collateral";
