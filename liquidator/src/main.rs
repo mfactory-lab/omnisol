@@ -196,6 +196,7 @@ fn liquidate(
         };
 
         let wallet_keypair = read_keypair_file(&args.keypair).expect("Can't open keypair");
+        println!("{}", collateral.pool);
 
         // send tx to contract
         let request = program
@@ -225,14 +226,13 @@ fn liquidate(
                 stake_program: stake::program::id(),
                 system_program: system_program::id(),
             })
-            // .accounts(remaining_accounts)
-            .args(omnisol::instruction::LiquidateCollateral { amount });
-            // .signer(&wallet_keypair)
-            // .signer(&additional_signer);
+            .accounts(remaining_accounts)
+            .args(omnisol::instruction::LiquidateCollateral { amount })
+            .signer(&additional_signer);
 
         let instructions = request.instructions().expect("");
 
-        let mut signers:Vec<& dyn Signer> = vec![&wallet_keypair];
+        let mut signers:Vec<& dyn Signer> = vec![&wallet_keypair, &additional_signer];
 
         let rpc_client = RpcClient::new_with_commitment("https://api.testnet.solana.com", CommitmentConfig::confirmed());
 
@@ -249,7 +249,7 @@ fn liquidate(
 
         let result = request.send();
 
-        if let Ok(signature) = result.map_err(|e| error!("Liquidation failed with error - {}", e)) {
+        if let Ok(signature) = result.map_err(|e| error!("Liquidation failed with an error - {}", e)) {
             info!("Sent transaction successfully with signature: {}", signature);
 
             if amount_to_liquidate < queue_member.amount {
@@ -288,58 +288,3 @@ fn get_remaining_accounts(args: &Args, split_stake: Pubkey, collateral: &Collate
         (stake_account_record, remaining_accounts)
     }
 }
-
-// fn process_tx(
-//     args: &Args,
-//     program: &Program,
-//     collateral: &Collateral,
-//     pool_authority: Pubkey,
-//     queue_member: QueueMember,
-//     collateral_owner: &User,
-//     user: User,
-//     user_key: Pubkey,
-//     withdraw_address: Pubkey,
-//     source_stake: Pubkey,
-//     liquidator_account: Pubkey,
-//     stake_account_record: Pubkey,
-//     remaining_accounts: Vec<AccountMeta>,
-//     amount: u64,
-//     additional_signer: Keypair,
-// ) {
-//     // send tx to contract
-//     let result = program
-//         .request()
-//         .accounts(omnisol::accounts::LiquidateCollateral {
-//             pool: collateral.pool,
-//             pool_authority,
-//             collateral: queue_member.collateral,
-//             collateral_owner: collateral.user,
-//             collateral_owner_wallet: collateral_owner.wallet,
-//             user_wallet: user.wallet,
-//             user: user_key,
-//             withdraw_info: withdraw_address,
-//             oracle: args.oracle,
-//             source_stake,
-//             liquidator: liquidator_account,
-//             pool_account: args.pool,
-//             sol_reserves: args.reserves,
-//             protocol_fee: args.fee_protocol,
-//             protocol_fee_destination: args.destination_fee,
-//             fee_account: args.account_fee,
-//             stake_account_record,
-//             unstake_it_program: args.unstake_it,
-//             authority: args.liquidator,
-//             clock: clock::id(),
-//             token_program: spl_token::id(),
-//             stake_program: stake::program::id(),
-//             system_program: system_program::id(),
-//         })
-//         .accounts(remaining_accounts)
-//         .args(omnisol::instruction::LiquidateCollateral { amount })
-//         .signer(&additional_signer)
-//         .send();
-//
-//     if let Ok(signature) = result.map_err(|e| error!("Liquidation failed with error - {}", e)) {
-//         info!("Sent transaction successfully with signature: {}", signature);
-//     }
-// }
