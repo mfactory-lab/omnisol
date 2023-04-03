@@ -14,6 +14,7 @@ use anchor_client::{
 use clap::Parser;
 use log::{info, LevelFilter};
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
+use omnisol::state::Oracle;
 
 use crate::utils::{generate_priority_queue, get_collateral_data, get_pool_data, get_user_data};
 
@@ -86,7 +87,7 @@ fn main() {
             continue;
         }
 
-        let (addresses, values) =
+        let (mut addresses, mut values) =
             queue
                 .clone()
                 .into_iter()
@@ -96,19 +97,45 @@ fn main() {
                     (addresses, values)
                 });
 
-        // send tx to contract
-        let signature = program
-            .request()
-            .accounts(omnisol::accounts::UpdateOracleInfo {
-                authority: wallet_pubkey,
-                oracle: args.oracle,
-                system_program: system_program::id(),
-            })
-            .args(omnisol::instruction::UpdateOracleInfo { addresses, values })
-            .send()
-            .expect("Transaction failed.");
+        let mut to_clear = true;
+        let mut batches_amount = addresses.len() / Oracle::MAX_BATCH_LENGTH;
 
-        info!("Sent transaction successfully with signature: {}", signature);
+        let last_batch_len = addresses.len() - (batches_amount * Oracle::MAX_BATCH_LENGTH);
+        if last_batch_len > 0 {
+            batches_amount += 1;
+        }
+
+        let mut address_batches = vec![];
+        let mut value_batches = vec![];
+
+        for batch_id in 0..batches_amount {
+            let batch_len = if batch_id == batches_amount - 1 {
+                last_batch_len
+            } else {
+                Oracle::MAX_BATCH_LENGTH
+            };
+            let new_addresses: Vec<_> = addresses.drain(0..batch_len).collect();
+            let new_values: Vec<_> = values.drain(0..batch_len).collect();
+            address_batches.push(new_addresses);
+            value_batches.push(new_values);
+        }
+
+        for (addresses, values) in address_batches.into_iter().zip(value_batches.into_iter()) {
+            // send tx to contract
+            let signature = program
+                .request()
+                .accounts(omnisol::accounts::UpdateOracleInfo {
+                    authority: wallet_pubkey,
+                    oracle: args.oracle,
+                    system_program: system_program::id(),
+                })
+                .args(omnisol::instruction::UpdateOracleInfo { addresses, values, to_clear })
+                .send()
+                .expect("Transaction failed.");
+
+            info!("Sent transaction successfully with signature: {}", signature);
+            to_clear = false;
+        }
 
         previous_queue = queue;
     }
