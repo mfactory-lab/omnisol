@@ -16,9 +16,7 @@ pub fn handle(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Ve
         oracle.priority_queue = vec![];
     }
 
-    for i in 0..addresses.len() {
-        let collateral = *addresses.get(i).unwrap();
-        let amount = *values.get(i).unwrap();
+    for (collateral, amount) in addresses.into_iter().zip(values.into_iter()) {
         let queue_member = QueueMember { collateral, amount };
         oracle.priority_queue.push(queue_member);
     }
