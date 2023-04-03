@@ -41,6 +41,7 @@ export class OmnisolClient {
   static IDL = IDL
   static clock = web3.SYSVAR_CLOCK_PUBKEY
   static stakeProgram = web3.StakeProgram.programId
+  static stakingPoolProgram = new web3.PublicKey('SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy')
 
   constructor(private readonly props: OmnisolClientProps) {}
 
@@ -642,6 +643,11 @@ export class OmnisolClient {
       const poolTokenAccount = props.poolTokenAccount ?? web3.Keypair.generate().publicKey
 
       anchorRemainingAccounts = [
+        {
+          pubkey: OmnisolClient.stakingPoolProgram,
+          isWritable: false,
+          isSigner: false,
+        },
         {
           pubkey: stakePool,
           isWritable: true,
