@@ -8,7 +8,7 @@ import { AnchorProvider, BN, Program, Wallet, web3 } from '@project-serum/anchor
 import { LAMPORTS_PER_SOL, PublicKey, Transaction } from '@solana/web3.js'
 import { assert } from 'chai'
 import { OmnisolClient } from '@omnisol/sdk'
-import { STAKE_POOL_PROGRAM_ID, depositSol, initialize } from '@solana/spl-stake-pool'
+import { STAKE_POOL_PROGRAM_ID, depositSol, initialize, withdrawSol } from '@solana/spl-stake-pool'
 import * as beet from '@metaplex-foundation/beet'
 import type {
   AddLiquidityAccounts,
@@ -54,9 +54,17 @@ describe('omnisol', () => {
   let poolForLPAuthority: web3.PublicKey
   let stakeAccount: web3.PublicKey
   let oracle: web3.PublicKey
-  let stakePool: web3.PublicKey
   let mintAuthority: web3.PublicKey
   let splitAccount: web3.PublicKey
+
+  // staking pool accounts
+  let stakePool: web3.PublicKey
+  let stakePoolMint: web3.PublicKey
+  let validatorList: web3.PublicKey
+  let withdrawAuthority: web3.PublicKey
+  let reserveStakeAccount: web3.PublicKey
+  let managerFeeAccount: web3.PublicKey
+  let poolTokenAccount: web3.PublicKey
 
   // unstake.it accounts
   let unstakeItPool: web3.PublicKey
@@ -387,14 +395,17 @@ describe('omnisol', () => {
     const stakePoolKeypair = web3.Keypair.generate()
     stakePool = stakePoolKeypair.publicKey
     const validatorListKeypair = web3.Keypair.generate()
-    const [withdrawAuthority] = await web3.PublicKey.findProgramAddress(
+    validatorList = validatorListKeypair.publicKey
+    const [authority] = await web3.PublicKey.findProgramAddress(
       [stakePoolKeypair.publicKey.toBuffer(), Buffer.from('withdraw')],
       STAKE_POOL_PROGRAM_ID,
     )
-    const stakePoolMint = await createMint(provider.connection, payerKeypair, withdrawAuthority, null, 9, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
+    withdrawAuthority = authority
+    stakePoolMint = await createMint(provider.connection, payerKeypair, withdrawAuthority, null, 9, web3.Keypair.generate(), null, TOKEN_PROGRAM_ID)
     const reserveKeypair = web3.Keypair.generate()
-    const reserveAccount = reserveKeypair.publicKey
-    const managerPoolAccount = await createAssociatedTokenAccount(provider.connection, payerKeypair, stakePoolMint, provider.wallet.publicKey)
+    reserveStakeAccount = reserveKeypair.publicKey
+    managerFeeAccount = await createAssociatedTokenAccount(provider.connection, payerKeypair, stakePoolMint, provider.wallet.publicKey)
+    poolTokenAccount = managerFeeAccount
 
     const lamportsForStakeAccount
       = (await provider.connection.getMinimumBalanceForRentExemption(
@@ -408,7 +419,7 @@ describe('omnisol', () => {
         withdrawAuthority,
       ),
       lamports: lamportsForStakeAccount + 1,
-      stakePubkey: reserveAccount,
+      stakePubkey: reserveStakeAccount,
     })
     await provider.sendAndConfirm(createAccountTransaction, [payerKeypair, reserveKeypair])
 
@@ -416,11 +427,11 @@ describe('omnisol', () => {
       connection: provider.connection,
       fee: { denominator: new BN(0), numerator: new BN(0) },
       manager: payerKeypair,
-      managerPoolAccount,
+      managerPoolAccount: managerFeeAccount,
       maxValidators: 2950,
       poolMint: stakePoolMint,
       referralFee: 0,
-      reserveStake: reserveAccount,
+      reserveStake: reserveStakeAccount,
       stakePool: stakePoolKeypair,
       validatorList: validatorListKeypair,
     })
@@ -441,7 +452,7 @@ describe('omnisol', () => {
     }
 
     const { tx, whitelist } = await client.addToWhitelist({
-      token: poolMint,
+      token: stakePoolMint,
       tokenPool: STAKE_POOL_PROGRAM_ID,
       stakePool,
     })
@@ -454,22 +465,9 @@ describe('omnisol', () => {
     }
 
     const whitelistData = await client.fetchWhitelist(whitelist)
-    assert.equal(whitelistData.whitelistedToken.equals(poolMint), true)
+    assert.equal(whitelistData.whitelistedToken.equals(stakePoolMint), true)
     assert.equal(whitelistData.pool.equals(STAKE_POOL_PROGRAM_ID), true)
     assert.equal(whitelistData.stakingPool.equals(stakePool), true)
-  })
-
-  it('can remove from whitelist', async () => {
-    const { tx } = await client.removeFromWhitelist({
-      token: poolMint,
-    })
-
-    try {
-      await provider.sendAndConfirm(tx)
-    } catch (e) {
-      console.log(e)
-      throw e
-    }
   })
 
   it('can deposit lp tokens', async () => {
@@ -503,7 +501,7 @@ describe('omnisol', () => {
 
     const { tx: transaction } = await client.addToWhitelist({
       token: lpToken,
-      tokenPool: new web3.PublicKey('SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy'),
+      tokenPool: STAKE_POOL_PROGRAM_ID,
       stakePool,
     })
     try {
@@ -1866,6 +1864,7 @@ describe('omnisol', () => {
       oracle,
       addresses,
       values,
+      clear: true,
     })
 
     try {
@@ -2248,6 +2247,7 @@ describe('omnisol', () => {
       oracle,
       addresses: testAddresses,
       values: testValues,
+      clear: true,
     })
 
     try {
@@ -2297,6 +2297,7 @@ describe('omnisol', () => {
         oracle,
         addresses,
         values,
+        clear: true,
       })
 
       try {
@@ -2343,6 +2344,138 @@ describe('omnisol', () => {
 
     const collateralData = await client.fetchCollateral(collateral)
     assert.equal(collateralData, undefined)
+  })
+
+  it('can liquidate lp token collateral using reserves', async () => {
+    const poolKeypair = web3.Keypair.generate()
+    poolForLP = poolKeypair.publicKey
+    const [authority] = await client.pda.poolAuthority(poolForLP)
+    poolForLPAuthority = authority
+
+    const { tx: tx1 } = await client.createPool({
+      oracle,
+      stakeSource: stakePoolMint,
+      pool: poolForLP,
+      mint: poolMint,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx1, [
+        poolKeypair,
+      ])
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const destination = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, stakePoolMint, poolForLPAuthority, true)
+
+    const { tx: tx2 } = await client.depositLPToken({
+      amount: new BN(100000),
+      destination: destination.address,
+      lpToken: stakePoolMint,
+      source: poolTokenAccount,
+      pool: poolForLP,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx2)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+
+    const { transaction: tx3 } = await client.mintOmnisol({
+      amount: new BN(100000),
+      pool: poolForLP,
+      poolMint,
+      stakedAddress: stakePoolMint,
+      userPoolToken: userPoolToken.address,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx3)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const { tx: tx4 } = await client.burnOmnisol({
+      sourceTokenAccount: userPoolToken.address,
+      amount: new BN(100000),
+      pool,
+      poolMint,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx4)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const [user] = await client.pda.user(provider.wallet.publicKey)
+    const [collateral] = await client.pda.collateral(stakePoolMint, user)
+    const collateralData = await client.fetchCollateral(collateral)
+    const addresses = [collateral]
+    const values = [new BN(collateralData.delegationStake)]
+
+    const { tx: tx5 } = await client.updateOracleInfo({
+      oracle,
+      addresses,
+      values,
+      clear: true,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx5)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const splitKeypair = web3.Keypair.generate()
+    const splitStake = splitKeypair.publicKey
+
+    const [stakeAccountRecord] = await web3.PublicKey.findProgramAddress(
+      [unstakeItPool.toBuffer(), stakeAccount.toBuffer()],
+      unstakeItProgram,
+    )
+
+    const poolTA = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, stakePoolMint, poolForLPAuthority, true)
+
+    const { tx } = await client.liquidateCollateral({
+      amount: new BN(100000),
+      feeAccount,
+      oracle,
+      pool: poolForLP,
+      poolAccount: unstakeItPool,
+      protocolFee: protocolFeeAccount,
+      protocolFeeDestination,
+      solReserves: poolSolReserves,
+      sourceStake: stakePoolMint,
+      stakeAccountRecord,
+      collateralOwnerWallet: provider.wallet.publicKey,
+      userWallet: provider.wallet.publicKey,
+      splitStake,
+      unstakeItProgram,
+      stakePool,
+      stakePoolWithdrawAuthority: withdrawAuthority,
+      reserveStakeAccount,
+      managerFeeAccount,
+      validatorListStorage: validatorList,
+      stakeToSplit: splitStake,
+      poolTokenAccount: poolTA.address,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx, [splitKeypair])
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
   })
 
   it('can close oracle', async () => {
@@ -2408,6 +2541,19 @@ describe('omnisol', () => {
 
     const liquidatorData = await client.fetchLiquidator(liquidator)
     assert.equal(liquidatorData, null)
+  })
+
+  it('can remove from whitelist', async () => {
+    const { tx } = await client.removeFromWhitelist({
+      token: stakePoolMint,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
   })
 
   it('can close global pool', async () => {
