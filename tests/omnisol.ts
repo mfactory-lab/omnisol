@@ -1945,6 +1945,7 @@ describe('omnisol', () => {
       oracle,
       addresses,
       values,
+      toClear: true,
     })
 
     try {
