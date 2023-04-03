@@ -242,6 +242,7 @@ describe('omnisol', () => {
       oracle,
       addresses,
       values,
+      clear: true,
     })
 
     try {
@@ -262,6 +263,7 @@ describe('omnisol', () => {
       oracle,
       addresses,
       values,
+      clear: true,
     })
 
     try {
@@ -2381,6 +2383,7 @@ describe('omnisol', () => {
       oracle,
       addresses,
       values,
+      clear: true,
     })
 
     try {

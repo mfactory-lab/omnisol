@@ -793,6 +793,10 @@
           "type": {
             "vec": "u64"
           }
+        },
+        {
+          "name": "clear",
+          "type": "bool"
         }
       ]
     },

@@ -794,6 +794,10 @@ export interface Omnisol {
             'vec': 'u64'
           }
         },
+        {
+          'name': 'clear'
+          'type': 'bool'
+        },
       ]
     },
     {
@@ -2315,6 +2319,10 @@ export const IDL: Omnisol = {
           type: {
             vec: 'u64',
           },
+        },
+        {
+          name: 'clear',
+          type: 'bool',
         },
       ],
     },

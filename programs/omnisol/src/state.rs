@@ -35,7 +35,9 @@ pub struct Oracle {
 }
 
 impl Oracle {
-    pub const SIZE: usize = 10240;
+    pub const SIZE: usize = 4068;
+    pub const MAX_PRIORITY_QUEUE_LENGTH: usize = 100;
+    pub const MAX_BATCH_LENGTH: usize = 25;
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
