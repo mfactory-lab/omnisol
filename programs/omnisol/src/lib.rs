@@ -85,8 +85,8 @@ pub mod omnisol {
         close_oracle::handle(ctx)
     }
 
-    pub fn update_oracle_info(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>) -> Result<()> {
-        update_oracle_info::handle(ctx, addresses, values)
+    pub fn update_oracle_info(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>, to_clear: bool) -> Result<()> {
+        update_oracle_info::handle(ctx, addresses, values, to_clear)
     }
 
     pub fn add_liquidator(ctx: Context<AddLiquidator>) -> Result<()> {

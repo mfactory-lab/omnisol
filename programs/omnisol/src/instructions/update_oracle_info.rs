@@ -5,14 +5,16 @@ use crate::{
     ErrorCode,
 };
 
-pub fn handle(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>) -> Result<()> {
+pub fn handle(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>, to_clear: bool) -> Result<()> {
     let oracle = &mut ctx.accounts.oracle;
 
     if addresses.is_empty() || values.is_empty() || addresses.len() != values.len() {
         return Err(ErrorCode::WrongData.into());
     }
 
-    oracle.priority_queue = vec![];
+    if to_clear {
+        oracle.priority_queue = vec![];
+    }
 
     for i in 0..addresses.len() {
         let collateral = *addresses.get(i).unwrap();

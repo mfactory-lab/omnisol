@@ -104,6 +104,7 @@ describe('omnisol', () => {
       oracle,
       addresses,
       values,
+      toClear: true,
     })
 
     try {
@@ -124,6 +125,7 @@ describe('omnisol', () => {
       oracle,
       addresses,
       values,
+      toClear: true,
     })
 
     try {

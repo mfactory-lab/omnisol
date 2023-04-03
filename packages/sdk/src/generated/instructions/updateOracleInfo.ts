@@ -17,6 +17,7 @@ import * as beetSolana from '@metaplex-foundation/beet-solana'
 export interface UpdateOracleInfoInstructionArgs {
   addresses: web3.PublicKey[]
   values: beet.bignum[]
+  toClear: boolean
 }
 /**
  * @category Instructions
@@ -32,6 +33,7 @@ export const updateOracleInfoStruct = new beet.FixableBeetArgsStruct<
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
     ['addresses', beet.array(beetSolana.publicKey)],
     ['values', beet.array(beet.u64)],
+    ['toClear', beet.bool],
   ],
   'UpdateOracleInfoInstructionArgs',
 )
