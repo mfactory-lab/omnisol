@@ -97,7 +97,7 @@ fn main() {
                     (addresses, values)
                 });
 
-        let mut to_clear = true;
+        let mut clear = true;
         let mut batches_amount = addresses.len() / Oracle::MAX_BATCH_LENGTH;
 
         let last_batch_len = addresses.len() - (batches_amount * Oracle::MAX_BATCH_LENGTH);
@@ -129,12 +129,12 @@ fn main() {
                     oracle: args.oracle,
                     system_program: system_program::id(),
                 })
-                .args(omnisol::instruction::UpdateOracleInfo { addresses, values, to_clear })
+                .args(omnisol::instruction::UpdateOracleInfo { addresses, values, clear })
                 .send()
                 .expect("Transaction failed.");
 
             info!("Sent transaction successfully with signature: {}", signature);
-            to_clear = false;
+            clear = false;
         }
 
         previous_queue = queue;
