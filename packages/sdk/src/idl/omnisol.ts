@@ -795,7 +795,7 @@ export interface Omnisol {
           }
         },
         {
-          'name': 'toClear'
+          'name': 'clear'
           'type': 'bool'
         },
       ]
@@ -2321,7 +2321,7 @@ export const IDL: Omnisol = {
           },
         },
         {
-          name: 'toClear',
+          name: 'clear',
           type: 'bool',
         },
       ],

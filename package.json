@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "@solana/spl-stake-pool": "mfactory-lab/jfactory-stake-pool#7fc7dd2f7a23e7d91a62ca08301ee0890c1cb2a9",
+    "@unstake-it/sol": "^0.1.5",
     "@antfu/eslint-config-vue": "^0.34.0",
     "@types/bn.js": "^5.1.0",
     "@types/bs58": "^4.0.1",

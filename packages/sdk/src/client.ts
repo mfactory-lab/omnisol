@@ -566,7 +566,7 @@ export class OmnisolClient {
       {
         addresses: props.addresses,
         values: props.values,
-        toClear: props.toClear,
+        clear: props.clear,
       },
     )
     const tx = new Transaction().add(ix)
@@ -912,7 +912,7 @@ interface UpdateOracleInfoProps {
   oracle: PublicKey
   addresses: PublicKey[]
   values: BN[]
-  toClear: boolean
+  clear: boolean
 }
 
 interface BurnOmnisolProps {

@@ -5,14 +5,14 @@ use crate::{
     ErrorCode,
 };
 
-pub fn handle(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>, to_clear: bool) -> Result<()> {
+pub fn handle(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>, clear: bool) -> Result<()> {
     let oracle = &mut ctx.accounts.oracle;
 
     if addresses.is_empty() || values.is_empty() || addresses.len() != values.len() {
         return Err(ErrorCode::WrongData.into());
     }
 
-    if to_clear {
+    if clear {
         oracle.priority_queue = vec![];
     }
 
