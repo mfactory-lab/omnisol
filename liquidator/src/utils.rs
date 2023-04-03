@@ -1,82 +1,92 @@
-use anchor_lang::AnchorDeserialize;
+use std::collections::HashMap;
+use anchor_client::{
+    solana_client::rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType},
+    solana_sdk::pubkey::Pubkey,
+    ClientError, Program,
+};
 use gimli::ReaderOffset;
 use omnisol::{
     state::{Oracle, User, WithdrawInfo},
-    ID,
 };
-use solana_account_decoder::UiAccountEncoding;
-use solana_client::{
-    client_error::Result,
-    rpc_client::RpcClient,
-    rpc_config::{RpcAccountInfoConfig, RpcProgramAccountsConfig},
-    rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType},
-};
-use solana_sdk::{account::Account, pubkey::Pubkey};
+use omnisol::state::{Collateral, Pool};
 
 pub const WITHDRAW_INFO_DISCRIMINATOR: [u8; 8] = [103, 244, 107, 42, 135, 228, 81, 107];
+pub const USER_DISCRIMINATOR: [u8; 8] = [159, 117, 95, 227, 239, 151, 58, 236];
+pub const COLLATERAL_DISCRIMINATOR: [u8; 8] = [123, 130, 234, 63, 255, 240, 255, 92];
+pub const POOL_DISCRIMINATOR: [u8; 8] = [241, 154, 109, 4, 17, 177, 109, 188];
 
-pub fn get_withdraw_info_list(client: &RpcClient) -> Result<Vec<(Pubkey, WithdrawInfo)>> {
-    let accounts = get_accounts(
-        Some(vec![
-            RpcFilterType::DataSize(WithdrawInfo::SIZE.into_u64()),
-            RpcFilterType::Memcmp(Memcmp {
-                offset: 0,
-                bytes: MemcmpEncodedBytes::Bytes(WITHDRAW_INFO_DISCRIMINATOR.to_vec()),
-                encoding: None,
-            }),
-        ]),
-        client,
-    )?;
+pub fn get_withdraw_info_list(program: &Program) -> Result<Vec<(Pubkey, WithdrawInfo)>, ClientError> {
+    let filters = vec![
+        RpcFilterType::DataSize(WithdrawInfo::SIZE.into_u64()),
+        RpcFilterType::Memcmp(Memcmp {
+            offset: 0,
+            bytes: MemcmpEncodedBytes::Bytes(WITHDRAW_INFO_DISCRIMINATOR.to_vec()),
+            encoding: None,
+        }),
+    ];
 
-    // get withdraw info data
-    let mut withdraw_info_list: Vec<(Pubkey, WithdrawInfo)> = accounts
-        .into_iter()
-        .map(|(address, account)| {
-            let withdraw_info = WithdrawInfo::try_from_slice(account.data.as_slice()).expect("Failed to deserialize");
-            (address, withdraw_info)
-        })
-        .collect::<Vec<_>>();
+    let mut accounts = program.accounts::<WithdrawInfo>(filters)?;
 
     // sort by rate
-    withdraw_info_list.sort_by(|(_, a), (_, b)| a.created_at.cmp(&b.created_at));
+    accounts.sort_by(|(_, a), (_, b)| a.created_at.cmp(&b.created_at));
 
-    Ok(withdraw_info_list)
+    Ok(accounts)
 }
 
-pub fn get_user_data(client: &RpcClient, authority: Pubkey) -> Result<(Pubkey, User)> {
-    // find user account
-    let (user_account, _) = Pubkey::find_program_address(&[User::SEED, authority.as_ref()], &ID);
+pub fn get_user_data(program: &Program) -> Result<HashMap<Pubkey, User>, ClientError> {
+    let filters = vec![
+        RpcFilterType::DataSize(User::SIZE.into_u64()),
+        RpcFilterType::Memcmp(Memcmp {
+            offset: 0,
+            bytes: MemcmpEncodedBytes::Bytes(USER_DISCRIMINATOR.to_vec()),
+            encoding: None,
+        }),
+    ];
 
-    // get user data
-    let user_data = client.get_account_data(&user_account)?;
+    let mut accounts = program.accounts::<User>(filters)?;
 
-    // deserialize user data
-    let user_data: User = User::try_from_slice(user_data.as_slice()).expect("Failed to deserialize");
+    let map = accounts.into_iter().collect::<HashMap<_, _>>();
 
-    Ok((user_account, user_data))
+    Ok(map)
 }
 
-pub fn get_oracle_data(client: &RpcClient, oracle: &Pubkey) -> Result<Oracle> {
+pub fn get_collateral_data(program: &Program) -> Result<HashMap<Pubkey, Collateral>, ClientError> {
+    let filters = vec![
+        RpcFilterType::DataSize(Collateral::SIZE.into_u64()),
+        RpcFilterType::Memcmp(Memcmp {
+            offset: 0,
+            bytes: MemcmpEncodedBytes::Bytes(COLLATERAL_DISCRIMINATOR.to_vec()),
+            encoding: None,
+        }),
+    ];
+
+    let accounts = program.accounts::<Collateral>(filters)?;
+
+    let map = accounts.into_iter().collect::<HashMap<_, _>>();
+
+    Ok(map)
+}
+
+pub fn get_pool_data(program: &Program) -> Result<HashMap<Pubkey, Pool>, ClientError> {
+    let filters = vec![
+        RpcFilterType::DataSize(Pool::SIZE.into_u64()),
+        RpcFilterType::Memcmp(Memcmp {
+            offset: 0,
+            bytes: MemcmpEncodedBytes::Bytes(POOL_DISCRIMINATOR.to_vec()),
+            encoding: None,
+        }),
+    ];
+
+    let accounts = program.accounts::<Pool>(filters)?;
+
+    let map = accounts.into_iter().collect::<HashMap<_, _>>();
+
+    Ok(map)
+}
+
+pub fn get_oracle_data(program: &Program, oracle: Pubkey) -> Result<Oracle, ClientError> {
     // get oracle data
-    let oracle_data = client.get_account_data(oracle)?;
-
-    // deserialize oracle data
-    let oracle_data = Oracle::try_from_slice(oracle_data.as_slice()).expect("Failed to deserialize");
+    let oracle_data = program.account::<Oracle>(oracle)?;
 
     Ok(oracle_data)
-}
-
-pub fn get_accounts(filters: Option<Vec<RpcFilterType>>, connection: &RpcClient) -> Result<Vec<(Pubkey, Account)>> {
-    connection.get_program_accounts_with_config(
-        &Pubkey::new_from_array(ID.to_bytes()),
-        RpcProgramAccountsConfig {
-            filters,
-            account_config: RpcAccountInfoConfig {
-                encoding: Some(UiAccountEncoding::Base64),
-                commitment: Some(connection.commitment()),
-                ..RpcAccountInfoConfig::default()
-            },
-            ..RpcProgramAccountsConfig::default()
-        },
-    )
 }

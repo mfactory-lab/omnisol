@@ -9,6 +9,7 @@ use crate::{AccountMeta, Accounts, Pubkey};
 
 /// unstake.it program address
 const PROGRAM_ADDRESS: &str = "unpXTU2Ndrc7WWNyEhQWe4udTzSibLPi25SXv2xbCHQ";
+const UNSTAKE_IX_DISCM: [u8; 8] = [90, 95, 107, 42, 205, 124, 50, 225];
 
 pub fn unstake<'info>(ctx: CpiContext<'_, '_, '_, 'info, Unstake<'info>>) -> Result<()> {
     let account_metas = vec![
@@ -28,9 +29,9 @@ pub fn unstake<'info>(ctx: CpiContext<'_, '_, '_, 'info, Unstake<'info>>) -> Res
     ];
 
     let program_id = Pubkey::from_str(PROGRAM_ADDRESS).unwrap();
-    let ix = Instruction::new_with_bincode(program_id, &[9], account_metas);
+    let ix = Instruction::new_with_bincode(program_id, &UNSTAKE_IX_DISCM, account_metas);
 
-    let mut account_infos = vec![
+    let account_infos = vec![
         ctx.accounts.payer,
         ctx.accounts.unstaker,
         ctx.accounts.stake_account,

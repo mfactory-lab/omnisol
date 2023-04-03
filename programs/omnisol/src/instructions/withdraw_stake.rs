@@ -30,10 +30,7 @@ pub fn handle(ctx: Context<WithdrawStake>, amount: u64, with_burn: bool, with_me
 
     let rest_amount = collateral.delegation_stake - collateral.liquidated_amount;
 
-    if amount == 0
-        || with_burn && amount > rest_amount
-        || !with_burn && amount > rest_amount - collateral.amount
-    {
+    if amount == 0 || with_burn && amount > rest_amount || !with_burn && amount > rest_amount - collateral.amount {
         return Err(ErrorCode::InsufficientAmount.into());
     }
 
@@ -90,7 +87,9 @@ pub fn handle(ctx: Context<WithdrawStake>, amount: u64, with_burn: bool, with_me
         None,
     )?;
 
-    if source_stake.key() != ctx.accounts.source_stake.key() && ctx.accounts.source_stake.key() != ctx.accounts.delegated_stake.key() {
+    if source_stake.key() != ctx.accounts.source_stake.key()
+        && ctx.accounts.source_stake.key() != ctx.accounts.delegated_stake.key()
+    {
         stake::merge(CpiContext::new(
             ctx.accounts.stake_program.to_account_info(),
             stake::Merge {

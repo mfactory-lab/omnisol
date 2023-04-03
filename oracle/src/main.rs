@@ -1,7 +1,6 @@
-mod cluster;
 mod utils;
 
-use std::{collections::HashMap, num::ParseIntError, path::PathBuf, rc::Rc, str::FromStr, thread, time::Duration};
+use std::{collections::HashMap, num::ParseIntError, path::PathBuf, rc::Rc, thread, time::Duration};
 
 use anchor_client::{
     solana_sdk::{
@@ -10,16 +9,13 @@ use anchor_client::{
         signature::{read_keypair_file, Signer},
         system_program,
     },
-    Client,
+    Client, Cluster,
 };
 use clap::Parser;
 use log::{info, LevelFilter};
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 
-use crate::{
-    cluster::Cluster,
-    utils::{generate_priority_queue, get_collateral_data, get_user_data},
-};
+use crate::utils::{generate_priority_queue, get_collateral_data, get_pool_data, get_user_data};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -58,8 +54,9 @@ fn main() {
     let wallet_pubkey = wallet_keypair.pubkey();
     info!("Oracle keypair file: {}", wallet_pubkey);
 
+    // establish connection
     let client = Client::new_with_options(
-        anchor_client::Cluster::from_str(args.cluster.url()).unwrap(),
+        args.cluster.clone(),
         Rc::new(wallet_keypair),
         CommitmentConfig::confirmed(),
     );
@@ -71,18 +68,21 @@ fn main() {
     let mut previous_queue = HashMap::new();
 
     loop {
+        info!("Thread is paused for {} seconds", args.sleep_duration.as_secs());
         thread::sleep(args.sleep_duration);
 
         let user_data = get_user_data(&program).expect("Can't get user accounts");
         info!("Got {} user(s)", user_data.len());
         let collateral_data = get_collateral_data(&program).expect("Can't get collateral accounts");
         info!("Got {} collateral(s)", collateral_data.len());
+        let pool_data = get_pool_data(&program).expect("Can't get pool accounts");
 
         // find collaterals by user list and make priority queue
-        let queue = generate_priority_queue(user_data, collateral_data);
+        let queue = generate_priority_queue(user_data, collateral_data, pool_data);
         info!("Generated priority queue: {:?}", queue);
 
         if previous_queue == queue {
+            info!("No changes in priority queue");
             continue;
         }
 

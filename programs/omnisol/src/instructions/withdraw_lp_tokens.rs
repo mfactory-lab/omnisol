@@ -26,10 +26,7 @@ pub fn handle(ctx: Context<WithdrawLPTokens>, amount: u64, with_burn: bool) -> R
 
     let rest_amount = collateral.delegation_stake - collateral.liquidated_amount;
 
-    if amount == 0
-        || with_burn && amount > rest_amount
-        || !with_burn && amount > rest_amount - collateral.amount
-    {
+    if amount == 0 || with_burn && amount > rest_amount || !with_burn && amount > rest_amount - collateral.amount {
         return Err(ErrorCode::InsufficientAmount.into());
     }
 

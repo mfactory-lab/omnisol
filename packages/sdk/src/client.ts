@@ -1,7 +1,6 @@
 import type { Address, BN, Program } from '@project-serum/anchor'
-import { getOrCreateAssociatedTokenAccount } from '@solana/spl-token'
 import type { PublicKey } from '@solana/web3.js'
-import { Transaction } from '@solana/web3.js'
+import { SYSVAR_STAKE_HISTORY_PUBKEY, Transaction } from '@solana/web3.js'
 import { web3 } from '@project-serum/anchor'
 import type { Collateral, Liquidator, Manager, Oracle, Pool, User, Whitelist, WithdrawInfo } from './generated'
 import {
@@ -17,6 +16,7 @@ import {
   createDepositStakeInstruction,
   createInitOracleInstruction,
   createInitPoolInstruction,
+  createLiquidateCollateralInstruction,
   createMintOmnisolInstruction,
   createPausePoolInstruction,
   createRemoveFromWhitelistInstruction,
@@ -24,8 +24,7 @@ import {
   createRemoveManagerInstruction,
   createResumePoolInstruction,
   createUnblockUserInstruction,
-  createUpdateOracleInfoInstruction,
-  createWithdrawLpTokensInstruction, createWithdrawStakeInstruction, createLiquidateCollateralInstruction,
+  createUpdateOracleInfoInstruction, createWithdrawLpTokensInstruction, createWithdrawStakeInstruction,
 } from './generated'
 import { IDL } from './idl/omnisol'
 
@@ -607,22 +606,99 @@ export class OmnisolClient {
 
   async liquidateCollateral(props: LiquidateCollateralProps) {
     const payer = this.wallet.publicKey
-    const [userOwner] = await this.pda.user(props.userOwner)
     const userWallet = props.userWallet
+    const collateralOwnerWallet = props.collateralOwnerWallet
+    const pool = props.pool
+
+    const [collateralOwner] = await this.pda.user(collateralOwnerWallet)
     const [user] = await this.pda.user(userWallet)
-    const [collateral] = await this.pda.collateral(props.sourceStake, userOwner)
-    const [poolAuthority] = await this.pda.poolAuthority(props.pool)
+    const [collateral] = await this.pda.collateral(props.sourceStake, collateralOwner)
+    const [poolAuthority] = await this.pda.poolAuthority(pool)
+    const [liquidator] = await this.pda.liquidator(payer)
+
     const userData = await this.fetchUser(user)
-    const withdrawIndex = userData.lastWithdrawIndex - userData.requestsAmount
-    const [withdrawInfo] = await this.pda.withdrawInfo(payer, withdrawIndex + 1)
+    const withdrawIndex = userData.lastWithdrawIndex - userData.requestsAmount + 1
+    const [withdrawInfo] = await this.pda.withdrawInfo(payer, withdrawIndex)
+
+    const collateralData = await this.fetchCollateral(collateral)
+    let anchorRemainingAccounts: web3.AccountMeta[]
+    if (collateralData.isNative) {
+      const splitStake = props.splitStake ?? web3.Keypair.generate().publicKey
+      anchorRemainingAccounts = [{
+        pubkey: splitStake,
+        isWritable: true,
+        isSigner: true,
+      }]
+    } else {
+      const stakePool = props.stakePool ?? web3.Keypair.generate().publicKey
+      const stakePoolWithdrawAuthority = props.stakePoolWithdrawAuthority ?? web3.Keypair.generate().publicKey
+      const reserveStakeAccount = props.reserveStakeAccount ?? web3.Keypair.generate().publicKey
+      const managerFeeAccount = props.managerFeeAccount ?? web3.Keypair.generate().publicKey
+      const stakeHistory = SYSVAR_STAKE_HISTORY_PUBKEY
+      const validatorListStorage = props.validatorListStorage ?? web3.Keypair.generate().publicKey
+      const stakeToSplit = props.stakeToSplit ?? web3.Keypair.generate().publicKey
+      const splitStake = props.splitStake ?? web3.Keypair.generate().publicKey
+      const poolTokenAccount = props.poolTokenAccount ?? web3.Keypair.generate().publicKey
+
+      anchorRemainingAccounts = [
+        {
+          pubkey: stakePool,
+          isWritable: true,
+          isSigner: false,
+        },
+        {
+          pubkey: stakePoolWithdrawAuthority,
+          isWritable: false,
+          isSigner: false,
+        },
+        {
+          pubkey: reserveStakeAccount,
+          isWritable: true,
+          isSigner: false,
+        },
+        {
+          pubkey: managerFeeAccount,
+          isWritable: true,
+          isSigner: false,
+        },
+        {
+          pubkey: stakeHistory,
+          isWritable: false,
+          isSigner: false,
+        },
+        {
+          pubkey: validatorListStorage,
+          isWritable: true,
+          isSigner: false,
+        },
+        {
+          pubkey: stakeToSplit,
+          isWritable: true,
+          isSigner: false,
+        },
+        {
+          pubkey: splitStake,
+          isWritable: true,
+          isSigner: true,
+        },
+        {
+          pubkey: poolTokenAccount,
+          isWritable: true,
+          isSigner: false,
+        },
+      ]
+    }
     const ix = createLiquidateCollateralInstruction(
       {
         authority: payer,
         clock: OmnisolClient.clock,
         collateral,
+        collateralOwner,
+        collateralOwnerWallet,
         feeAccount: props.feeAccount,
+        liquidator,
         oracle: props.oracle,
-        pool: props.pool,
+        pool,
         poolAccount: props.poolAccount,
         poolAuthority,
         protocolFee: props.protocolFee,
@@ -630,11 +706,12 @@ export class OmnisolClient {
         solReserves: props.solReserves,
         sourceStake: props.sourceStake,
         stakeAccountRecord: props.stakeAccountRecord,
-        stakeProgram: web3.StakeProgram.programId,
+        stakeProgram: OmnisolClient.stakeProgram,
         user,
-        userOwner,
         userWallet,
         withdrawInfo,
+        anchorRemainingAccounts,
+        unstakeItProgram: props.unstakeItProgram,
       },
       {
         amount: props.amount,
@@ -646,6 +723,8 @@ export class OmnisolClient {
       tx,
       user,
       withdrawInfo,
+      collateral,
+      pool,
     }
   }
 }
@@ -844,7 +923,7 @@ interface BurnOmnisolProps {
 interface LiquidateCollateralProps {
   pool: PublicKey
   sourceStake: PublicKey
-  userOwner: PublicKey
+  collateralOwnerWallet: PublicKey
   userWallet: PublicKey
   oracle: PublicKey
   poolAccount: PublicKey
@@ -853,5 +932,14 @@ interface LiquidateCollateralProps {
   protocolFeeDestination: PublicKey
   feeAccount: PublicKey
   stakeAccountRecord: PublicKey
+  unstakeItProgram: PublicKey
+  splitStake?: PublicKey
+  stakePool?: PublicKey
+  stakePoolWithdrawAuthority?: PublicKey
+  reserveStakeAccount?: PublicKey
+  managerFeeAccount?: PublicKey
+  validatorListStorage?: PublicKey
+  stakeToSplit?: PublicKey
+  poolTokenAccount?: PublicKey
   amount: BN
 }

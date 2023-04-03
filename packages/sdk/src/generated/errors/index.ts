@@ -55,13 +55,33 @@ createErrorFromNameLookup.set(
 )
 
 /**
+ * InvalidToken: 'Invalid token'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class InvalidTokenError extends Error {
+  readonly code: number = 0x1772
+  readonly name: string = 'InvalidToken'
+  constructor() {
+    super('Invalid token')
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, InvalidTokenError)
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1772, () => new InvalidTokenError())
+createErrorFromNameLookup.set('InvalidToken', () => new InvalidTokenError())
+
+/**
  * InsufficientAmount: 'Insufficient amount'
  *
  * @category Errors
  * @category generated
  */
 export class InsufficientAmountError extends Error {
-  readonly code: number = 0x1772
+  readonly code: number = 0x1773
   readonly name: string = 'InsufficientAmount'
   constructor() {
     super('Insufficient amount')
@@ -71,7 +91,7 @@ export class InsufficientAmountError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1772, () => new InsufficientAmountError())
+createErrorFromCodeLookup.set(0x1773, () => new InsufficientAmountError())
 createErrorFromNameLookup.set(
   'InsufficientAmount',
   () => new InsufficientAmountError(),
@@ -84,7 +104,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class TypeOverflowError extends Error {
-  readonly code: number = 0x1773
+  readonly code: number = 0x1774
   readonly name: string = 'TypeOverflow'
   constructor() {
     super('Type overflow')
@@ -94,7 +114,7 @@ export class TypeOverflowError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1773, () => new TypeOverflowError())
+createErrorFromCodeLookup.set(0x1774, () => new TypeOverflowError())
 createErrorFromNameLookup.set('TypeOverflow', () => new TypeOverflowError())
 
 /**
@@ -104,7 +124,7 @@ createErrorFromNameLookup.set('TypeOverflow', () => new TypeOverflowError())
  * @category generated
  */
 export class PoolAlreadyPausedError extends Error {
-  readonly code: number = 0x1774
+  readonly code: number = 0x1775
   readonly name: string = 'PoolAlreadyPaused'
   constructor() {
     super('Pool is already paused')
@@ -114,7 +134,7 @@ export class PoolAlreadyPausedError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1774, () => new PoolAlreadyPausedError())
+createErrorFromCodeLookup.set(0x1775, () => new PoolAlreadyPausedError())
 createErrorFromNameLookup.set(
   'PoolAlreadyPaused',
   () => new PoolAlreadyPausedError(),
@@ -127,7 +147,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class PoolAlreadyResumedError extends Error {
-  readonly code: number = 0x1775
+  readonly code: number = 0x1776
   readonly name: string = 'PoolAlreadyResumed'
   constructor() {
     super('Pool is already resumed')
@@ -137,7 +157,7 @@ export class PoolAlreadyResumedError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1775, () => new PoolAlreadyResumedError())
+createErrorFromCodeLookup.set(0x1776, () => new PoolAlreadyResumedError())
 createErrorFromNameLookup.set(
   'PoolAlreadyResumed',
   () => new PoolAlreadyResumedError(),
@@ -150,7 +170,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class UserBlockedError extends Error {
-  readonly code: number = 0x1776
+  readonly code: number = 0x1777
   readonly name: string = 'UserBlocked'
   constructor() {
     super('User is blocked')
@@ -160,7 +180,7 @@ export class UserBlockedError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1776, () => new UserBlockedError())
+createErrorFromCodeLookup.set(0x1777, () => new UserBlockedError())
 createErrorFromNameLookup.set('UserBlocked', () => new UserBlockedError())
 
 /**
@@ -170,7 +190,7 @@ createErrorFromNameLookup.set('UserBlocked', () => new UserBlockedError())
  * @category generated
  */
 export class UserNotBlockedError extends Error {
-  readonly code: number = 0x1777
+  readonly code: number = 0x1778
   readonly name: string = 'UserNotBlocked'
   constructor() {
     super('User is not blocked')
@@ -180,7 +200,7 @@ export class UserNotBlockedError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1777, () => new UserNotBlockedError())
+createErrorFromCodeLookup.set(0x1778, () => new UserNotBlockedError())
 createErrorFromNameLookup.set('UserNotBlocked', () => new UserNotBlockedError())
 
 /**
@@ -190,7 +210,7 @@ createErrorFromNameLookup.set('UserNotBlocked', () => new UserNotBlockedError())
  * @category generated
  */
 export class WrongDataError extends Error {
-  readonly code: number = 0x1778
+  readonly code: number = 0x1779
   readonly name: string = 'WrongData'
   constructor() {
     super('Wrong input data')
@@ -200,7 +220,7 @@ export class WrongDataError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1778, () => new WrongDataError())
+createErrorFromCodeLookup.set(0x1779, () => new WrongDataError())
 createErrorFromNameLookup.set('WrongData', () => new WrongDataError())
 
 /**

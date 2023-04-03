@@ -17,19 +17,6 @@ use anchor_lang::{
 
 // CPI functions
 
-pub fn initialize<'info>(ctx: CpiContext<'_, '_, '_, 'info, Initialize<'info>>, authority: &Pubkey) -> Result<()> {
-    let ix = stake::instruction::initialize(
-        ctx.accounts.stake.key,
-        &stake::state::Authorized {
-            staker: *authority,
-            withdrawer: *authority,
-        },
-        &stake::state::Lockup::default(),
-    );
-    solana_program::program::invoke_signed(&ix, &[ctx.accounts.stake, ctx.accounts.sysvar_rent], ctx.signer_seeds)
-        .map_err(|error| error.into())
-}
-
 pub fn authorize<'info>(
     ctx: CpiContext<'_, '_, '_, 'info, Authorize<'info>>,
     stake_authorize: StakeAuthorize,
@@ -47,41 +34,6 @@ pub fn authorize<'info>(
         account_infos.push(c);
     }
     solana_program::program::invoke_signed(&ix, &account_infos, ctx.signer_seeds).map_err(|error| error.into())
-}
-
-pub fn withdraw<'info>(
-    ctx: CpiContext<'_, '_, '_, 'info, Withdraw<'info>>,
-    amount: u64,
-    custodian: Option<AccountInfo<'info>>,
-) -> Result<()> {
-    let ix = stake::instruction::withdraw(
-        ctx.accounts.stake.key,
-        ctx.accounts.withdrawer.key,
-        ctx.accounts.to.key,
-        amount,
-        custodian.as_ref().map(|c| c.key),
-    );
-    let mut account_infos = vec![
-        ctx.accounts.stake,
-        ctx.accounts.to,
-        ctx.accounts.clock,
-        ctx.accounts.stake_history,
-        ctx.accounts.withdrawer,
-    ];
-    if let Some(c) = custodian {
-        account_infos.push(c);
-    }
-    solana_program::program::invoke_signed(&ix, &account_infos, ctx.signer_seeds).map_err(|error| error.into())
-}
-
-pub fn deactivate_stake<'info>(ctx: CpiContext<'_, '_, '_, 'info, DeactivateStake<'info>>) -> Result<()> {
-    let ix = stake::instruction::deactivate_stake(ctx.accounts.stake.key, ctx.accounts.staker.key);
-    solana_program::program::invoke_signed(
-        &ix,
-        &[ctx.accounts.stake, ctx.accounts.clock, ctx.accounts.staker],
-        ctx.signer_seeds,
-    )
-    .map_err(|error| error.into())
 }
 
 pub fn split<'info>(ctx: CpiContext<'_, '_, '_, 'info, Split<'info>>, amount: u64) -> Result<()> {
@@ -149,14 +101,6 @@ pub fn merge<'info>(ctx: CpiContext<'_, '_, '_, 'info, Merge<'info>>) -> Result<
 // CPI accounts
 
 #[derive(Accounts)]
-pub struct Initialize<'info> {
-    /// CHECK:
-    pub stake: AccountInfo<'info>,
-    /// CHECK:
-    pub sysvar_rent: AccountInfo<'info>,
-}
-
-#[derive(Accounts)]
 pub struct Authorize<'info> {
     /// CHECK:
     pub stake: AccountInfo<'info>,
@@ -164,30 +108,6 @@ pub struct Authorize<'info> {
     pub authority: AccountInfo<'info>,
     /// CHECK:
     pub new_authority: AccountInfo<'info>,
-    /// CHECK:
-    pub clock: AccountInfo<'info>,
-}
-
-#[derive(Accounts)]
-pub struct Withdraw<'info> {
-    /// CHECK:
-    pub stake: AccountInfo<'info>,
-    /// CHECK:
-    pub withdrawer: AccountInfo<'info>,
-    /// CHECK:
-    pub to: AccountInfo<'info>,
-    /// CHECK:
-    pub clock: AccountInfo<'info>,
-    /// CHECK:
-    pub stake_history: AccountInfo<'info>,
-}
-
-#[derive(Accounts)]
-pub struct DeactivateStake<'info> {
-    /// CHECK:
-    pub stake: AccountInfo<'info>,
-    /// CHECK:
-    pub staker: AccountInfo<'info>,
     /// CHECK:
     pub clock: AccountInfo<'info>,
 }

@@ -39,18 +39,21 @@ export const liquidateCollateralStruct = new beet.BeetArgsStruct<
  * @property [_writable_] pool
  * @property [] poolAuthority
  * @property [_writable_] collateral
- * @property [_writable_] userOwner
+ * @property [_writable_] collateralOwner
+ * @property [_writable_] collateralOwnerWallet
  * @property [_writable_] userWallet
  * @property [_writable_] user
  * @property [_writable_] withdrawInfo
  * @property [_writable_] oracle
  * @property [_writable_] sourceStake
- * @property [] poolAccount
- * @property [] solReserves
+ * @property [] liquidator
+ * @property [_writable_] poolAccount
+ * @property [_writable_] solReserves
  * @property [] protocolFee
- * @property [] protocolFeeDestination
+ * @property [_writable_] protocolFeeDestination
  * @property [] feeAccount
- * @property [] stakeAccountRecord
+ * @property [_writable_] stakeAccountRecord
+ * @property [] unstakeItProgram
  * @property [_writable_, **signer**] authority
  * @property [] clock
  * @property [] stakeProgram
@@ -62,18 +65,21 @@ export interface LiquidateCollateralInstructionAccounts {
   pool: web3.PublicKey
   poolAuthority: web3.PublicKey
   collateral: web3.PublicKey
-  userOwner: web3.PublicKey
+  collateralOwner: web3.PublicKey
+  collateralOwnerWallet: web3.PublicKey
   userWallet: web3.PublicKey
   user: web3.PublicKey
   withdrawInfo: web3.PublicKey
   oracle: web3.PublicKey
   sourceStake: web3.PublicKey
+  liquidator: web3.PublicKey
   poolAccount: web3.PublicKey
   solReserves: web3.PublicKey
   protocolFee: web3.PublicKey
   protocolFeeDestination: web3.PublicKey
   feeAccount: web3.PublicKey
   stakeAccountRecord: web3.PublicKey
+  unstakeItProgram: web3.PublicKey
   authority: web3.PublicKey
   clock: web3.PublicKey
   tokenProgram?: web3.PublicKey
@@ -122,7 +128,12 @@ export function createLiquidateCollateralInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.userOwner,
+      pubkey: accounts.collateralOwner,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.collateralOwnerWallet,
       isWritable: true,
       isSigner: false,
     },
@@ -152,13 +163,18 @@ export function createLiquidateCollateralInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.poolAccount,
+      pubkey: accounts.liquidator,
       isWritable: false,
       isSigner: false,
     },
     {
+      pubkey: accounts.poolAccount,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
       pubkey: accounts.solReserves,
-      isWritable: false,
+      isWritable: true,
       isSigner: false,
     },
     {
@@ -168,7 +184,7 @@ export function createLiquidateCollateralInstruction(
     },
     {
       pubkey: accounts.protocolFeeDestination,
-      isWritable: false,
+      isWritable: true,
       isSigner: false,
     },
     {
@@ -178,6 +194,11 @@ export function createLiquidateCollateralInstruction(
     },
     {
       pubkey: accounts.stakeAccountRecord,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.unstakeItProgram,
       isWritable: false,
       isSigner: false,
     },

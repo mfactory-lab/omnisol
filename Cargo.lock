@@ -524,16 +524,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "borsh"
-version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40f9ca3698b2e4cb7c15571db0abc5551dca417a21ae8140460b50309bb2cc62"
-dependencies = [
- "borsh-derive 0.10.2",
- "hashbrown 0.12.3",
-]
-
-[[package]]
 name = "borsh-derive"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -566,19 +556,6 @@ checksum = "6441c552f230375d18e3cc377677914d2ca2b0d36e52129fe15450a2dce46775"
 dependencies = [
  "borsh-derive-internal 0.9.3",
  "borsh-schema-derive-internal 0.9.3",
- "proc-macro-crate 0.1.5",
- "proc-macro2 1.0.46",
- "syn 1.0.102",
-]
-
-[[package]]
-name = "borsh-derive"
-version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "598b3eacc6db9c3ee57b22707ad8f6a8d2f6d442bfe24ffeb8cbb70ca59e6a35"
-dependencies = [
- "borsh-derive-internal 0.10.2",
- "borsh-schema-derive-internal 0.10.2",
  "proc-macro-crate 0.1.5",
  "proc-macro2 1.0.46",
  "syn 1.0.102",
@@ -618,17 +595,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "borsh-derive-internal"
-version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "186b734fa1c9f6743e90c95d7233c9faab6360d1a96d4ffa19d9cfd1e9350f8a"
-dependencies = [
- "proc-macro2 1.0.46",
- "quote 1.0.21",
- "syn 1.0.102",
-]
-
-[[package]]
 name = "borsh-schema-derive-internal"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -655,17 +621,6 @@ name = "borsh-schema-derive-internal"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdbd5696d8bfa21d53d9fe39a714a18538bad11492a42d066dbbc395fb1951c0"
-dependencies = [
- "proc-macro2 1.0.46",
- "quote 1.0.21",
- "syn 1.0.102",
-]
-
-[[package]]
-name = "borsh-schema-derive-internal"
-version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99b7ff1008316626f485991b960ade129253d4034014616b94f309a15366cc49"
 dependencies = [
  "proc-macro2 1.0.46",
  "quote 1.0.21",
@@ -786,9 +741,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.0.73"
+version = "1.0.79"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2fff2a6927b3bb87f9595d67196a70493f627687a71d87a0d692242c33f58c11"
+checksum = "50d30906286121d95be3d479533b458f87493b30a4b5f79a607db8f5d11aa91f"
 dependencies = [
  "jobserver",
 ]
@@ -2046,18 +2001,15 @@ checksum = "f051f77a7c8e6957c0696eac88f26b0117e54f52d3fc682ab19397a8812846a4"
 name = "liquidator"
 version = "0.1.0"
 dependencies = [
+ "anchor-client",
  "anchor-lang",
- "anyhow",
- "arrayref",
- "borsh 0.10.2",
+ "anchor-spl",
+ "base64 0.21.0",
  "clap 4.1.6",
  "gimli",
  "log",
  "omnisol",
  "simplelog",
- "solana-account-decoder",
- "solana-client",
- "solana-sdk",
 ]
 
 [[package]]
@@ -2116,9 +2068,9 @@ checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
 
 [[package]]
 name = "memmap2"
-version = "0.5.7"
+version = "0.5.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95af15f345b17af2efc8ead6080fb8bc376f8cec1b35277b935637595fe77498"
+checksum = "83faa42c0a078c393f6b29d5db232d8be22776a891f8f56e5284faee4a20b327"
 dependencies = [
  "libc",
 ]
@@ -2428,16 +2380,11 @@ version = "0.1.0"
 dependencies = [
  "anchor-client",
  "anchor-lang",
- "anyhow",
- "arrayref",
  "clap 4.1.6",
  "gimli",
  "log",
  "omnisol",
  "simplelog",
- "solana-account-decoder",
- "solana-client",
- "solana-sdk",
 ]
 
 [[package]]
@@ -3166,9 +3113,9 @@ dependencies = [
 
 [[package]]
 name = "semver"
-version = "1.0.14"
+version = "1.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e25dfac463d778e353db5be2449d1cce89bd6fd23c9f1ea21310ce6e5a1b29c4"
+checksum = "bebd363326d05ec3e2f532ab7660680f3b02130d780c299bca73469d521bc0ed"
 
 [[package]]
 name = "serde"
@@ -3314,9 +3261,9 @@ checksum = "74233d3b3b2f6d4b006dc19dee745e73e2a6bfb6f93607cd3b02bd5b00797d7c"
 
 [[package]]
 name = "simplelog"
-version = "0.12.0"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48dfff04aade74dd495b007c831cd6f4e0cee19c344dd9dc0884c0289b70a786"
+checksum = "acee08041c5de3d5048c8b3f6f13fafb3026b24ba43c6a695a0c76179b844369"
 dependencies = [
  "log",
  "termcolor",
@@ -4695,12 +4642,11 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 
 [[package]]
 name = "walkdir"
-version = "2.3.2"
+version = "2.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "808cf2735cd4b6866113f648b791c6adc5714537bc222d9347bb203386ffda56"
+checksum = "36df944cda56c7d8d8b7496af378e6b16de9284591917d307c9b4d313c44e698"
 dependencies = [
  "same-file",
- "winapi",
  "winapi-util",
 ]
 

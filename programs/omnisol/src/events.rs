@@ -23,11 +23,13 @@ pub struct WithdrawStakeEvent {
 }
 
 #[event]
-pub struct WithdrawSolEvent {
+pub struct LiquidationEvent {
     #[index]
     pub pool: Pubkey,
     pub authority: Pubkey,
+    pub collateral: Pubkey,
     pub amount: u64,
+    pub rest_amount: u64,
     pub timestamp: i64,
 }
 

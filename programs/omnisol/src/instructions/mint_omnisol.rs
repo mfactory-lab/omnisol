@@ -1,7 +1,11 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 
-use crate::{events::*, state::{Collateral, Pool, User, MINT_AUTHORITY_SEED}, ErrorCode, utils};
+use crate::{
+    events::*,
+    state::{Collateral, Pool, User, MINT_AUTHORITY_SEED},
+    utils, ErrorCode,
+};
 
 /// The user can use their deposit to mint omniSOL.
 /// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
@@ -22,7 +26,6 @@ pub fn handle(ctx: Context<MintOmnisol>, amount: u64) -> Result<()> {
         return Err(ErrorCode::InsufficientAmount.into());
     }
 
-    let pool_key = pool.key();
     let mint_authority_seeds = [MINT_AUTHORITY_SEED, &[ctx.bumps["mint_authority"]]];
     let clock = &ctx.accounts.clock;
 

@@ -73,32 +73,35 @@ pub mod omnisol {
         withdraw_stake::handle(ctx, amount, with_burn, with_merge)
     }
 
-    pub fn burn_omnisol<'info>(ctx: Context<BurnOmnisol>, amount: u64) -> Result<()> {
+    pub fn burn_omnisol(ctx: Context<BurnOmnisol>, amount: u64) -> Result<()> {
         burn_omnisol::handle(ctx, amount)
     }
 
-    pub fn init_oracle<'info>(ctx: Context<InitOracle>) -> Result<()> {
+    pub fn init_oracle(ctx: Context<InitOracle>) -> Result<()> {
         init_oracle::handle(ctx)
     }
 
-    pub fn close_oracle<'info>(ctx: Context<CloseOracle>) -> Result<()> {
+    pub fn close_oracle(ctx: Context<CloseOracle>) -> Result<()> {
         close_oracle::handle(ctx)
     }
 
-    pub fn update_oracle_info<'info>(
-        ctx: Context<UpdateOracleInfo>,
-        addresses: Vec<Pubkey>,
-        values: Vec<u64>,
-    ) -> Result<()> {
+    pub fn update_oracle_info(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>) -> Result<()> {
         update_oracle_info::handle(ctx, addresses, values)
     }
 
-    pub fn add_liquidator<'info>(ctx: Context<AddLiquidator>) -> Result<()> {
+    pub fn add_liquidator(ctx: Context<AddLiquidator>) -> Result<()> {
         add_liquidator::handle(ctx)
     }
 
-    pub fn remove_liquidator<'info>(ctx: Context<RemoveLiquidator>) -> Result<()> {
+    pub fn remove_liquidator(ctx: Context<RemoveLiquidator>) -> Result<()> {
         remove_liquidator::handle(ctx)
+    }
+
+    pub fn liquidate_collateral<'info>(
+        ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>,
+        amount: u64,
+    ) -> Result<()> {
+        liquidate_collateral::handle(ctx, amount)
     }
 }
 
@@ -108,6 +111,8 @@ pub enum ErrorCode {
     Unauthorized,
     #[msg("Invalid stake account")]
     InvalidStakeAccount,
+    #[msg("Invalid token")]
+    InvalidToken,
     #[msg("Insufficient amount")]
     InsufficientAmount,
     #[msg("Type overflow")]
