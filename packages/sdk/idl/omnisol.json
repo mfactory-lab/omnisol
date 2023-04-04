@@ -11,11 +11,6 @@
           "isSigner": true
         },
         {
-          "name": "oracle",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "poolMint",
           "isMut": true,
           "isSigner": false
@@ -726,7 +721,7 @@
         {
           "name": "oracle",
           "isMut": true,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "oracleAuthority",
@@ -1010,17 +1005,9 @@
             "type": "publicKey"
           },
           {
-            "name": "oracle",
-            "docs": [
-              "Oracle address for clarification"
-            ],
-            "type": "publicKey"
-          },
-          {
             "name": "stakeSource",
             "docs": [
-              "Address of LP token or native stake program",
-              "TODO: rename"
+              "Address of LP token or native stake program"
             ],
             "type": "publicKey"
           },
@@ -1094,10 +1081,9 @@
             "type": "publicKey"
           },
           {
-            "name": "sourceStake",
+            "name": "stakeSource",
             "docs": [
-              "An account of staking pool or LP token",
-              "TODO rename"
+              "An account of staking pool or LP token"
             ],
             "type": "publicKey"
           },

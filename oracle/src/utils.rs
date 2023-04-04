@@ -130,7 +130,7 @@ mod tests {
         let collateral_1 = Collateral {
             user: pubkey_1,
             pool: Default::default(),
-            source_stake: Default::default(),
+            stake_source: Default::default(),
             delegated_stake: Default::default(),
             delegation_stake: 100,
             amount: 0,
@@ -142,7 +142,7 @@ mod tests {
         let collateral_2 = Collateral {
             user: pubkey_1,
             pool: Default::default(),
-            source_stake: Default::default(),
+            stake_source: Default::default(),
             delegated_stake: Default::default(),
             delegation_stake: 100,
             amount: 0,
@@ -154,7 +154,7 @@ mod tests {
         let collateral_3 = Collateral {
             user: pubkey_2,
             pool: Default::default(),
-            source_stake: Default::default(),
+            stake_source: Default::default(),
             delegated_stake: Default::default(),
             delegation_stake: 100,
             amount: 0,
@@ -166,7 +166,7 @@ mod tests {
         let collateral_4 = Collateral {
             user: pubkey_3,
             pool: Default::default(),
-            source_stake: Default::default(),
+            stake_source: Default::default(),
             delegated_stake: Default::default(),
             delegation_stake: 100,
             amount: 0,
@@ -178,7 +178,7 @@ mod tests {
         let collateral_5 = Collateral {
             user: pubkey_3,
             pool: Default::default(),
-            source_stake: Default::default(),
+            stake_source: Default::default(),
             delegated_stake: Default::default(),
             delegation_stake: 100,
             amount: 0,

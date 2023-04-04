@@ -14,10 +14,19 @@ pub fn handle(ctx: Context<InitOracle>) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct InitOracle<'info> {
-    #[account(mut, constraint = authority.key() == Pubkey::from_str(ADMIN).unwrap())]
+    #[account(
+        mut,
+        address = Pubkey::from_str(ADMIN).unwrap()
+    )]
     pub authority: Signer<'info>,
 
-    #[account(init, payer = authority, space = Oracle::SIZE)]
+    #[account(
+        init,
+        seeds = [Oracle::SEED],
+        bump,
+        payer = authority,
+        space = Oracle::SIZE
+    )]
     pub oracle: Box<Account<'info, Oracle>>,
 
     /// CHECK: Address of oracle manager to createPool

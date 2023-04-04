@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token;
 
 use crate::{
-    state::{Oracle, Pool, MINT_AUTHORITY_SEED},
+    state::{Pool, MINT_AUTHORITY_SEED},
     ErrorCode,
 };
 
@@ -18,7 +18,6 @@ pub fn handle(ctx: Context<InitPool>) -> Result<()> {
 
     pool.authority = ctx.accounts.authority.key();
     pool.pool_mint = ctx.accounts.pool_mint.key();
-    pool.oracle = ctx.accounts.oracle.key();
     pool.stake_source = ctx.accounts.stake_source.key();
     pool.authority_bump = ctx.bumps["pool_authority"];
     pool.deposit_amount = 0;
@@ -31,9 +30,6 @@ pub fn handle(ctx: Context<InitPool>) -> Result<()> {
 pub struct InitPool<'info> {
     #[account(init, payer = authority, space = Pool::SIZE)]
     pub pool: Box<Account<'info, Pool>>,
-
-    #[account(mut)]
-    pub oracle: Box<Account<'info, Oracle>>,
 
     #[account(mut)]
     pub pool_mint: Account<'info, token::Mint>,

@@ -194,7 +194,7 @@ pub struct WithdrawStake<'info> {
     #[account(mut, address = pool.pool_mint)]
     pub pool_mint: AccountInfo<'info>,
 
-    #[account(mut, constraint = collateral.source_stake == source_stake.key())]
+    #[account(mut, constraint = collateral.stake_source == source_stake.key())]
     pub source_stake: Box<Account<'info, stake::StakeAccount>>,
 
     #[account(mut, constraint = collateral.delegated_stake == delegated_stake.key())]

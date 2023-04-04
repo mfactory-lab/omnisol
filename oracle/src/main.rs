@@ -14,7 +14,7 @@ use anchor_client::{
 use clap::Parser;
 use log::{info, LevelFilter};
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
-use omnisol::state::Oracle;
+use omnisol::{id, state::Oracle};
 
 use crate::utils::{generate_priority_queue, get_collateral_data, get_pool_data, get_user_data};
 
@@ -28,10 +28,6 @@ pub struct Args {
     /// Solana cluster name
     #[arg(short, long)]
     pub cluster: Cluster,
-
-    /// Oracle address
-    #[arg(short, long)]
-    pub oracle: Pubkey,
 
     /// Sleep duration in seconds
     #[arg(short, long)]
@@ -67,6 +63,9 @@ fn main() {
     let program = client.program(omnisol::id());
 
     let mut previous_queue = HashMap::new();
+
+    // find oracle PDA
+    let (oracle, _) = Pubkey::find_program_address(&[Oracle::SEED], &id());
 
     loop {
         info!("Thread is paused for {} seconds", args.sleep_duration.as_secs());
@@ -126,7 +125,7 @@ fn main() {
                 .request()
                 .accounts(omnisol::accounts::UpdateOracleInfo {
                     authority: wallet_pubkey,
-                    oracle: args.oracle,
+                    oracle,
                     system_program: system_program::id(),
                 })
                 .args(omnisol::instruction::UpdateOracleInfo { addresses, values, clear })
