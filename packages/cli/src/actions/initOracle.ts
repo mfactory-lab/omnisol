@@ -9,16 +9,12 @@ interface Opts {
 export async function initOracle(opts: Opts) {
   const { provider, client } = useContext()
 
-  const oracleKeypair = web3.Keypair.generate()
-  const oracle = oracleKeypair.publicKey
-
-  const { tx } = await client.initOracle({
-    oracle,
+  const { tx, oracle } = await client.initOracle({
     oracleAuthority: new web3.PublicKey(opts.oracleAuthority),
   })
 
   try {
-    const signature = await provider.sendAndConfirm(tx, [oracleKeypair])
+    const signature = await provider.sendAndConfirm(tx)
     log.info(`Signature: ${signature}`)
     log.info(`Oracle: ${oracle}`)
     log.info('OK')

@@ -4,7 +4,6 @@ import { useContext } from '../context'
 
 interface Opts {
   mint: string
-  oracle: string
   stakeSource: string
 }
 
@@ -16,7 +15,6 @@ export async function createPool(opts: Opts) {
 
   const { tx } = await client.createPool({
     mint: new web3.PublicKey(opts.mint),
-    oracle: new web3.PublicKey(opts.oracle),
     pool,
     stakeSource: new web3.PublicKey(opts.stakeSource),
   })
