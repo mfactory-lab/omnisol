@@ -1,4 +1,4 @@
-use anchor_lang::{prelude::*, solana_program::stake::state::StakeAuthorize};
+use anchor_lang::{prelude::*, solana_program::stake::state::StakeAuthorize, system_program};
 
 use crate::{
     events::*,
@@ -32,6 +32,18 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
         || (amount != delegation.stake && ctx.accounts.delegated_stake.key() == ctx.accounts.source_stake.key())
     {
         return Err(ErrorCode::InvalidStakeAccount.into());
+    }
+
+    if pool.deposit_fee > 0 {
+        system_program::transfer(CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            system_program::Transfer {
+                from: ctx.accounts.fee_payer.to_account_info(),
+                to: ctx.accounts.pool_authority.to_account_info(),
+            }
+        ),
+        amount.saturating_div(100).saturating_mul(pool.deposit_fee as u64),
+        )?;
     }
 
     let pool_key = pool.key();
@@ -113,7 +125,7 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
     collateral.delegation_stake = amount;
     collateral.amount = 0;
     collateral.liquidated_amount = 0;
-    collateral.created_at = clock.unix_timestamp;
+    collateral.creation_epoch = clock.epoch;
     collateral.bump = ctx.bumps["collateral"];
     collateral.is_native = true;
 
@@ -136,7 +148,7 @@ pub struct DepositStake<'info> {
     pub pool: Box<Account<'info, Pool>>,
 
     /// CHECK: no needs to check, only for signing
-    #[account(seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
+    #[account(mut, seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
     pub pool_authority: AccountInfo<'info>,
 
     #[account(
@@ -170,6 +182,9 @@ pub struct DepositStake<'info> {
 
     #[account(mut)]
     pub authority: Signer<'info>,
+
+    #[account(mut)]
+    pub fee_payer: Signer<'info>,
 
     pub clock: Sysvar<'info, Clock>,
     pub stake_program: Program<'info, stake::Stake>,

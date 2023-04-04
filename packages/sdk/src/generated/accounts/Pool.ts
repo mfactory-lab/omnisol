@@ -21,6 +21,10 @@ export interface PoolArgs {
   depositAmount: beet.bignum
   authorityBump: number
   isActive: boolean
+  withdrawFee: number
+  mintFee: number
+  depositFee: number
+  storageFee: number
 }
 
 export const poolDiscriminator = [241, 154, 109, 4, 17, 177, 109, 188]
@@ -39,6 +43,10 @@ export class Pool implements PoolArgs {
     readonly depositAmount: beet.bignum,
     readonly authorityBump: number,
     readonly isActive: boolean,
+    readonly withdrawFee: number,
+    readonly mintFee: number,
+    readonly depositFee: number,
+    readonly storageFee: number,
   ) {}
 
   /**
@@ -52,6 +60,10 @@ export class Pool implements PoolArgs {
       args.depositAmount,
       args.authorityBump,
       args.isActive,
+      args.withdrawFee,
+      args.mintFee,
+      args.depositFee,
+      args.storageFee,
     )
   }
 
@@ -174,6 +186,10 @@ export class Pool implements PoolArgs {
       })(),
       authorityBump: this.authorityBump,
       isActive: this.isActive,
+      withdrawFee: this.withdrawFee,
+      mintFee: this.mintFee,
+      depositFee: this.depositFee,
+      storageFee: this.storageFee,
     }
   }
 }
@@ -196,6 +212,10 @@ export const poolBeet = new beet.BeetStruct<
     ['depositAmount', beet.u64],
     ['authorityBump', beet.u8],
     ['isActive', beet.bool],
+    ['withdrawFee', beet.u8],
+    ['mintFee', beet.u8],
+    ['depositFee', beet.u8],
+    ['storageFee', beet.u8],
   ],
   Pool.fromArgs,
   'Pool',

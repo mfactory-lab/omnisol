@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use anchor_lang::system_program;
 use anchor_spl::token;
 
 use crate::{
@@ -21,6 +22,18 @@ pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
 
     let pool_key = pool.key();
     let clock = &ctx.accounts.clock;
+
+    if pool.deposit_fee > 0 {
+        system_program::transfer(CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            system_program::Transfer {
+                from: ctx.accounts.fee_payer.to_account_info(),
+                to: ctx.accounts.pool_authority.to_account_info(),
+            }
+        ),
+        amount.saturating_div(100).saturating_mul(pool.deposit_fee as u64),
+        )?;
+    }
 
     // Transfer LP tokens to the pool
     token::transfer(
@@ -60,7 +73,7 @@ pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
         collateral.delegation_stake = 0;
         collateral.amount = 0;
         collateral.liquidated_amount = 0;
-        collateral.created_at = clock.unix_timestamp;
+        collateral.creation_epoch = clock.epoch;
         collateral.bump = ctx.bumps["collateral"];
         collateral.is_native = false;
     }
@@ -87,7 +100,7 @@ pub struct DepositLPTokens<'info> {
     pub pool: Box<Account<'info, Pool>>,
 
     /// CHECK: no needs to check, only for signing
-    #[account(seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
+    #[account(mut, seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
     pub pool_authority: AccountInfo<'info>,
 
     #[account(
@@ -134,6 +147,9 @@ pub struct DepositLPTokens<'info> {
 
     #[account(mut)]
     pub authority: Signer<'info>,
+
+    #[account(mut)]
+    pub fee_payer: Signer<'info>,
 
     pub clock: Sysvar<'info, Clock>,
     pub token_program: Program<'info, token::Token>,

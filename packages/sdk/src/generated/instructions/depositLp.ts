@@ -37,7 +37,7 @@ export const depositLpStruct = new beet.BeetArgsStruct<
  * Accounts required by the _depositLp_ instruction
  *
  * @property [_writable_] pool
- * @property [] poolAuthority
+ * @property [_writable_] poolAuthority
  * @property [_writable_] user
  * @property [_writable_] collateral
  * @property [_writable_] source
@@ -45,6 +45,7 @@ export const depositLpStruct = new beet.BeetArgsStruct<
  * @property [] whitelist
  * @property [] lpToken
  * @property [_writable_, **signer**] authority
+ * @property [_writable_, **signer**] feePayer
  * @property [] clock
  * @category Instructions
  * @category DepositLp
@@ -60,6 +61,7 @@ export interface DepositLpInstructionAccounts {
   whitelist: web3.PublicKey
   lpToken: web3.PublicKey
   authority: web3.PublicKey
+  feePayer: web3.PublicKey
   clock: web3.PublicKey
   tokenProgram?: web3.PublicKey
   systemProgram?: web3.PublicKey
@@ -97,7 +99,7 @@ export function createDepositLpInstruction(
     },
     {
       pubkey: accounts.poolAuthority,
-      isWritable: false,
+      isWritable: true,
       isSigner: false,
     },
     {
@@ -132,6 +134,11 @@ export function createDepositLpInstruction(
     },
     {
       pubkey: accounts.authority,
+      isWritable: true,
+      isSigner: true,
+    },
+    {
+      pubkey: accounts.feePayer,
       isWritable: true,
       isSigner: true,
     },

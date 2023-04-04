@@ -1,3 +1,5 @@
+#![feature(int_roundings)]
+
 pub mod events;
 pub mod instructions;
 pub mod state;
@@ -102,6 +104,30 @@ pub mod omnisol {
         amount: u64,
     ) -> Result<()> {
         liquidate_collateral::handle(ctx, amount)
+    }
+
+    pub fn set_mint_fee(ctx: Context<SetFee>, fee: u8) -> Result<()> {
+        fee_setters::set_mint_fee(ctx, fee)
+    }
+
+    pub fn set_deposit_fee(ctx: Context<SetFee>, fee: u8) -> Result<()> {
+        fee_setters::set_deposit_fee(ctx, fee)
+    }
+
+    pub fn set_withdraw_fee(ctx: Context<SetFee>, fee: u8) -> Result<()> {
+        fee_setters::set_withdraw_fee(ctx, fee)
+    }
+
+    pub fn set_storage_fee(ctx: Context<SetFee>, fee: u8) -> Result<()> {
+        fee_setters::set_storage_fee(ctx, fee)
+    }
+
+    pub fn withdraw_pool_fee(ctx: Context<WithdrawPoolFee>, amount: u64) -> Result<()> {
+        withdraw_fee::handle(ctx, amount)
+    }
+
+    pub fn set_liquidation_fee(ctx: Context<SetLiquidationFee>, fee: u8) -> Result<()> {
+        set_liquidation_fee::handle(ctx, fee)
     }
 }
 

@@ -20,6 +20,9 @@ pub mod unblock_user;
 pub mod update_oracle_info;
 pub mod withdraw_lp_tokens;
 pub mod withdraw_stake;
+pub mod fee_setters;
+pub mod withdraw_fee;
+pub mod set_liquidation_fee;
 
 pub use add_liquidator::*;
 pub use add_manager::*;
@@ -43,3 +46,6 @@ pub use unblock_user::*;
 pub use update_oracle_info::*;
 pub use withdraw_lp_tokens::*;
 pub use withdraw_stake::*;
+pub use fee_setters::*;
+pub use withdraw_fee::*;
+pub use set_liquidation_fee::*;

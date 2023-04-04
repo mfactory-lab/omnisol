@@ -292,7 +292,7 @@ export interface Omnisol {
         },
         {
           'name': 'poolAuthority'
-          'isMut': false
+          'isMut': true
           'isSigner': false
         },
         {
@@ -331,6 +331,11 @@ export interface Omnisol {
           'isSigner': true
         },
         {
+          'name': 'feePayer'
+          'isMut': true
+          'isSigner': true
+        },
+        {
           'name': 'clock'
           'isMut': false
           'isSigner': false
@@ -363,7 +368,7 @@ export interface Omnisol {
         },
         {
           'name': 'poolAuthority'
-          'isMut': false
+          'isMut': true
           'isSigner': false
         },
         {
@@ -397,6 +402,11 @@ export interface Omnisol {
           'isSigner': true
         },
         {
+          'name': 'feePayer'
+          'isMut': true
+          'isSigner': true
+        },
+        {
           'name': 'clock'
           'isMut': false
           'isSigner': false
@@ -424,6 +434,11 @@ export interface Omnisol {
       'accounts': [
         {
           'name': 'pool'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'poolAuthority'
           'isMut': true
           'isSigner': false
         },
@@ -463,12 +478,22 @@ export interface Omnisol {
           'isSigner': true
         },
         {
+          'name': 'feePayer'
+          'isMut': true
+          'isSigner': true
+        },
+        {
           'name': 'clock'
           'isMut': false
           'isSigner': false
         },
         {
           'name': 'tokenProgram'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'systemProgram'
           'isMut': false
           'isSigner': false
         },
@@ -490,7 +515,7 @@ export interface Omnisol {
         },
         {
           'name': 'poolAuthority'
-          'isMut': false
+          'isMut': true
           'isSigner': false
         },
         {
@@ -534,12 +559,22 @@ export interface Omnisol {
           'isSigner': true
         },
         {
+          'name': 'feePayer'
+          'isMut': true
+          'isSigner': true
+        },
+        {
           'name': 'clock'
           'isMut': false
           'isSigner': false
         },
         {
           'name': 'tokenProgram'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'systemProgram'
           'isMut': false
           'isSigner': false
         },
@@ -565,7 +600,7 @@ export interface Omnisol {
         },
         {
           'name': 'poolAuthority'
-          'isMut': false
+          'isMut': true
           'isSigner': false
         },
         {
@@ -610,6 +645,11 @@ export interface Omnisol {
         },
         {
           'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'feePayer'
           'isMut': true
           'isSigner': true
         },
@@ -983,6 +1023,182 @@ export interface Omnisol {
         },
       ]
     },
+    {
+      'name': 'setMintFee'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'manager'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+      ]
+      'args': [
+        {
+          'name': 'fee'
+          'type': 'u8'
+        },
+      ]
+    },
+    {
+      'name': 'setDepositFee'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'manager'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+      ]
+      'args': [
+        {
+          'name': 'fee'
+          'type': 'u8'
+        },
+      ]
+    },
+    {
+      'name': 'setWithdrawFee'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'manager'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+      ]
+      'args': [
+        {
+          'name': 'fee'
+          'type': 'u8'
+        },
+      ]
+    },
+    {
+      'name': 'setStorageFee'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'manager'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+      ]
+      'args': [
+        {
+          'name': 'fee'
+          'type': 'u8'
+        },
+      ]
+    },
+    {
+      'name': 'withdrawPoolFee'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'poolAuthority'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'referral'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'manager'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'systemProgram'
+          'isMut': false
+          'isSigner': false
+        },
+      ]
+      'args': [
+        {
+          'name': 'amount'
+          'type': 'u64'
+        },
+      ]
+    },
+    {
+      'name': 'setLiquidationFee'
+      'accounts': [
+        {
+          'name': 'liquidationFee'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'manager'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'systemProgram'
+          'isMut': false
+          'isSigner': false
+        },
+      ]
+      'args': [
+        {
+          'name': 'fee'
+          'type': 'u8'
+        },
+      ]
+    },
   ]
   'accounts': [
     {
@@ -1031,6 +1247,49 @@ export interface Omnisol {
               'Flag that indicates that the pool is running or paused',
             ]
             'type': 'bool'
+          },
+          {
+            'name': 'withdrawFee'
+            'docs': [
+              'Fee for withdrawing from pool (in %)',
+            ]
+            'type': 'u8'
+          },
+          {
+            'name': 'mintFee'
+            'docs': [
+              'Fee for minting omnisol from pool (in %)',
+            ]
+            'type': 'u8'
+          },
+          {
+            'name': 'depositFee'
+            'docs': [
+              'Fee for depositing in pool (in %)',
+            ]
+            'type': 'u8'
+          },
+          {
+            'name': 'storageFee'
+            'docs': [
+              'Fee for keeping deposit in pool (in %, per epoch)',
+            ]
+            'type': 'u8'
+          },
+        ]
+      }
+    },
+    {
+      'name': 'liquidationFee'
+      'type': {
+        'kind': 'struct'
+        'fields': [
+          {
+            'name': 'fee'
+            'docs': [
+              'Fee for creating liquidation request',
+            ]
+            'type': 'u8'
           },
         ]
       }
@@ -1116,11 +1375,11 @@ export interface Omnisol {
             'type': 'u64'
           },
           {
-            'name': 'createdAt'
+            'name': 'creationEpoch'
             'docs': [
-              'Time of collateral\'s creation',
+              'Epoch of collateral\'s creation',
             ]
-            'type': 'i64'
+            'type': 'u64'
           },
           {
             'name': 'bump'
@@ -1804,7 +2063,7 @@ export const IDL: Omnisol = {
         },
         {
           name: 'poolAuthority',
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
@@ -1843,6 +2102,11 @@ export const IDL: Omnisol = {
           isSigner: true,
         },
         {
+          name: 'feePayer',
+          isMut: true,
+          isSigner: true,
+        },
+        {
           name: 'clock',
           isMut: false,
           isSigner: false,
@@ -1875,7 +2139,7 @@ export const IDL: Omnisol = {
         },
         {
           name: 'poolAuthority',
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
@@ -1909,6 +2173,11 @@ export const IDL: Omnisol = {
           isSigner: true,
         },
         {
+          name: 'feePayer',
+          isMut: true,
+          isSigner: true,
+        },
+        {
           name: 'clock',
           isMut: false,
           isSigner: false,
@@ -1936,6 +2205,11 @@ export const IDL: Omnisol = {
       accounts: [
         {
           name: 'pool',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'poolAuthority',
           isMut: true,
           isSigner: false,
         },
@@ -1975,12 +2249,22 @@ export const IDL: Omnisol = {
           isSigner: true,
         },
         {
+          name: 'feePayer',
+          isMut: true,
+          isSigner: true,
+        },
+        {
           name: 'clock',
           isMut: false,
           isSigner: false,
         },
         {
           name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
           isMut: false,
           isSigner: false,
         },
@@ -2002,7 +2286,7 @@ export const IDL: Omnisol = {
         },
         {
           name: 'poolAuthority',
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
@@ -2046,12 +2330,22 @@ export const IDL: Omnisol = {
           isSigner: true,
         },
         {
+          name: 'feePayer',
+          isMut: true,
+          isSigner: true,
+        },
+        {
           name: 'clock',
           isMut: false,
           isSigner: false,
         },
         {
           name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
           isMut: false,
           isSigner: false,
         },
@@ -2077,7 +2371,7 @@ export const IDL: Omnisol = {
         },
         {
           name: 'poolAuthority',
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
@@ -2122,6 +2416,11 @@ export const IDL: Omnisol = {
         },
         {
           name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'feePayer',
           isMut: true,
           isSigner: true,
         },
@@ -2495,6 +2794,182 @@ export const IDL: Omnisol = {
         },
       ],
     },
+    {
+      name: 'setMintFee',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'manager',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [
+        {
+          name: 'fee',
+          type: 'u8',
+        },
+      ],
+    },
+    {
+      name: 'setDepositFee',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'manager',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [
+        {
+          name: 'fee',
+          type: 'u8',
+        },
+      ],
+    },
+    {
+      name: 'setWithdrawFee',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'manager',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [
+        {
+          name: 'fee',
+          type: 'u8',
+        },
+      ],
+    },
+    {
+      name: 'setStorageFee',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'manager',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [
+        {
+          name: 'fee',
+          type: 'u8',
+        },
+      ],
+    },
+    {
+      name: 'withdrawPoolFee',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'poolAuthority',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'referral',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'manager',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: 'amount',
+          type: 'u64',
+        },
+      ],
+    },
+    {
+      name: 'setLiquidationFee',
+      accounts: [
+        {
+          name: 'liquidationFee',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'manager',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: 'fee',
+          type: 'u8',
+        },
+      ],
+    },
   ],
   accounts: [
     {
@@ -2543,6 +3018,49 @@ export const IDL: Omnisol = {
               'Flag that indicates that the pool is running or paused',
             ],
             type: 'bool',
+          },
+          {
+            name: 'withdrawFee',
+            docs: [
+              'Fee for withdrawing from pool (in %)',
+            ],
+            type: 'u8',
+          },
+          {
+            name: 'mintFee',
+            docs: [
+              'Fee for minting omnisol from pool (in %)',
+            ],
+            type: 'u8',
+          },
+          {
+            name: 'depositFee',
+            docs: [
+              'Fee for depositing in pool (in %)',
+            ],
+            type: 'u8',
+          },
+          {
+            name: 'storageFee',
+            docs: [
+              'Fee for keeping deposit in pool (in %, per epoch)',
+            ],
+            type: 'u8',
+          },
+        ],
+      },
+    },
+    {
+      name: 'liquidationFee',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'fee',
+            docs: [
+              'Fee for creating liquidation request',
+            ],
+            type: 'u8',
           },
         ],
       },
@@ -2628,11 +3146,11 @@ export const IDL: Omnisol = {
             type: 'u64',
           },
           {
-            name: 'createdAt',
+            name: 'creationEpoch',
             docs: [
-              'Time of collateral\'s creation',
+              'Epoch of collateral\'s creation',
             ],
-            type: 'i64',
+            type: 'u64',
           },
           {
             name: 'bump',

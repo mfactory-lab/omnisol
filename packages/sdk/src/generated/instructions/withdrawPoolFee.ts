@@ -10,19 +10,19 @@ import * as web3 from '@solana/web3.js'
 
 /**
  * @category Instructions
- * @category DepositStake
+ * @category WithdrawPoolFee
  * @category generated
  */
-export interface DepositStakeInstructionArgs {
+export interface WithdrawPoolFeeInstructionArgs {
   amount: beet.bignum
 }
 /**
  * @category Instructions
- * @category DepositStake
+ * @category WithdrawPoolFee
  * @category generated
  */
-export const depositStakeStruct = new beet.BeetArgsStruct<
-  DepositStakeInstructionArgs & {
+export const withdrawPoolFeeStruct = new beet.BeetArgsStruct<
+  WithdrawPoolFeeInstructionArgs & {
     instructionDiscriminator: number[] /* size: 8 */
   }
 >(
@@ -30,63 +30,51 @@ export const depositStakeStruct = new beet.BeetArgsStruct<
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
     ['amount', beet.u64],
   ],
-  'DepositStakeInstructionArgs',
+  'WithdrawPoolFeeInstructionArgs',
 )
 /**
- * Accounts required by the _depositStake_ instruction
+ * Accounts required by the _withdrawPoolFee_ instruction
  *
  * @property [_writable_] pool
  * @property [_writable_] poolAuthority
- * @property [_writable_] user
- * @property [_writable_] collateral
- * @property [_writable_] sourceStake
- * @property [_writable_] delegatedStake
- * @property [_writable_, **signer**] splitStake
+ * @property [_writable_] referral
+ * @property [_writable_] manager
  * @property [_writable_, **signer**] authority
- * @property [_writable_, **signer**] feePayer
- * @property [] clock
- * @property [] stakeProgram
  * @category Instructions
- * @category DepositStake
+ * @category WithdrawPoolFee
  * @category generated
  */
-export interface DepositStakeInstructionAccounts {
+export interface WithdrawPoolFeeInstructionAccounts {
   pool: web3.PublicKey
   poolAuthority: web3.PublicKey
-  user: web3.PublicKey
-  collateral: web3.PublicKey
-  sourceStake: web3.PublicKey
-  delegatedStake: web3.PublicKey
-  splitStake: web3.PublicKey
+  referral: web3.PublicKey
+  manager: web3.PublicKey
   authority: web3.PublicKey
-  feePayer: web3.PublicKey
-  clock: web3.PublicKey
-  stakeProgram: web3.PublicKey
   systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
-export const depositStakeInstructionDiscriminator = [
-  160, 167, 9, 220, 74, 243, 228, 43,
+export const withdrawPoolFeeInstructionDiscriminator = [
+  92, 185, 100, 34, 177, 136, 15, 236,
 ]
 
 /**
- * Creates a _DepositStake_ instruction.
+ * Creates a _WithdrawPoolFee_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
  * @param args to provide as instruction data to the program
  *
  * @category Instructions
- * @category DepositStake
+ * @category WithdrawPoolFee
  * @category generated
  */
-export function createDepositStakeInstruction(
-  accounts: DepositStakeInstructionAccounts,
-  args: DepositStakeInstructionArgs,
+export function createWithdrawPoolFeeInstruction(
+  accounts: WithdrawPoolFeeInstructionAccounts,
+  args: WithdrawPoolFeeInstructionArgs,
   programId = new web3.PublicKey('6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7'),
 ) {
-  const [data] = depositStakeStruct.serialize({
-    instructionDiscriminator: depositStakeInstructionDiscriminator,
+  const [data] = withdrawPoolFeeStruct.serialize({
+    instructionDiscriminator: withdrawPoolFeeInstructionDiscriminator,
     ...args,
   })
   const keys: web3.AccountMeta[] = [
@@ -101,49 +89,19 @@ export function createDepositStakeInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.user,
+      pubkey: accounts.referral,
       isWritable: true,
       isSigner: false,
     },
     {
-      pubkey: accounts.collateral,
+      pubkey: accounts.manager,
       isWritable: true,
       isSigner: false,
-    },
-    {
-      pubkey: accounts.sourceStake,
-      isWritable: true,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.delegatedStake,
-      isWritable: true,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.splitStake,
-      isWritable: true,
-      isSigner: true,
     },
     {
       pubkey: accounts.authority,
       isWritable: true,
       isSigner: true,
-    },
-    {
-      pubkey: accounts.feePayer,
-      isWritable: true,
-      isSigner: true,
-    },
-    {
-      pubkey: accounts.clock,
-      isWritable: false,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.stakeProgram,
-      isWritable: false,
-      isSigner: false,
     },
     {
       pubkey: accounts.systemProgram ?? web3.SystemProgram.programId,
