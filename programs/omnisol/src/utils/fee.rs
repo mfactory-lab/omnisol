@@ -1,3 +1,6 @@
+use anchor_lang::prelude::*;
+use crate::ErrorCode;
+
 pub fn get_storage_fee(storage_fee: u64, epoch: u64, creation_epoch: u64, amount: u64) -> u64 {
     let stored_in_epochs = epoch.saturating_sub(creation_epoch);
     let mut delegation = amount;
@@ -10,6 +13,15 @@ pub fn get_storage_fee(storage_fee: u64, epoch: u64, creation_epoch: u64, amount
     }
 
     fee
+}
+
+pub fn check_fee(fee: u16) -> Result<()> {
+    if fee > 1000 {
+        msg!("Invalid fee value");
+        return Err(ErrorCode::WrongData.into());
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]

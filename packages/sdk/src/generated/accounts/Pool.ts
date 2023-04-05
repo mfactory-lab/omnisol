@@ -26,6 +26,7 @@ export interface PoolArgs {
   mintFee: number
   depositFee: number
   storageFee: number
+  minDeposit: beet.bignum
 }
 
 export const poolDiscriminator = [241, 154, 109, 4, 17, 177, 109, 188]
@@ -49,6 +50,7 @@ export class Pool implements PoolArgs {
     readonly mintFee: number,
     readonly depositFee: number,
     readonly storageFee: number,
+    readonly minDeposit: beet.bignum,
   ) {}
 
   /**
@@ -67,6 +69,7 @@ export class Pool implements PoolArgs {
       args.mintFee,
       args.depositFee,
       args.storageFee,
+      args.minDeposit,
     )
   }
 
@@ -194,6 +197,17 @@ export class Pool implements PoolArgs {
       mintFee: this.mintFee,
       depositFee: this.depositFee,
       storageFee: this.storageFee,
+      minDeposit: (() => {
+        const x = <{ toNumber: () => number }> this.minDeposit
+        if (typeof x.toNumber === 'function') {
+          try {
+            return x.toNumber()
+          } catch (_) {
+            return x
+          }
+        }
+        return x
+      })(),
     }
   }
 }
@@ -221,6 +235,7 @@ export const poolBeet = new beet.BeetStruct<
     ['mintFee', beet.u16],
     ['depositFee', beet.u16],
     ['storageFee', beet.u16],
+    ['minDeposit', beet.u64],
   ],
   Pool.fromArgs,
   'Pool',

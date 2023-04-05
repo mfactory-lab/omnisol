@@ -35,8 +35,8 @@ pub mod omnisol {
         resume_pool::handle(ctx)
     }
 
-    pub fn add_to_whitelist(ctx: Context<AddToWhitelist>) -> Result<()> {
-        add_to_whitelist::handle(ctx)
+    pub fn add_to_whitelist(ctx: Context<AddToTokenWhitelist>) -> Result<()> {
+        add_to_token_whitelist::handle(ctx)
     }
 
     pub fn remove_from_whitelist(ctx: Context<RemoveFromWhitelist>) -> Result<()> {
@@ -112,9 +112,10 @@ pub mod omnisol {
         withdraw_fee: Option<u16>,
         deposit_fee: Option<u16>,
         mint_fee: Option<u16>,
-        storage_fee: Option<u16>
+        storage_fee: Option<u16>,
+        min_deposit: Option<u64>,
     ) -> Result<()> {
-        update_pool::handle(ctx, fee_receiver, withdraw_fee, deposit_fee, mint_fee, storage_fee)
+        update_pool::handle(ctx, fee_receiver, withdraw_fee, deposit_fee, mint_fee, storage_fee, min_deposit)
     }
 
     pub fn withdraw_sol(ctx: Context<WithdrawSol>, amount: u64) -> Result<()> {

@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 
 use crate::state::{Manager, Whitelist};
 
-pub fn handle(ctx: Context<AddToWhitelist>) -> Result<()> {
+pub fn handle(ctx: Context<AddToTokenWhitelist>) -> Result<()> {
     let whitelist = &mut ctx.accounts.whitelist;
     let address_to_whitelist = ctx.accounts.address_to_whitelist.key();
     // program_id
@@ -11,15 +11,15 @@ pub fn handle(ctx: Context<AddToWhitelist>) -> Result<()> {
 
     // TODO add validation
 
-    whitelist.whitelisted_token = address_to_whitelist;
+    whitelist.mint = address_to_whitelist;
     whitelist.pool = pool;
-    whitelist.staking_pool = staking_pool;
+    whitelist.pool_program = staking_pool;
 
     Ok(())
 }
 
 #[derive(Accounts)]
-pub struct AddToWhitelist<'info> {
+pub struct AddToTokenWhitelist<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 

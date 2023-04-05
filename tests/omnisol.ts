@@ -337,6 +337,17 @@ describe('omnisol', () => {
   })
 
   it('can create pool', async () => {
+    const { tx: tx1 } = await client.addManager({
+      managerWallet: provider.wallet.publicKey,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx1)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
     const poolKeypair = web3.Keypair.generate()
     pool = poolKeypair.publicKey
     const [,bump] = await client.pda.poolAuthority(pool)
@@ -377,17 +388,6 @@ describe('omnisol', () => {
   })
 
   it('can update pool', async () => {
-    const { tx: tx1 } = await client.addManager({
-      managerWallet: provider.wallet.publicKey,
-    })
-
-    try {
-      await provider.sendAndConfirm(tx1)
-    } catch (e) {
-      console.log(e)
-      throw e
-    }
-
     const { tx } = await client.updatePool({
       pool,
       withdrawFee: 10,
@@ -516,9 +516,9 @@ describe('omnisol', () => {
     }
 
     const whitelistData = await client.fetchWhitelist(whitelist)
-    assert.equal(whitelistData.whitelistedToken.equals(stakePoolMint), true)
+    assert.equal(whitelistData.mint.equals(stakePoolMint), true)
     assert.equal(whitelistData.pool.equals(STAKE_POOL_PROGRAM_ID), true)
-    assert.equal(whitelistData.stakingPool.equals(stakePool), true)
+    assert.equal(whitelistData.poolProgram.equals(stakePool), true)
   })
 
   it('can deposit lp tokens', async () => {

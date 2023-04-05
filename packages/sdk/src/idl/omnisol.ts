@@ -31,6 +31,11 @@ export interface Omnisol {
           'isSigner': false
         },
         {
+          'name': 'manager'
+          'isMut': true
+          'isSigner': false
+        },
+        {
           'name': 'authority'
           'isMut': true
           'isSigner': true
@@ -1118,6 +1123,12 @@ export interface Omnisol {
             'option': 'u16'
           }
         },
+        {
+          'name': 'minDeposit'
+          'type': {
+            'option': 'u64'
+          }
+        },
       ]
     },
     {
@@ -1284,6 +1295,13 @@ export interface Omnisol {
             ]
             'type': 'u16'
           },
+          {
+            'name': 'minDeposit'
+            'docs': [
+              'Minimal deposit amount',
+            ]
+            'type': 'u64'
+          },
         ]
       }
     },
@@ -1426,7 +1444,7 @@ export interface Omnisol {
         'kind': 'struct'
         'fields': [
           {
-            'name': 'whitelistedToken'
+            'name': 'mint'
             'docs': [
               'Token mint address that is whitelisted to the pool',
             ]
@@ -1440,7 +1458,7 @@ export interface Omnisol {
             'type': 'publicKey'
           },
           {
-            'name': 'stakingPool'
+            'name': 'poolProgram'
             'docs': [
               'LP tokens` pool (default for native stake)',
             ]
@@ -1826,6 +1844,11 @@ export const IDL: Omnisol = {
         {
           name: 'stakeSource',
           isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'manager',
+          isMut: true,
           isSigner: false,
         },
         {
@@ -2916,6 +2939,12 @@ export const IDL: Omnisol = {
             option: 'u16',
           },
         },
+        {
+          name: 'minDeposit',
+          type: {
+            option: 'u64',
+          },
+        },
       ],
     },
     {
@@ -3082,6 +3111,13 @@ export const IDL: Omnisol = {
             ],
             type: 'u16',
           },
+          {
+            name: 'minDeposit',
+            docs: [
+              'Minimal deposit amount',
+            ],
+            type: 'u64',
+          },
         ],
       },
     },
@@ -3224,7 +3260,7 @@ export const IDL: Omnisol = {
         kind: 'struct',
         fields: [
           {
-            name: 'whitelistedToken',
+            name: 'mint',
             docs: [
               'Token mint address that is whitelisted to the pool',
             ],
@@ -3238,7 +3274,7 @@ export const IDL: Omnisol = {
             type: 'publicKey',
           },
           {
-            name: 'stakingPool',
+            name: 'poolProgram',
             docs: [
               'LP tokens` pool (default for native stake)',
             ],

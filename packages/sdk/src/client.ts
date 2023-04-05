@@ -139,9 +139,11 @@ export class OmnisolClient {
     const stakeSource = props.stakeSource
     const [poolAuthority, bump] = await this.pda.poolAuthority(pool)
     const [mintAuthority] = await this.pda.mintAuthority()
+    const [manager] = await this.pda.manager(payer)
     const feeReceiver = props.feeReceiver ?? poolAuthority
     const ix = createInitPoolInstruction(
       {
+        manager,
         feeReceiver,
         authority: payer,
         mintAuthority,
@@ -297,6 +299,7 @@ export class OmnisolClient {
         manager,
       },
       {
+        minDeposit: props.minDeposit ?? null,
         depositFee: props.depositFee ?? null,
         feeReceiver: props.feeReceiver ?? null,
         mintFee: props.mintFee ?? null,
@@ -707,7 +710,7 @@ export class OmnisolClient {
         poolMint: props.poolMint,
         sourceTokenAccount: props.sourceTokenAccount,
         user,
-        withdrawInfo
+        withdrawInfo,
       },
       {
         amount: props.amount,
@@ -1083,6 +1086,7 @@ interface UpdatePoolProps {
   depositFee?: number
   mintFee?: number
   storageFee?: number
+  minDeposit?: BN
 }
 
 interface SetLiquidationFeeProps {

@@ -1,6 +1,6 @@
 pub mod add_liquidator;
 pub mod add_manager;
-pub mod add_to_whitelist;
+pub mod add_to_token_whitelist;
 pub mod block_user;
 pub mod burn_omnisol;
 pub mod close_oracle;
@@ -26,7 +26,7 @@ pub mod set_liquidation_fee;
 
 pub use add_liquidator::*;
 pub use add_manager::*;
-pub use add_to_whitelist::*;
+pub use add_to_token_whitelist::*;
 pub use block_user::*;
 pub use burn_omnisol::*;
 pub use close_oracle::*;

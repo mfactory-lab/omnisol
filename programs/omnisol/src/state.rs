@@ -27,10 +27,12 @@ pub struct Pool {
     pub deposit_fee: u16,
     /// Fee for keeping deposit in pool (in %, per epoch)
     pub storage_fee: u16,
+    /// Minimal deposit amount
+    pub min_deposit: u64,
 }
 
 impl Pool {
-    pub const SIZE: usize = 8 + 32 + 32 + 32 + 8 + 1 + 1 + 32 + 2 + 2 + 2 + 2;
+    pub const SIZE: usize = 8 + 32 + 32 + 32 + 8 + 1 + 1 + 32 + 2 + 2 + 2 + 2 + 8;
 }
 
 #[account]
@@ -108,11 +110,11 @@ impl Collateral {
 #[account]
 pub struct Whitelist {
     /// Token mint address that is whitelisted to the pool
-    pub whitelisted_token: Pubkey,
+    pub mint: Pubkey,
     /// Global pool address
     pub pool: Pubkey,
     /// LP tokens` pool (default for native stake)
-    pub staking_pool: Pubkey,
+    pub pool_program: Pubkey,
 }
 
 impl Whitelist {

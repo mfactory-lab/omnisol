@@ -146,7 +146,7 @@ pub struct DepositLPTokens<'info> {
     pub whitelist: Box<Account<'info, Whitelist>>,
 
     /// CHECK: Address of a token, will be checked via whitelist
-    #[account(address = whitelist.whitelisted_token)]
+    #[account(address = whitelist.mint)]
     pub lp_token: AccountInfo<'info>,
 
     #[account(mut)]

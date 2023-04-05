@@ -1,9 +1,7 @@
 use anchor_lang::prelude::*;
 
-use crate::{
-    state::{Pool, Manager},
-    ErrorCode,
-};
+use crate::state::{Pool, Manager};
+use crate::utils::fee::check_fee;
 
 pub fn handle(
     ctx: Context<UpdatePool>,
@@ -11,7 +9,8 @@ pub fn handle(
     withdraw_fee: Option<u16>,
     deposit_fee: Option<u16>,
     mint_fee: Option<u16>,
-    storage_fee: Option<u16>
+    storage_fee: Option<u16>,
+    min_deposit: Option<u64>,
 ) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 
@@ -20,35 +19,27 @@ pub fn handle(
     }
 
     if let Some(withdraw_fee) = withdraw_fee {
-        if withdraw_fee > 1000 {
-            msg!("Invalid withdraw fee value");
-            return Err(ErrorCode::WrongData.into());
-        }
+        check_fee(withdraw_fee)?;
         pool.withdraw_fee = withdraw_fee;
     }
 
     if let Some(deposit_fee) = deposit_fee {
-        if deposit_fee > 1000 {
-            msg!("Invalid deposit fee value");
-            return Err(ErrorCode::WrongData.into());
-        }
+        check_fee(deposit_fee)?;
         pool.deposit_fee = deposit_fee;
     }
 
     if let Some(mint_fee) = mint_fee {
-        if mint_fee > 1000 {
-            msg!("Invalid mint fee value");
-            return Err(ErrorCode::WrongData.into());
-        }
+        check_fee(mint_fee)?;
         pool.mint_fee = mint_fee;
     }
 
     if let Some(storage_fee) = storage_fee {
-        if storage_fee > 1000 {
-            msg!("Invalid storage fee value");
-            return Err(ErrorCode::WrongData.into());
-        }
+        check_fee(storage_fee)?;
         pool.storage_fee = storage_fee;
+    }
+
+    if let Some(min_deposit) = min_deposit {
+        pool.min_deposit = min_deposit;
     }
 
     Ok(())

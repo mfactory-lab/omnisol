@@ -20,6 +20,7 @@ export interface UpdatePoolInstructionArgs {
   depositFee: beet.COption<number>
   mintFee: beet.COption<number>
   storageFee: beet.COption<number>
+  minDeposit: beet.COption<beet.bignum>
 }
 /**
  * @category Instructions
@@ -38,6 +39,7 @@ export const updatePoolStruct = new beet.FixableBeetArgsStruct<
     ['depositFee', beet.coption(beet.u16)],
     ['mintFee', beet.coption(beet.u16)],
     ['storageFee', beet.coption(beet.u16)],
+    ['minDeposit', beet.coption(beet.u64)],
   ],
   'UpdatePoolInstructionArgs',
 )
