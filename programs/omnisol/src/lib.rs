@@ -106,28 +106,23 @@ pub mod omnisol {
         liquidate_collateral::handle(ctx, amount)
     }
 
-    pub fn set_mint_fee(ctx: Context<SetFee>, fee: u8) -> Result<()> {
-        fee_setters::set_mint_fee(ctx, fee)
+    pub fn update_pool(
+        ctx: Context<UpdatePool>,
+        fee_receiver: Option<Pubkey>,
+        withdraw_fee: Option<u16>,
+        deposit_fee: Option<u16>,
+        mint_fee: Option<u16>,
+        storage_fee: Option<u16>
+    ) -> Result<()> {
+        update_pool::handle(ctx, fee_receiver, withdraw_fee, deposit_fee, mint_fee, storage_fee)
     }
 
-    pub fn set_deposit_fee(ctx: Context<SetFee>, fee: u8) -> Result<()> {
-        fee_setters::set_deposit_fee(ctx, fee)
+    pub fn withdraw_sol(ctx: Context<WithdrawSol>, amount: u64) -> Result<()> {
+        withdraw_sol::handle(ctx, amount)
     }
 
-    pub fn set_withdraw_fee(ctx: Context<SetFee>, fee: u8) -> Result<()> {
-        fee_setters::set_withdraw_fee(ctx, fee)
-    }
-
-    pub fn set_storage_fee(ctx: Context<SetFee>, fee: u8) -> Result<()> {
-        fee_setters::set_storage_fee(ctx, fee)
-    }
-
-    pub fn withdraw_pool_fee(ctx: Context<WithdrawPoolFee>, amount: u64) -> Result<()> {
-        withdraw_fee::handle(ctx, amount)
-    }
-
-    pub fn set_liquidation_fee(ctx: Context<SetLiquidationFee>, fee: u8) -> Result<()> {
-        set_liquidation_fee::handle(ctx, fee)
+    pub fn set_liquidation_fee(ctx: Context<SetLiquidationFee>, fee: Option<u16>, fee_receiver: Option<Pubkey>) -> Result<()> {
+        set_liquidation_fee::handle(ctx, fee, fee_receiver)
     }
 }
 
@@ -141,6 +136,8 @@ pub enum ErrorCode {
     InvalidToken,
     #[msg("Insufficient amount")]
     InsufficientAmount,
+    #[msg("Insufficient funds")]
+    InsufficientFunds,
     #[msg("Type overflow")]
     TypeOverflow,
     #[msg("Pool is already paused")]

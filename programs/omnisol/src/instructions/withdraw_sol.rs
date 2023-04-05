@@ -6,7 +6,7 @@ use crate::{
     ErrorCode,
 };
 
-pub fn handle(ctx: Context<WithdrawPoolFee>, amount: u64) -> Result<()> {
+pub fn handle(ctx: Context<WithdrawSol>, amount: u64) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
     let pool_key = pool.key();
     let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
@@ -20,7 +20,7 @@ pub fn handle(ctx: Context<WithdrawPoolFee>, amount: u64) -> Result<()> {
         ctx.accounts.system_program.to_account_info(),
         system_program::Transfer {
             from: ctx.accounts.pool_authority.to_account_info(),
-            to: ctx.accounts.referral.to_account_info(),
+            to: ctx.accounts.destination.to_account_info(),
         },
         &[&pool_authority_seeds],
     ),
@@ -31,7 +31,7 @@ pub fn handle(ctx: Context<WithdrawPoolFee>, amount: u64) -> Result<()> {
 }
 
 #[derive(Accounts)]
-pub struct WithdrawPoolFee<'info> {
+pub struct WithdrawSol<'info> {
     #[account(mut)]
     pub pool: Box<Account<'info, Pool>>,
 
@@ -41,7 +41,7 @@ pub struct WithdrawPoolFee<'info> {
 
     /// CHECK: wallet for transfer
     #[account(mut)]
-    pub referral: AccountInfo<'info>,
+    pub destination: AccountInfo<'info>,
 
     #[account(mut, seeds = [Manager::SEED, authority.key().as_ref()], bump)]
     pub manager: Box<Account<'info, Manager>>,

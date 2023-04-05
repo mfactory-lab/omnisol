@@ -5,15 +5,20 @@ use crate::{
     ErrorCode,
 };
 
-pub fn handle(ctx: Context<SetLiquidationFee>, fee: u8) -> Result<()> {
+pub fn handle(ctx: Context<SetLiquidationFee>, fee: Option<u16>, fee_receiver: Option<Pubkey>) -> Result<()> {
     let liquidation_fee = &mut ctx.accounts.liquidation_fee;
 
-    if fee > 100 {
-        msg!("Invalid fee value");
-        return Err(ErrorCode::WrongData.into());
+    if let Some(fee_receiver) = fee_receiver {
+        liquidation_fee.fee_receiver = fee_receiver;
     }
 
-    liquidation_fee.fee = fee;
+    if let Some(fee) = fee {
+        if fee > 1000 {
+            msg!("Invalid liquidation fee value");
+            return Err(ErrorCode::WrongData.into());
+        }
+        liquidation_fee.fee = fee;
+    }
 
     Ok(())
 }

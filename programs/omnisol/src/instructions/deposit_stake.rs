@@ -35,15 +35,18 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
     }
 
     if pool.deposit_fee > 0 {
+        let fee = amount.saturating_div(1000).saturating_mul(pool.deposit_fee as u64);
+        msg!("Transfer deposit fee: {} lamports", fee);
+
         system_program::transfer(CpiContext::new(
             ctx.accounts.system_program.to_account_info(),
             system_program::Transfer {
                 from: ctx.accounts.fee_payer.to_account_info(),
-                to: ctx.accounts.pool_authority.to_account_info(),
+                to: ctx.accounts.fee_receiver.to_account_info(),
             }
         ),
-        amount.saturating_div(100).saturating_mul(pool.deposit_fee as u64),
-        )?;
+        fee,
+        ).map_err(|_| ErrorCode::InsufficientFunds)?;
     }
 
     let pool_key = pool.key();
@@ -125,6 +128,7 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
     collateral.delegation_stake = amount;
     collateral.amount = 0;
     collateral.liquidated_amount = 0;
+    collateral.created_at = clock.unix_timestamp;
     collateral.creation_epoch = clock.epoch;
     collateral.bump = ctx.bumps["collateral"];
     collateral.is_native = true;
@@ -148,7 +152,7 @@ pub struct DepositStake<'info> {
     pub pool: Box<Account<'info, Pool>>,
 
     /// CHECK: no needs to check, only for signing
-    #[account(mut, seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
+    #[account(seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
     pub pool_authority: AccountInfo<'info>,
 
     #[account(
@@ -185,6 +189,10 @@ pub struct DepositStake<'info> {
 
     #[account(mut)]
     pub fee_payer: Signer<'info>,
+
+    /// CHECK: no needs to check, only for transfer
+    #[account(mut, address = pool.fee_receiver)]
+    pub fee_receiver: AccountInfo<'info>,
 
     pub clock: Sysvar<'info, Clock>,
     pub stake_program: Program<'info, stake::Stake>,

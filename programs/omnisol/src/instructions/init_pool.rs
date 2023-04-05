@@ -19,6 +19,7 @@ pub fn handle(ctx: Context<InitPool>) -> Result<()> {
     pool.authority = ctx.accounts.authority.key();
     pool.pool_mint = ctx.accounts.pool_mint.key();
     pool.stake_source = ctx.accounts.stake_source.key();
+    pool.fee_receiver = ctx.accounts.fee_receiver.key();
     pool.authority_bump = ctx.bumps["pool_authority"];
     pool.deposit_amount = 0;
     pool.is_active = true;
@@ -47,6 +48,9 @@ pub struct InitPool<'info> {
 
     #[account(mut)]
     pub authority: Signer<'info>,
+
+    /// CHECK: Address of wallet that will receive fee
+    pub fee_receiver: AccountInfo<'info>,
 
     pub system_program: Program<'info, System>,
 }

@@ -49,12 +49,11 @@ describe('omnisol', () => {
   let poolForLP: web3.PublicKey
   let poolMint: web3.PublicKey
   let lpToken: web3.PublicKey
-
-  let poolAuthority: web3.PublicKey
   let poolForLPAuthority: web3.PublicKey
   let stakeAccount: web3.PublicKey
   let mintAuthority: web3.PublicKey
   let splitAccount: web3.PublicKey
+  const feeReceiver = web3.PublicKey.unique()
 
   // staking pool accounts
   let stakePool: web3.PublicKey
@@ -96,6 +95,7 @@ describe('omnisol', () => {
 
   it('can set liquidation fee', async () => {
     const { tx, liquidationFee } = await client.setLiquidationFee({
+      feeReceiver,
       fee: 1,
     })
 
@@ -108,6 +108,22 @@ describe('omnisol', () => {
 
     const liquidationFeeData = await client.fetchLiquidationFee(liquidationFee)
     assert.equal(liquidationFeeData.fee, 1)
+  })
+
+  it('can reset liquidation fee', async () => {
+    const { tx, liquidationFee } = await client.setLiquidationFee({
+      fee: 10,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const liquidationFeeData = await client.fetchLiquidationFee(liquidationFee)
+    assert.equal(liquidationFeeData.fee, 10)
   })
 
   it('unstake.it init', async () => {
@@ -323,8 +339,7 @@ describe('omnisol', () => {
   it('can create pool', async () => {
     const poolKeypair = web3.Keypair.generate()
     pool = poolKeypair.publicKey
-    const [authority, bump] = await client.pda.poolAuthority(pool)
-    poolAuthority = authority
+    const [,bump] = await client.pda.poolAuthority(pool)
     const [mintAuthorityKey] = await client.pda.mintAuthority()
     mintAuthority = mintAuthorityKey
     poolMint = await createMint(provider.connection, payerKeypair, mintAuthority, null, 9, web3.Keypair.generate(), undefined, TOKEN_PROGRAM_ID)
@@ -332,6 +347,7 @@ describe('omnisol', () => {
       stakeSource: web3.StakeProgram.programId,
       pool,
       mint: poolMint,
+      feeReceiver,
     })
 
     try {
@@ -360,7 +376,7 @@ describe('omnisol', () => {
     assert.equal(poolData.storageFee, 0)
   })
 
-  it('can set mint fee', async () => {
+  it('can update pool', async () => {
     const { tx: tx1 } = await client.addManager({
       managerWallet: provider.wallet.publicKey,
     })
@@ -372,9 +388,12 @@ describe('omnisol', () => {
       throw e
     }
 
-    const { tx } = await client.setMintFee({
+    const { tx } = await client.updatePool({
       pool,
-      fee: 1,
+      withdrawFee: 10,
+      depositFee: 10,
+      storageFee: 10,
+      mintFee: 10,
     })
 
     try {
@@ -385,58 +404,10 @@ describe('omnisol', () => {
     }
 
     const poolData = await client.fetchGlobalPool(pool)
-    assert.equal(poolData.mintFee, 1)
-  })
-
-  it('can set withdraw fee', async () => {
-    const { tx } = await client.setWithdrawFee({
-      pool,
-      fee: 1,
-    })
-
-    try {
-      await provider.sendAndConfirm(tx)
-    } catch (e) {
-      console.log(e)
-      throw e
-    }
-
-    const poolData = await client.fetchGlobalPool(pool)
-    assert.equal(poolData.withdrawFee, 1)
-  })
-
-  it('can set storage fee', async () => {
-    const { tx } = await client.setStorageFee({
-      pool,
-      fee: 1,
-    })
-
-    try {
-      await provider.sendAndConfirm(tx)
-    } catch (e) {
-      console.log(e)
-      throw e
-    }
-
-    const poolData = await client.fetchGlobalPool(pool)
-    assert.equal(poolData.storageFee, 1)
-  })
-
-  it('can set deposit fee', async () => {
-    const { tx } = await client.setDepositFee({
-      pool,
-      fee: 1,
-    })
-
-    try {
-      await provider.sendAndConfirm(tx)
-    } catch (e) {
-      console.log(e)
-      throw e
-    }
-
-    const poolData = await client.fetchGlobalPool(pool)
-    assert.equal(poolData.depositFee, 1)
+    assert.equal(poolData.mintFee, 10)
+    assert.equal(poolData.withdrawFee, 10)
+    assert.equal(poolData.depositFee, 10)
+    assert.equal(poolData.storageFee, 10)
   })
 
   it('can pause pool', async () => {
@@ -2619,13 +2590,16 @@ describe('omnisol', () => {
 
   it('can withdraw pool fee', async () => {
     const [poolAuthority] = await client.pda.poolAuthority(pool)
+    await provider.connection.confirmTransaction(
+      await provider.connection.requestAirdrop(poolAuthority, web3.LAMPORTS_PER_SOL),
+    )
     let poolAuthorityBalance = await provider.connection.getBalance(poolAuthority)
-    assert.equal(poolAuthorityBalance, 600000000)
+    assert.equal(poolAuthorityBalance, 1000000000)
 
-    const { tx } = await client.withdrawPoolFee({
-      amount: new BN(100000),
+    const { tx } = await client.withdrawSol({
+      destination: provider.wallet.publicKey,
+      amount: new BN(1000000000),
       pool,
-      referral: provider.wallet.publicKey,
     })
 
     try {
@@ -2636,7 +2610,7 @@ describe('omnisol', () => {
     }
 
     poolAuthorityBalance = await provider.connection.getBalance(poolAuthority)
-    assert.equal(poolAuthorityBalance, 599900000)
+    assert.equal(poolAuthorityBalance, 0)
   })
 
   it('can close global pool', async () => {

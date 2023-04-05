@@ -28,6 +28,7 @@ export const initPoolStruct = new beet.BeetArgsStruct<{
  * @property [] mintAuthority
  * @property [] stakeSource
  * @property [_writable_, **signer**] authority
+ * @property [] feeReceiver
  * @category Instructions
  * @category InitPool
  * @category generated
@@ -39,6 +40,7 @@ export interface InitPoolInstructionAccounts {
   mintAuthority: web3.PublicKey
   stakeSource: web3.PublicKey
   authority: web3.PublicKey
+  feeReceiver: web3.PublicKey
   systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
@@ -92,6 +94,11 @@ export function createInitPoolInstruction(
       pubkey: accounts.authority,
       isWritable: true,
       isSigner: true,
+    },
+    {
+      pubkey: accounts.feeReceiver,
+      isWritable: false,
+      isSigner: false,
     },
     {
       pubkey: accounts.systemProgram ?? web3.SystemProgram.programId,

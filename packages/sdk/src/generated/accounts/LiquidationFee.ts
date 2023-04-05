@@ -5,9 +5,9 @@
  * See: https://github.com/metaplex-foundation/solita
  */
 
-import * as beet from '@metaplex-foundation/beet'
 import * as web3 from '@solana/web3.js'
 import * as beetSolana from '@metaplex-foundation/beet-solana'
+import * as beet from '@metaplex-foundation/beet'
 
 /**
  * Arguments used to create {@link LiquidationFee}
@@ -15,6 +15,7 @@ import * as beetSolana from '@metaplex-foundation/beet-solana'
  * @category generated
  */
 export interface LiquidationFeeArgs {
+  feeReceiver: web3.PublicKey
   fee: number
 }
 
@@ -27,13 +28,16 @@ export const liquidationFeeDiscriminator = [9, 40, 53, 191, 46, 106, 50, 57]
  * @category generated
  */
 export class LiquidationFee implements LiquidationFeeArgs {
-  private constructor(readonly fee: number) {}
+  private constructor(
+    readonly feeReceiver: web3.PublicKey,
+    readonly fee: number,
+  ) {}
 
   /**
    * Creates a {@link LiquidationFee} instance from the provided args.
    */
   static fromArgs(args: LiquidationFeeArgs) {
-    return new LiquidationFee(args.fee)
+    return new LiquidationFee(args.feeReceiver, args.fee)
   }
 
   /**
@@ -139,6 +143,7 @@ export class LiquidationFee implements LiquidationFeeArgs {
    */
   pretty() {
     return {
+      feeReceiver: this.feeReceiver.toBase58(),
       fee: this.fee,
     }
   }
@@ -156,7 +161,8 @@ export const liquidationFeeBeet = new beet.BeetStruct<
 >(
   [
     ['accountDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['fee', beet.u8],
+    ['feeReceiver', beetSolana.publicKey],
+    ['fee', beet.u16],
   ],
   LiquidationFee.fromArgs,
   'LiquidationFee',

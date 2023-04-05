@@ -7,7 +7,6 @@ use crate::{
     state::{Collateral, Pool, User, MINT_AUTHORITY_SEED},
     utils, ErrorCode,
 };
-use crate::utils::fee::get_storage_fee;
 
 /// The user can use their deposit to mint omniSOL.
 /// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
@@ -32,15 +31,18 @@ pub fn handle(ctx: Context<MintOmnisol>, amount: u64) -> Result<()> {
     let clock = &ctx.accounts.clock;
 
     if pool.mint_fee > 0 {
+        let fee = amount.saturating_div(1000).saturating_mul(pool.mint_fee as u64);
+        msg!("Transfer mint fee: {} lamports", fee);
+
         system_program::transfer(CpiContext::new(
             ctx.accounts.system_program.to_account_info(),
             system_program::Transfer {
                 from: ctx.accounts.fee_payer.to_account_info(),
-                to: ctx.accounts.pool_authority.to_account_info(),
+                to: ctx.accounts.fee_receiver.to_account_info(),
             }
         ),
-        amount.saturating_div(100).saturating_mul(pool.mint_fee as u64),
-        )?;
+        fee,
+        ).map_err(|_| ErrorCode::InsufficientFunds)?;
     }
 
     // Mint new pool tokens equals to `amount`
@@ -61,20 +63,6 @@ pub fn handle(ctx: Context<MintOmnisol>, amount: u64) -> Result<()> {
     user.rate -= amount;
 
     if collateral.delegation_stake == collateral.liquidated_amount && collateral.amount == collateral.delegation_stake {
-        if pool.storage_fee > 0 {
-            let fee = get_storage_fee(pool.storage_fee as u64, clock.epoch, collateral.creation_epoch, collateral.delegation_stake);
-
-            system_program::transfer(CpiContext::new(
-                ctx.accounts.system_program.to_account_info(),
-                system_program::Transfer {
-                    from: ctx.accounts.fee_payer.to_account_info(),
-                    to: ctx.accounts.pool_authority.to_account_info(),
-                }
-            ),
-            fee,
-            )?;
-        }
-
         // close the collateral account
         utils::close(collateral.to_account_info(), ctx.accounts.authority.to_account_info())?;
     }
@@ -96,7 +84,7 @@ pub struct MintOmnisol<'info> {
     pub pool: Box<Account<'info, Pool>>,
 
     /// CHECK: no needs to check, only for signing
-    #[account(mut, seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
+    #[account(seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
     pub pool_authority: AccountInfo<'info>,
 
     /// CHECK:
@@ -136,6 +124,10 @@ pub struct MintOmnisol<'info> {
 
     #[account(mut)]
     pub fee_payer: Signer<'info>,
+
+    /// CHECK: no needs to check, only for transfer
+    #[account(mut, address = pool.fee_receiver)]
+    pub fee_receiver: AccountInfo<'info>,
 
     pub clock: Sysvar<'info, Clock>,
     pub token_program: Program<'info, token::Token>,

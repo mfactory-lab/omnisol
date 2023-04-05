@@ -39,7 +39,7 @@ export const withdrawLpTokensStruct = new beet.BeetArgsStruct<
  * Accounts required by the _withdrawLpTokens_ instruction
  *
  * @property [_writable_] pool
- * @property [_writable_] poolAuthority
+ * @property [] poolAuthority
  * @property [_writable_] user
  * @property [_writable_] collateral
  * @property [_writable_] source
@@ -49,6 +49,7 @@ export const withdrawLpTokensStruct = new beet.BeetArgsStruct<
  * @property [_writable_] userPoolToken
  * @property [_writable_, **signer**] authority
  * @property [_writable_, **signer**] feePayer
+ * @property [_writable_] feeReceiver
  * @property [] clock
  * @category Instructions
  * @category WithdrawLpTokens
@@ -66,6 +67,7 @@ export interface WithdrawLpTokensInstructionAccounts {
   userPoolToken: web3.PublicKey
   authority: web3.PublicKey
   feePayer: web3.PublicKey
+  feeReceiver: web3.PublicKey
   clock: web3.PublicKey
   tokenProgram?: web3.PublicKey
   systemProgram?: web3.PublicKey
@@ -103,7 +105,7 @@ export function createWithdrawLpTokensInstruction(
     },
     {
       pubkey: accounts.poolAuthority,
-      isWritable: true,
+      isWritable: false,
       isSigner: false,
     },
     {
@@ -150,6 +152,11 @@ export function createWithdrawLpTokensInstruction(
       pubkey: accounts.feePayer,
       isWritable: true,
       isSigner: true,
+    },
+    {
+      pubkey: accounts.feeReceiver,
+      isWritable: true,
+      isSigner: false,
     },
     {
       pubkey: accounts.clock,

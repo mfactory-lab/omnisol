@@ -21,6 +21,7 @@ export interface PoolArgs {
   depositAmount: beet.bignum
   authorityBump: number
   isActive: boolean
+  feeReceiver: web3.PublicKey
   withdrawFee: number
   mintFee: number
   depositFee: number
@@ -43,6 +44,7 @@ export class Pool implements PoolArgs {
     readonly depositAmount: beet.bignum,
     readonly authorityBump: number,
     readonly isActive: boolean,
+    readonly feeReceiver: web3.PublicKey,
     readonly withdrawFee: number,
     readonly mintFee: number,
     readonly depositFee: number,
@@ -60,6 +62,7 @@ export class Pool implements PoolArgs {
       args.depositAmount,
       args.authorityBump,
       args.isActive,
+      args.feeReceiver,
       args.withdrawFee,
       args.mintFee,
       args.depositFee,
@@ -186,6 +189,7 @@ export class Pool implements PoolArgs {
       })(),
       authorityBump: this.authorityBump,
       isActive: this.isActive,
+      feeReceiver: this.feeReceiver.toBase58(),
       withdrawFee: this.withdrawFee,
       mintFee: this.mintFee,
       depositFee: this.depositFee,
@@ -212,10 +216,11 @@ export const poolBeet = new beet.BeetStruct<
     ['depositAmount', beet.u64],
     ['authorityBump', beet.u8],
     ['isActive', beet.bool],
-    ['withdrawFee', beet.u8],
-    ['mintFee', beet.u8],
-    ['depositFee', beet.u8],
-    ['storageFee', beet.u8],
+    ['feeReceiver', beetSolana.publicKey],
+    ['withdrawFee', beet.u16],
+    ['mintFee', beet.u16],
+    ['depositFee', beet.u16],
+    ['storageFee', beet.u16],
   ],
   Pool.fromArgs,
   'Pool',

@@ -10,71 +10,86 @@ import * as web3 from '@solana/web3.js'
 
 /**
  * @category Instructions
- * @category SetWithdrawFee
+ * @category WithdrawSol
  * @category generated
  */
-export interface SetWithdrawFeeInstructionArgs {
-  fee: number
+export interface WithdrawSolInstructionArgs {
+  amount: beet.bignum
 }
 /**
  * @category Instructions
- * @category SetWithdrawFee
+ * @category WithdrawSol
  * @category generated
  */
-export const setWithdrawFeeStruct = new beet.BeetArgsStruct<
-  SetWithdrawFeeInstructionArgs & {
+export const withdrawSolStruct = new beet.BeetArgsStruct<
+  WithdrawSolInstructionArgs & {
     instructionDiscriminator: number[] /* size: 8 */
   }
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['fee', beet.u8],
+    ['amount', beet.u64],
   ],
-  'SetWithdrawFeeInstructionArgs',
+  'WithdrawSolInstructionArgs',
 )
 /**
- * Accounts required by the _setWithdrawFee_ instruction
+ * Accounts required by the _withdrawSol_ instruction
  *
  * @property [_writable_] pool
+ * @property [_writable_] poolAuthority
+ * @property [_writable_] destination
  * @property [_writable_] manager
  * @property [_writable_, **signer**] authority
  * @category Instructions
- * @category SetWithdrawFee
+ * @category WithdrawSol
  * @category generated
  */
-export interface SetWithdrawFeeInstructionAccounts {
+export interface WithdrawSolInstructionAccounts {
   pool: web3.PublicKey
+  poolAuthority: web3.PublicKey
+  destination: web3.PublicKey
   manager: web3.PublicKey
   authority: web3.PublicKey
+  systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
-export const setWithdrawFeeInstructionDiscriminator = [
-  33, 223, 102, 118, 225, 116, 8, 238,
+export const withdrawSolInstructionDiscriminator = [
+  145, 131, 74, 136, 65, 137, 42, 38,
 ]
 
 /**
- * Creates a _SetWithdrawFee_ instruction.
+ * Creates a _WithdrawSol_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
  * @param args to provide as instruction data to the program
  *
  * @category Instructions
- * @category SetWithdrawFee
+ * @category WithdrawSol
  * @category generated
  */
-export function createSetWithdrawFeeInstruction(
-  accounts: SetWithdrawFeeInstructionAccounts,
-  args: SetWithdrawFeeInstructionArgs,
+export function createWithdrawSolInstruction(
+  accounts: WithdrawSolInstructionAccounts,
+  args: WithdrawSolInstructionArgs,
   programId = new web3.PublicKey('6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7'),
 ) {
-  const [data] = setWithdrawFeeStruct.serialize({
-    instructionDiscriminator: setWithdrawFeeInstructionDiscriminator,
+  const [data] = withdrawSolStruct.serialize({
+    instructionDiscriminator: withdrawSolInstructionDiscriminator,
     ...args,
   })
   const keys: web3.AccountMeta[] = [
     {
       pubkey: accounts.pool,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.poolAuthority,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.destination,
       isWritable: true,
       isSigner: false,
     },
@@ -87,6 +102,11 @@ export function createSetWithdrawFeeInstruction(
       pubkey: accounts.authority,
       isWritable: true,
       isSigner: true,
+    },
+    {
+      pubkey: accounts.systemProgram ?? web3.SystemProgram.programId,
+      isWritable: false,
+      isSigner: false,
     },
   ]
 

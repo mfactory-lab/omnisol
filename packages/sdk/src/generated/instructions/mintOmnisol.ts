@@ -37,7 +37,7 @@ export const mintOmnisolStruct = new beet.BeetArgsStruct<
  * Accounts required by the _mintOmnisol_ instruction
  *
  * @property [_writable_] pool
- * @property [_writable_] poolAuthority
+ * @property [] poolAuthority
  * @property [_writable_] poolMint
  * @property [] mintAuthority
  * @property [_writable_] user
@@ -46,6 +46,7 @@ export const mintOmnisolStruct = new beet.BeetArgsStruct<
  * @property [] stakedAddress
  * @property [_writable_, **signer**] authority
  * @property [_writable_, **signer**] feePayer
+ * @property [_writable_] feeReceiver
  * @property [] clock
  * @category Instructions
  * @category MintOmnisol
@@ -62,6 +63,7 @@ export interface MintOmnisolInstructionAccounts {
   stakedAddress: web3.PublicKey
   authority: web3.PublicKey
   feePayer: web3.PublicKey
+  feeReceiver: web3.PublicKey
   clock: web3.PublicKey
   tokenProgram?: web3.PublicKey
   systemProgram?: web3.PublicKey
@@ -99,7 +101,7 @@ export function createMintOmnisolInstruction(
     },
     {
       pubkey: accounts.poolAuthority,
-      isWritable: true,
+      isWritable: false,
       isSigner: false,
     },
     {
@@ -141,6 +143,11 @@ export function createMintOmnisolInstruction(
       pubkey: accounts.feePayer,
       isWritable: true,
       isSigner: true,
+    },
+    {
+      pubkey: accounts.feeReceiver,
+      isWritable: true,
+      isSigner: false,
     },
     {
       pubkey: accounts.clock,

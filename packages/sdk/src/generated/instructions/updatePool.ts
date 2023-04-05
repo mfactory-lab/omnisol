@@ -5,91 +5,85 @@
  * See: https://github.com/metaplex-foundation/solita
  */
 
-import * as beet from '@metaplex-foundation/beet'
 import * as web3 from '@solana/web3.js'
+import * as beet from '@metaplex-foundation/beet'
+import * as beetSolana from '@metaplex-foundation/beet-solana'
 
 /**
  * @category Instructions
- * @category WithdrawPoolFee
+ * @category UpdatePool
  * @category generated
  */
-export interface WithdrawPoolFeeInstructionArgs {
-  amount: beet.bignum
+export interface UpdatePoolInstructionArgs {
+  feeReceiver: beet.COption<web3.PublicKey>
+  withdrawFee: beet.COption<number>
+  depositFee: beet.COption<number>
+  mintFee: beet.COption<number>
+  storageFee: beet.COption<number>
 }
 /**
  * @category Instructions
- * @category WithdrawPoolFee
+ * @category UpdatePool
  * @category generated
  */
-export const withdrawPoolFeeStruct = new beet.BeetArgsStruct<
-  WithdrawPoolFeeInstructionArgs & {
+export const updatePoolStruct = new beet.FixableBeetArgsStruct<
+  UpdatePoolInstructionArgs & {
     instructionDiscriminator: number[] /* size: 8 */
   }
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['amount', beet.u64],
+    ['feeReceiver', beet.coption(beetSolana.publicKey)],
+    ['withdrawFee', beet.coption(beet.u16)],
+    ['depositFee', beet.coption(beet.u16)],
+    ['mintFee', beet.coption(beet.u16)],
+    ['storageFee', beet.coption(beet.u16)],
   ],
-  'WithdrawPoolFeeInstructionArgs',
+  'UpdatePoolInstructionArgs',
 )
 /**
- * Accounts required by the _withdrawPoolFee_ instruction
+ * Accounts required by the _updatePool_ instruction
  *
  * @property [_writable_] pool
- * @property [_writable_] poolAuthority
- * @property [_writable_] referral
  * @property [_writable_] manager
  * @property [_writable_, **signer**] authority
  * @category Instructions
- * @category WithdrawPoolFee
+ * @category UpdatePool
  * @category generated
  */
-export interface WithdrawPoolFeeInstructionAccounts {
+export interface UpdatePoolInstructionAccounts {
   pool: web3.PublicKey
-  poolAuthority: web3.PublicKey
-  referral: web3.PublicKey
   manager: web3.PublicKey
   authority: web3.PublicKey
-  systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
-export const withdrawPoolFeeInstructionDiscriminator = [
-  92, 185, 100, 34, 177, 136, 15, 236,
+export const updatePoolInstructionDiscriminator = [
+  239, 214, 170, 78, 36, 35, 30, 34,
 ]
 
 /**
- * Creates a _WithdrawPoolFee_ instruction.
+ * Creates a _UpdatePool_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
  * @param args to provide as instruction data to the program
  *
  * @category Instructions
- * @category WithdrawPoolFee
+ * @category UpdatePool
  * @category generated
  */
-export function createWithdrawPoolFeeInstruction(
-  accounts: WithdrawPoolFeeInstructionAccounts,
-  args: WithdrawPoolFeeInstructionArgs,
+export function createUpdatePoolInstruction(
+  accounts: UpdatePoolInstructionAccounts,
+  args: UpdatePoolInstructionArgs,
   programId = new web3.PublicKey('6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7'),
 ) {
-  const [data] = withdrawPoolFeeStruct.serialize({
-    instructionDiscriminator: withdrawPoolFeeInstructionDiscriminator,
+  const [data] = updatePoolStruct.serialize({
+    instructionDiscriminator: updatePoolInstructionDiscriminator,
     ...args,
   })
   const keys: web3.AccountMeta[] = [
     {
       pubkey: accounts.pool,
-      isWritable: true,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.poolAuthority,
-      isWritable: true,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.referral,
       isWritable: true,
       isSigner: false,
     },
@@ -102,11 +96,6 @@ export function createWithdrawPoolFeeInstruction(
       pubkey: accounts.authority,
       isWritable: true,
       isSigner: true,
-    },
-    {
-      pubkey: accounts.systemProgram ?? web3.SystemProgram.programId,
-      isWritable: false,
-      isSigner: false,
     },
   ]
 

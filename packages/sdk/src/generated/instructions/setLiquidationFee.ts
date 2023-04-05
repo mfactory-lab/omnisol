@@ -7,6 +7,7 @@
 
 import * as beet from '@metaplex-foundation/beet'
 import * as web3 from '@solana/web3.js'
+import * as beetSolana from '@metaplex-foundation/beet-solana'
 
 /**
  * @category Instructions
@@ -14,21 +15,23 @@ import * as web3 from '@solana/web3.js'
  * @category generated
  */
 export interface SetLiquidationFeeInstructionArgs {
-  fee: number
+  fee: beet.COption<number>
+  feeReceiver: beet.COption<web3.PublicKey>
 }
 /**
  * @category Instructions
  * @category SetLiquidationFee
  * @category generated
  */
-export const setLiquidationFeeStruct = new beet.BeetArgsStruct<
+export const setLiquidationFeeStruct = new beet.FixableBeetArgsStruct<
   SetLiquidationFeeInstructionArgs & {
     instructionDiscriminator: number[] /* size: 8 */
   }
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['fee', beet.u8],
+    ['fee', beet.coption(beet.u16)],
+    ['feeReceiver', beet.coption(beetSolana.publicKey)],
   ],
   'SetLiquidationFeeInstructionArgs',
 )

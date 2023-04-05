@@ -36,6 +36,21 @@ pub fn handle(ctx: Context<WithdrawLPTokens>, amount: u64, with_burn: bool) -> R
     let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
     let clock = &ctx.accounts.clock;
 
+    if pool.withdraw_fee > 0 {
+        let fee = amount.saturating_div(1000).saturating_mul(pool.withdraw_fee as u64);
+        msg!("Transfer withdraw fee: {} lamports", fee);
+
+        system_program::transfer(CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            system_program::Transfer {
+                from: ctx.accounts.fee_payer.to_account_info(),
+                to: ctx.accounts.fee_receiver.to_account_info(),
+            }
+        ),
+        fee,
+        ).map_err(|_| ErrorCode::InsufficientFunds)?;
+    }
+
     // Transfer LP tokens to the user
     token::transfer(
         CpiContext::new_with_signer(
@@ -74,30 +89,19 @@ pub fn handle(ctx: Context<WithdrawLPTokens>, amount: u64, with_burn: bool) -> R
         collateral.amount -= burn_amount;
     }
 
-    if pool.withdraw_fee > 0 {
-        system_program::transfer(CpiContext::new(
-            ctx.accounts.system_program.to_account_info(),
-            system_program::Transfer {
-                from: ctx.accounts.fee_payer.to_account_info(),
-                to: ctx.accounts.pool_authority.to_account_info(),
-            }
-        ),
-        burn_amount.saturating_div(100).saturating_mul(pool.withdraw_fee as u64),
-        )?;
-    }
-
-    if pool.storage_fee > 0 && collateral.delegation_stake - amount > 0 {
-        let fee = get_storage_fee(pool.storage_fee as u64, clock.epoch, collateral.creation_epoch, collateral.delegation_stake);
+    if pool.storage_fee > 0 {
+        let fee = get_storage_fee(pool.storage_fee as u64, clock.epoch, collateral.creation_epoch, amount);
+        msg!("Transfer storage fee: {} lamports", fee);
 
         system_program::transfer(CpiContext::new(
             ctx.accounts.system_program.to_account_info(),
             system_program::Transfer {
                 from: ctx.accounts.fee_payer.to_account_info(),
-                to: ctx.accounts.pool_authority.to_account_info(),
+                to: ctx.accounts.fee_receiver.to_account_info(),
             }
         ),
         fee,
-        )?;
+        ).map_err(|_| ErrorCode::InsufficientFunds)?;
     }
 
     collateral.delegation_stake -= amount;
@@ -109,20 +113,6 @@ pub fn handle(ctx: Context<WithdrawLPTokens>, amount: u64, with_burn: bool) -> R
         .ok_or(ErrorCode::InsufficientAmount)?;
 
     if collateral.delegation_stake == collateral.liquidated_amount && collateral.amount == collateral.delegation_stake {
-        if pool.storage_fee > 0 {
-            let fee = get_storage_fee(pool.storage_fee as u64, clock.epoch, collateral.creation_epoch, collateral.delegation_stake);
-
-            system_program::transfer(CpiContext::new(
-                ctx.accounts.system_program.to_account_info(),
-                system_program::Transfer {
-                    from: ctx.accounts.fee_payer.to_account_info(),
-                    to: ctx.accounts.pool_authority.to_account_info(),
-                }
-            ),
-            fee,
-            )?;
-        }
-
         // close the collateral account
         utils::close(collateral.to_account_info(), ctx.accounts.authority.to_account_info())?;
     }
@@ -144,7 +134,7 @@ pub struct WithdrawLPTokens<'info> {
     pub pool: Box<Account<'info, Pool>>,
 
     /// CHECK: no needs to check, only for signing
-    #[account(mut, seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
+    #[account(seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
     pub pool_authority: AccountInfo<'info>,
 
     #[account(
@@ -198,6 +188,10 @@ pub struct WithdrawLPTokens<'info> {
 
     #[account(mut)]
     pub fee_payer: Signer<'info>,
+
+    /// CHECK: no needs to check, only for transfer
+    #[account(mut, address = pool.fee_receiver)]
+    pub fee_receiver: AccountInfo<'info>,
 
     pub clock: Sysvar<'info, Clock>,
     pub token_program: Program<'info, token::Token>,
