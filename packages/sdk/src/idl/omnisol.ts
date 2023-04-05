@@ -148,7 +148,7 @@ export interface Omnisol {
       'args': []
     },
     {
-      'name': 'addToWhitelist'
+      'name': 'addToTokenWhitelist'
       'accounts': [
         {
           'name': 'authority'
@@ -1964,7 +1964,7 @@ export const IDL: Omnisol = {
       args: [],
     },
     {
-      name: 'addToWhitelist',
+      name: 'addToTokenWhitelist',
       accounts: [
         {
           name: 'authority',

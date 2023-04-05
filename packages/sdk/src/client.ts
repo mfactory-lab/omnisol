@@ -7,7 +7,7 @@ import {
   PROGRAM_ID,
   createAddLiquidatorInstruction,
   createAddManagerInstruction,
-  createAddToWhitelistInstruction,
+  createAddToTokenWhitelistInstruction,
   createBlockUserInstruction,
   createBurnOmnisolInstruction,
   createCloseOracleInstruction,
@@ -28,8 +28,7 @@ import {
   createUpdateOracleInfoInstruction,
   createUpdatePoolInstruction,
   createWithdrawLpTokensInstruction,
-  createWithdrawSolInstruction,
-  createWithdrawStakeInstruction,
+  createWithdrawSolInstruction, createWithdrawStakeInstruction,
 } from './generated'
 import { IDL } from './idl/omnisol'
 
@@ -248,11 +247,11 @@ export class OmnisolClient {
     }
   }
 
-  async addToWhitelist(props: AddToWhitelistProps) {
+  async addToTokenWhitelist(props: AddToTokenWhitelistProps) {
     const payer = this.wallet.publicKey
     const [whitelist] = await this.pda.whitelist(props.token)
     const [manager] = await this.pda.manager(payer)
-    const instruction = createAddToWhitelistInstruction(
+    const instruction = createAddToTokenWhitelistInstruction(
       {
         addressToWhitelist: props.token,
         authority: payer,
@@ -949,7 +948,7 @@ interface ResumePoolProps {
   pool: PublicKey
 }
 
-interface AddToWhitelistProps {
+interface AddToTokenWhitelistProps {
   tokenPool: PublicKey
   stakePool: PublicKey
   token: PublicKey

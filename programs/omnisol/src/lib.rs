@@ -35,7 +35,7 @@ pub mod omnisol {
         resume_pool::handle(ctx)
     }
 
-    pub fn add_to_whitelist(ctx: Context<AddToTokenWhitelist>) -> Result<()> {
+    pub fn add_to_token_whitelist(ctx: Context<AddToTokenWhitelist>) -> Result<()> {
         add_to_token_whitelist::handle(ctx)
     }
 

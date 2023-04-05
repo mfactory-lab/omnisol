@@ -10,17 +10,17 @@ import * as web3 from '@solana/web3.js'
 
 /**
  * @category Instructions
- * @category AddToWhitelist
+ * @category AddToTokenWhitelist
  * @category generated
  */
-export const addToWhitelistStruct = new beet.BeetArgsStruct<{
+export const addToTokenWhitelistStruct = new beet.BeetArgsStruct<{
   instructionDiscriminator: number[] /* size: 8 */
 }>(
   [['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)]],
-  'AddToWhitelistInstructionArgs',
+  'AddToTokenWhitelistInstructionArgs',
 )
 /**
- * Accounts required by the _addToWhitelist_ instruction
+ * Accounts required by the _addToTokenWhitelist_ instruction
  *
  * @property [_writable_, **signer**] authority
  * @property [] addressToWhitelist
@@ -29,10 +29,10 @@ export const addToWhitelistStruct = new beet.BeetArgsStruct<{
  * @property [_writable_] whitelist
  * @property [_writable_] manager
  * @category Instructions
- * @category AddToWhitelist
+ * @category AddToTokenWhitelist
  * @category generated
  */
-export interface AddToWhitelistInstructionAccounts {
+export interface AddToTokenWhitelistInstructionAccounts {
   authority: web3.PublicKey
   addressToWhitelist: web3.PublicKey
   pool: web3.PublicKey
@@ -43,24 +43,24 @@ export interface AddToWhitelistInstructionAccounts {
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
-export const addToWhitelistInstructionDiscriminator = [
-  157, 211, 52, 54, 144, 81, 5, 55,
+export const addToTokenWhitelistInstructionDiscriminator = [
+  188, 249, 141, 125, 143, 232, 62, 116,
 ]
 
 /**
- * Creates a _AddToWhitelist_ instruction.
+ * Creates a _AddToTokenWhitelist_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
  * @category Instructions
- * @category AddToWhitelist
+ * @category AddToTokenWhitelist
  * @category generated
  */
-export function createAddToWhitelistInstruction(
-  accounts: AddToWhitelistInstructionAccounts,
+export function createAddToTokenWhitelistInstruction(
+  accounts: AddToTokenWhitelistInstructionAccounts,
   programId = new web3.PublicKey('6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7'),
 ) {
-  const [data] = addToWhitelistStruct.serialize({
-    instructionDiscriminator: addToWhitelistInstructionDiscriminator,
+  const [data] = addToTokenWhitelistStruct.serialize({
+    instructionDiscriminator: addToTokenWhitelistInstructionDiscriminator,
   })
   const keys: web3.AccountMeta[] = [
     {

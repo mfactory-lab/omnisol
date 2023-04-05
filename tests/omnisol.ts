@@ -502,7 +502,7 @@ describe('omnisol', () => {
       console.log(e)
     }
 
-    const { tx, whitelist } = await client.addToWhitelist({
+    const { tx, whitelist } = await client.addToTokenWhitelist({
       token: stakePoolMint,
       tokenPool: STAKE_POOL_PROGRAM_ID,
       stakePool,
@@ -549,7 +549,7 @@ describe('omnisol', () => {
 
     assert.equal(sourceBalance.value.amount, '100')
 
-    const { tx: transaction } = await client.addToWhitelist({
+    const { tx: transaction } = await client.addToTokenWhitelist({
       token: lpToken,
       tokenPool: STAKE_POOL_PROGRAM_ID,
       stakePool,

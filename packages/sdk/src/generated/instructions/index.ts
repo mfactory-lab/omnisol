@@ -1,6 +1,6 @@
 export * from './addLiquidator'
 export * from './addManager'
-export * from './addToWhitelist'
+export * from './addToTokenWhitelist'
 export * from './blockUser'
 export * from './burnOmnisol'
 export * from './closeOracle'

@@ -148,7 +148,7 @@
       "args": []
     },
     {
-      "name": "addToWhitelist",
+      "name": "addToTokenWhitelist",
       "accounts": [
         {
           "name": "authority",
