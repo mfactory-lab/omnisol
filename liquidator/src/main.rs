@@ -11,18 +11,15 @@ use anchor_client::{solana_sdk::{
     sysvar::clock,
     stake,
 }, Client, Cluster, Program};
-use anchor_client::solana_client::rpc_client::RpcClient;
 use anchor_client::solana_sdk::signature::Keypair;
-use anchor_client::solana_sdk::transaction::Transaction;
-use anchor_lang::prelude::AccountMeta;
 use anchor_spl::token::spl_token;
 use clap::Parser;
 use log::{error, info, LevelFilter, warn};
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 use omnisol::id;
-use omnisol::state::{Collateral, Liquidator, Oracle, Pool, QueueMember, User, WithdrawInfo};
+use omnisol::state::{Collateral, Oracle, Pool, User, WithdrawInfo};
 
-use crate::utils::{get_collateral_data, get_oracle_data, get_pool_data, get_user_data, get_withdraw_info_list};
+use crate::utils::{get_collateral_data, get_liquidator, get_oracle, get_oracle_data, get_pool_authority, get_pool_data, get_remaining_accounts, get_user, get_user_data, get_withdraw_info_list};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -34,14 +31,6 @@ pub struct Args {
     /// Solana cluster name
     #[arg(short, long)]
     pub cluster: Cluster,
-
-    /// Liquidator address
-    #[arg(short, long)]
-    pub liquidator: Pubkey,
-
-    /// Oracle address
-    #[arg(short, long)]
-    pub oracle: Pubkey,
 
     /// Sleep duration in seconds
     #[arg(short, long)]
@@ -100,23 +89,26 @@ fn main() {
     // get program public key
     let program = client.program(id());
 
+    let oracle = get_oracle();
+    let liquidator = get_liquidator(wallet_pubkey);
+
     loop {
         let withdraw_info_list = get_withdraw_info_list(&program).expect("Can't get withdraw info list");
         info!("Got {} withdraw request(s))", withdraw_info_list.len());
 
         for (withdraw_address, withdraw_info) in withdraw_info_list {
-            process_withdraw_request(&args, withdraw_address, withdraw_info, &program)
+            process_withdraw_request(&args, &program, withdraw_address, withdraw_info, oracle, liquidator, wallet_pubkey)
         }
     }
 }
 
-fn process_withdraw_request(args: &Args, withdraw_address: Pubkey, withdraw_info: WithdrawInfo, program: &Program) {
+fn process_withdraw_request(args: &Args, program: &Program, withdraw_address: Pubkey, withdraw_info: WithdrawInfo, oracle: Pubkey, liquidator: Pubkey, liquidator_wallet: Pubkey) {
     info!("Withdraw request - {} in processing...", withdraw_address);
 
     let user_data = get_user_data(&program).expect("Can't get user accounts");
     info!("Got {} user(s)", user_data.len());
 
-    let (user_key, _) = Pubkey::find_program_address(&[User::SEED, withdraw_info.authority.as_ref()], &id());
+    let user_key = get_user(withdraw_info.authority);
     let user = user_data
         .get(&user_key)
         .expect("Can't find user account");
@@ -129,14 +121,14 @@ fn process_withdraw_request(args: &Args, withdraw_address: Pubkey, withdraw_info
 
     let mut amount_to_liquidate = withdraw_info.amount;
 
-    let oracle_data = get_oracle_data(&program, args.oracle).expect("Can't get oracle account");
+    let oracle_data = get_oracle_data(&program, oracle).expect("Can't get oracle account");
     info!("Got oracle data");
     let pool_data = get_pool_data(&program).expect("Can't get pool accounts");
     let collateral_data = get_collateral_data(&program).expect("Can't get collateral accounts");
     info!("Got {} collateral(s)", collateral_data.len());
 
     while amount_to_liquidate > 0 {
-        amount_to_liquidate = liquidate(args, program, withdraw_address, user_data.clone(), user_key, user, amount_to_liquidate, oracle_data.clone(), pool_data.clone(), collateral_data.clone());
+        amount_to_liquidate = liquidate(args, program, withdraw_address, user_data.clone(), user_key, user, amount_to_liquidate, oracle_data.clone(), pool_data.clone(), collateral_data.clone(), liquidator, liquidator_wallet, oracle);
     }
 }
 
@@ -151,6 +143,9 @@ fn liquidate(
     oracle_data: Oracle,
     pool_data: HashMap<Pubkey, Pool>,
     collateral_data: HashMap<Pubkey, Collateral>,
+    liquidator: Pubkey,
+    liquidator_wallet: Pubkey,
+    oracle: Pubkey,
 ) -> u64 {
     let mut amount_to_liquidate = amount_to_liquidate;
 
@@ -172,10 +167,7 @@ fn liquidate(
         };
 
         // find pool_authority
-        let (pool_authority, _) = Pubkey::find_program_address(&[collateral.pool.as_ref()], &id());
-
-        // find liquidator PDA
-        let (liquidator_account, _) = Pubkey::find_program_address(&[Liquidator::SEED, args.liquidator.as_ref()], &id());
+        let pool_authority = get_pool_authority(collateral.pool);
 
         let collateral_owner = user_data
             .get(&collateral.user)
@@ -187,7 +179,7 @@ fn liquidate(
         let source_stake = collateral.get_source_stake();
 
         let additional_signer = Keypair::new();
-        let (stake_account_record, remaining_accounts) = get_remaining_accounts(args, additional_signer.pubkey(), collateral, source_stake);
+        let (stake_account_record, remaining_accounts) = get_remaining_accounts(args, program, additional_signer.pubkey(), collateral, source_stake, amount_to_liquidate, queue_member.amount).expect("Can't get remaining accounts");
 
         let amount = if amount_to_liquidate >= queue_member.amount {
             queue_member.amount
@@ -195,11 +187,8 @@ fn liquidate(
             amount_to_liquidate
         };
 
-        let wallet_keypair = read_keypair_file(&args.keypair).expect("Can't open keypair");
-        println!("{}", collateral.pool);
-
         // send tx to contract
-        let request = program
+        let result = program
             .request()
             .accounts(omnisol::accounts::LiquidateCollateral {
                 pool: collateral.pool,
@@ -210,9 +199,9 @@ fn liquidate(
                 user_wallet: user.wallet,
                 user: user_key,
                 withdraw_info: withdraw_address,
-                oracle: args.oracle,
+                oracle,
                 source_stake,
-                liquidator: liquidator_account,
+                liquidator,
                 pool_account: args.pool,
                 sol_reserves: args.reserves,
                 protocol_fee: args.fee_protocol,
@@ -220,7 +209,7 @@ fn liquidate(
                 fee_account: args.account_fee,
                 stake_account_record,
                 unstake_it_program: args.unstake_it,
-                authority: args.liquidator,
+                authority: liquidator_wallet,
                 clock: clock::id(),
                 token_program: spl_token::id(),
                 stake_program: stake::program::id(),
@@ -228,63 +217,18 @@ fn liquidate(
             })
             .accounts(remaining_accounts)
             .args(omnisol::instruction::LiquidateCollateral { amount })
-            .signer(&additional_signer);
-
-        let instructions = request.instructions().expect("");
-
-        let mut signers:Vec<& dyn Signer> = vec![&wallet_keypair, &additional_signer];
-
-        let rpc_client = RpcClient::new_with_commitment("https://api.testnet.solana.com", CommitmentConfig::confirmed());
-
-        let tx = {
-            let latest_hash = rpc_client.get_latest_blockhash().expect("");
-            Transaction::new_signed_with_payer(
-                &instructions,
-                Some(&wallet_keypair.pubkey()),
-                &signers,
-                latest_hash,
-            )
-        };
-        info!("{}", base64::encode(&tx.message_data()));
-
-        let result = request.send();
+            .signer(&additional_signer)
+            .send();
 
         if let Ok(signature) = result.map_err(|e| error!("Liquidation failed with an error - {}", e)) {
             info!("Sent transaction successfully with signature: {}", signature);
 
-            if amount_to_liquidate < queue_member.amount {
-                amount_to_liquidate = 0;
+            amount_to_liquidate -= amount;
+            if amount_to_liquidate == 0 {
                 break;
-            } else {
-                amount_to_liquidate -= queue_member.amount;
             }
         }
     }
 
     amount_to_liquidate
-}
-
-fn get_remaining_accounts(args: &Args, split_stake: Pubkey, collateral: &Collateral, source_stake: Pubkey) -> (Pubkey, Vec<AccountMeta>) {
-    if collateral.is_native {
-        let (stake_account_record, _) = Pubkey::find_program_address(&[args.pool.as_ref(), source_stake.as_ref()], &args.unstake_it);
-        let remaining_accounts = vec![
-            AccountMeta {
-                pubkey: split_stake,
-                is_signer: true,
-                is_writable: true,
-            },
-        ];
-        (stake_account_record, remaining_accounts)
-    } else {
-        let (stake_account_record, _) = Pubkey::find_program_address(&[args.pool.as_ref(), source_stake.as_ref()], &args.unstake_it);
-        // TODO: get another accounts
-        let remaining_accounts = vec![
-            AccountMeta {
-                pubkey: split_stake,
-                is_signer: true,
-                is_writable: true,
-            },
-        ];
-        (stake_account_record, remaining_accounts)
-    }
 }
