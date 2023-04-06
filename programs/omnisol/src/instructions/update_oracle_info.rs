@@ -29,7 +29,12 @@ pub struct UpdateOracleInfo<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 
-    #[account(mut, has_one = authority)]
+    #[account(
+        mut,
+        seeds = [Oracle::SEED],
+        bump,
+        has_one = authority
+    )]
     pub oracle: Box<Account<'info, Oracle>>,
 
     pub system_program: Program<'info, System>,

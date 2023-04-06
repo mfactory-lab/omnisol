@@ -9,10 +9,7 @@ pub struct Pool {
     pub pool_mint: Pubkey,
     /// An account with authority that can manage and close the pool.
     pub authority: Pubkey,
-    /// Oracle address for clarification
-    pub oracle: Pubkey,
     /// Address of LP token or native stake program
-    /// TODO: rename
     pub stake_source: Pubkey,
     /// Total stake in deposit
     pub deposit_amount: u64,
@@ -23,7 +20,7 @@ pub struct Pool {
 }
 
 impl Pool {
-    pub const SIZE: usize = 8 + 32 + 32 + 32 + 32 + 8 + 1 + 1;
+    pub const SIZE: usize = 8 + 32 + 32 + 32 + 8 + 1 + 1;
 }
 
 #[account]
@@ -35,6 +32,7 @@ pub struct Oracle {
 }
 
 impl Oracle {
+    pub const SEED: &'static [u8] = b"oracle";
     pub const SIZE: usize = 4068;
     pub const MAX_PRIORITY_QUEUE_LENGTH: usize = 100;
     pub const MAX_BATCH_LENGTH: usize = 25;
@@ -53,8 +51,7 @@ pub struct Collateral {
     /// Address of the global pool
     pub pool: Pubkey,
     /// An account of staking pool or LP token
-    /// TODO rename
-    pub source_stake: Pubkey,
+    pub stake_source: Pubkey,
     /// Delegated stake account (default for LP tokens deposit)
     pub delegated_stake: Pubkey,
     /// An amount of delegated staked tokens
@@ -76,7 +73,7 @@ impl Collateral {
         if self.is_native {
             self.delegated_stake
         } else {
-            self.source_stake
+            self.stake_source
         }
     }
     pub const SEED: &'static [u8] = b"collateral";

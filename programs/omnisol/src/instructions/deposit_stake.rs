@@ -108,7 +108,7 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
 
     collateral.user = ctx.accounts.user.key();
     collateral.pool = pool_key;
-    collateral.source_stake = ctx.accounts.source_stake.key();
+    collateral.stake_source = ctx.accounts.source_stake.key();
     collateral.delegated_stake = stake_account.key();
     collateral.delegation_stake = amount;
     collateral.amount = 0;

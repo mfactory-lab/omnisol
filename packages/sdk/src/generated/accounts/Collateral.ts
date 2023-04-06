@@ -17,7 +17,7 @@ import * as beetSolana from '@metaplex-foundation/beet-solana'
 export interface CollateralArgs {
   user: web3.PublicKey
   pool: web3.PublicKey
-  sourceStake: web3.PublicKey
+  stakeSource: web3.PublicKey
   delegatedStake: web3.PublicKey
   delegationStake: beet.bignum
   amount: beet.bignum
@@ -39,7 +39,7 @@ export class Collateral implements CollateralArgs {
   private constructor(
     readonly user: web3.PublicKey,
     readonly pool: web3.PublicKey,
-    readonly sourceStake: web3.PublicKey,
+    readonly stakeSource: web3.PublicKey,
     readonly delegatedStake: web3.PublicKey,
     readonly delegationStake: beet.bignum,
     readonly amount: beet.bignum,
@@ -56,7 +56,7 @@ export class Collateral implements CollateralArgs {
     return new Collateral(
       args.user,
       args.pool,
-      args.sourceStake,
+      args.stakeSource,
       args.delegatedStake,
       args.delegationStake,
       args.amount,
@@ -172,7 +172,7 @@ export class Collateral implements CollateralArgs {
     return {
       user: this.user.toBase58(),
       pool: this.pool.toBase58(),
-      sourceStake: this.sourceStake.toBase58(),
+      stakeSource: this.stakeSource.toBase58(),
       delegatedStake: this.delegatedStake.toBase58(),
       delegationStake: (() => {
         const x = <{ toNumber: () => number }> this.delegationStake
@@ -238,7 +238,7 @@ export const collateralBeet = new beet.BeetStruct<
     ['accountDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
     ['user', beetSolana.publicKey],
     ['pool', beetSolana.publicKey],
-    ['sourceStake', beetSolana.publicKey],
+    ['stakeSource', beetSolana.publicKey],
     ['delegatedStake', beetSolana.publicKey],
     ['delegationStake', beet.u64],
     ['amount', beet.u64],

@@ -107,7 +107,7 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
             &[&pool_authority_seeds],
         ))?;
     } else {
-        if collateral.source_stake != ctx.accounts.source_stake.key() {
+        if collateral.stake_source != ctx.accounts.source_stake.key() {
             return Err(ErrorCode::InvalidToken.into());
         }
 
@@ -300,7 +300,11 @@ pub struct LiquidateCollateral<'info> {
     )]
     pub withdraw_info: Box<Account<'info, WithdrawInfo>>,
 
-    #[account(mut, address = pool.oracle)]
+    #[account(
+        mut,
+        seeds = [Oracle::SEED],
+        bump,
+    )]
     pub oracle: Box<Account<'info, Oracle>>,
 
     /// CHECK: Address of lp token or stake account

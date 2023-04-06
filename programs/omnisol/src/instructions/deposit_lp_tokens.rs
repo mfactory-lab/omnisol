@@ -56,7 +56,7 @@ pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
     if collateral.user != user.key() {
         collateral.user = user.key();
         collateral.pool = pool_key;
-        collateral.source_stake = ctx.accounts.lp_token.key();
+        collateral.stake_source = ctx.accounts.lp_token.key();
         collateral.delegation_stake = 0;
         collateral.amount = 0;
         collateral.liquidated_amount = 0;

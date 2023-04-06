@@ -1,17 +1,10 @@
-import { web3 } from '@project-serum/anchor'
 import log from 'loglevel'
 import { useContext } from '../context'
 
-interface Opts {
-  oracle: string
-}
-
-export async function closeOracle(opts: Opts) {
+export async function closeOracle() {
   const { provider, client } = useContext()
 
-  const { tx } = await client.closeOracle({
-    oracle: new web3.PublicKey(opts.oracle),
-  })
+  const { tx } = await client.closeOracle()
 
   try {
     const signature = await provider.sendAndConfirm(tx)

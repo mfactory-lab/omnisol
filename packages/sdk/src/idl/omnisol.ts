@@ -11,11 +11,6 @@ export interface Omnisol {
           'isSigner': true
         },
         {
-          'name': 'oracle'
-          'isMut': true
-          'isSigner': false
-        },
-        {
           'name': 'poolMint'
           'isMut': true
           'isSigner': false
@@ -726,7 +721,7 @@ export interface Omnisol {
         {
           'name': 'oracle'
           'isMut': true
-          'isSigner': true
+          'isSigner': false
         },
         {
           'name': 'oracleAuthority'
@@ -1010,17 +1005,9 @@ export interface Omnisol {
             'type': 'publicKey'
           },
           {
-            'name': 'oracle'
-            'docs': [
-              'Oracle address for clarification',
-            ]
-            'type': 'publicKey'
-          },
-          {
             'name': 'stakeSource'
             'docs': [
               'Address of LP token or native stake program',
-              'TODO: rename',
             ]
             'type': 'publicKey'
           },
@@ -1094,10 +1081,9 @@ export interface Omnisol {
             'type': 'publicKey'
           },
           {
-            'name': 'sourceStake'
+            'name': 'stakeSource'
             'docs': [
               'An account of staking pool or LP token',
-              'TODO rename',
             ]
             'type': 'publicKey'
           },
@@ -1535,11 +1521,6 @@ export const IDL: Omnisol = {
           name: 'pool',
           isMut: true,
           isSigner: true,
-        },
-        {
-          name: 'oracle',
-          isMut: true,
-          isSigner: false,
         },
         {
           name: 'poolMint',
@@ -2252,7 +2233,7 @@ export const IDL: Omnisol = {
         {
           name: 'oracle',
           isMut: true,
-          isSigner: true,
+          isSigner: false,
         },
         {
           name: 'oracleAuthority',
@@ -2536,17 +2517,9 @@ export const IDL: Omnisol = {
             type: 'publicKey',
           },
           {
-            name: 'oracle',
-            docs: [
-              'Oracle address for clarification',
-            ],
-            type: 'publicKey',
-          },
-          {
             name: 'stakeSource',
             docs: [
               'Address of LP token or native stake program',
-              'TODO: rename',
             ],
             type: 'publicKey',
           },
@@ -2620,10 +2593,9 @@ export const IDL: Omnisol = {
             type: 'publicKey',
           },
           {
-            name: 'sourceStake',
+            name: 'stakeSource',
             docs: [
               'An account of staking pool or LP token',
-              'TODO rename',
             ],
             type: 'publicKey',
           },

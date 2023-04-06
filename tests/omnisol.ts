@@ -8,7 +8,7 @@ import { AnchorProvider, BN, Program, Wallet, web3 } from '@project-serum/anchor
 import { LAMPORTS_PER_SOL, PublicKey, Transaction } from '@solana/web3.js'
 import { assert } from 'chai'
 import { OmnisolClient } from '@omnisol/sdk'
-import { STAKE_POOL_PROGRAM_ID, depositSol, initialize, withdrawSol } from '@solana/spl-stake-pool'
+import { STAKE_POOL_PROGRAM_ID, depositSol, initialize } from '@solana/spl-stake-pool'
 import * as beet from '@metaplex-foundation/beet'
 import type {
   AddLiquidityAccounts,
@@ -53,7 +53,6 @@ describe('omnisol', () => {
   let poolAuthority: web3.PublicKey
   let poolForLPAuthority: web3.PublicKey
   let stakeAccount: web3.PublicKey
-  let oracle: web3.PublicKey
   let mintAuthority: web3.PublicKey
   let splitAccount: web3.PublicKey
 
@@ -207,16 +206,12 @@ describe('omnisol', () => {
   })
 
   it('can init oracle', async () => {
-    const oraclePair = web3.Keypair.generate()
-    oracle = oraclePair.publicKey
-
-    const { tx } = await client.initOracle({
+    const { tx, oracle } = await client.initOracle({
       oracleAuthority: provider.wallet.publicKey,
-      oracle,
     })
 
     try {
-      await provider.sendAndConfirm(tx, [oraclePair])
+      await provider.sendAndConfirm(tx)
     } catch (e) {
       console.log(e)
       throw e
@@ -246,8 +241,7 @@ describe('omnisol', () => {
   it('can update oracle info', async () => {
     const addresses = [web3.PublicKey.unique(), web3.PublicKey.unique()]
     const values = [new BN(100), new BN(200)]
-    const { tx } = await client.updateOracleInfo({
-      oracle,
+    const { tx, oracle } = await client.updateOracleInfo({
       addresses,
       values,
       clear: true,
@@ -267,8 +261,7 @@ describe('omnisol', () => {
   it('update oracle info should replace data', async () => {
     const addresses = [web3.PublicKey.unique(), web3.PublicKey.unique()]
     const values = [new BN(200), new BN(300)]
-    const { tx } = await client.updateOracleInfo({
-      oracle,
+    const { tx, oracle } = await client.updateOracleInfo({
       addresses,
       values,
       clear: true,
@@ -320,7 +313,6 @@ describe('omnisol', () => {
     mintAuthority = mintAuthorityKey
     poolMint = await createMint(provider.connection, payerKeypair, mintAuthority, null, 9, web3.Keypair.generate(), undefined, TOKEN_PROGRAM_ID)
     const { tx } = await client.createPool({
-      oracle,
       stakeSource: web3.StakeProgram.programId,
       pool,
       mint: poolMint,
@@ -345,7 +337,6 @@ describe('omnisol', () => {
     assert.equal(poolData.authorityBump, bump)
     assert.equal(poolData.authority.equals(provider.wallet.publicKey), true)
     assert.equal(poolData.isActive, true)
-    assert.equal(poolData.oracle.equals(oracle), true)
     assert.equal(poolData.stakeSource.equals(web3.StakeProgram.programId), true)
   })
 
@@ -482,7 +473,6 @@ describe('omnisol', () => {
     poolForLPAuthority = authority
 
     const { tx: tx1 } = await client.createPool({
-      oracle,
       stakeSource: lpToken,
       pool: poolForLP,
       mint: poolMint,
@@ -553,7 +543,7 @@ describe('omnisol', () => {
     assert.equal(collateralData.delegationStake, 100)
     assert.equal(collateralData.liquidatedAmount, 0)
     assert.equal(collateralData.isNative, false)
-    assert.equal(collateralData.sourceStake.equals(lpToken), true)
+    assert.equal(collateralData.stakeSource.equals(lpToken), true)
   })
 
   it('can deposit lp tokens twice', async () => {
@@ -602,7 +592,7 @@ describe('omnisol', () => {
     assert.equal(collateralData.delegationStake, 200)
     assert.equal(collateralData.liquidatedAmount, 0)
     assert.equal(collateralData.isNative, false)
-    assert.equal(collateralData.sourceStake.equals(lpToken), true)
+    assert.equal(collateralData.stakeSource.equals(lpToken), true)
   })
 
   it('can not deposit non-whitelisted tokens', async () => {
@@ -805,7 +795,7 @@ describe('omnisol', () => {
     assert.equal(collateralData.delegationStake.toString(), '10000000000')
     assert.equal(collateralData.liquidatedAmount.toString(), '0')
     assert.equal(collateralData.isNative, true)
-    assert.equal(collateralData.sourceStake.equals(stakeAccount), true)
+    assert.equal(collateralData.stakeSource.equals(stakeAccount), true)
 
     const withdrawTransaction = web3.StakeProgram.withdraw({
       stakePubkey: stakeAccount,
@@ -1329,7 +1319,7 @@ describe('omnisol', () => {
     assert.equal(collateralData.amount.toString(), '5000000000')
     assert.equal(collateralData.delegationStake.toString(), '5000000000')
     assert.equal(collateralData.liquidatedAmount, 0)
-    assert.equal(collateralData.sourceStake.equals(stakeAccount), true)
+    assert.equal(collateralData.stakeSource.equals(stakeAccount), true)
     assert.equal(collateralData.delegatedStake.equals(stakeAccount), true)
   })
 
@@ -1809,7 +1799,7 @@ describe('omnisol', () => {
     assert.equal(collateralData.delegationStake.toString(), '10000000000')
     assert.equal(collateralData.liquidatedAmount.toString(), '0')
     assert.equal(collateralData.isNative, true)
-    assert.equal(collateralData.sourceStake.equals(stakeAccount), true)
+    assert.equal(collateralData.stakeSource.equals(stakeAccount), true)
 
     const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
     let userPoolBalance = await provider.connection.getTokenAccountBalance(userPoolToken.address)
@@ -1861,7 +1851,6 @@ describe('omnisol', () => {
     const addresses = [collateral]
     const values = [new BN(collateralData.delegationStake)]
     const { tx: tx2 } = await client.updateOracleInfo({
-      oracle,
       addresses,
       values,
       clear: true,
@@ -2038,7 +2027,6 @@ describe('omnisol', () => {
     const { tx } = await client.liquidateCollateral({
       amount: new BN(5000000000),
       feeAccount,
-      oracle,
       pool,
       poolAccount: unstakeItPool,
       protocolFee: protocolFeeAccount,
@@ -2094,7 +2082,6 @@ describe('omnisol', () => {
     const { tx } = await client.liquidateCollateral({
       amount: new BN(5000000000),
       feeAccount,
-      oracle,
       pool,
       poolAccount: unstakeItPool,
       protocolFee: protocolFeeAccount,
@@ -2139,7 +2126,6 @@ describe('omnisol', () => {
     const { tx } = await client.liquidateCollateral({
       amount: new BN(0),
       feeAccount,
-      oracle,
       pool,
       poolAccount: unstakeItPool,
       protocolFee: protocolFeeAccount,
@@ -2173,7 +2159,6 @@ describe('omnisol', () => {
     const { tx } = await client.liquidateCollateral({
       amount: new BN(5000000001),
       feeAccount,
-      oracle,
       pool,
       poolAccount: unstakeItPool,
       protocolFee: protocolFeeAccount,
@@ -2207,7 +2192,6 @@ describe('omnisol', () => {
     const { tx, user, pool: omnisolPool, collateral, withdrawInfo } = await client.liquidateCollateral({
       amount: new BN(5000000000),
       feeAccount,
-      oracle,
       pool,
       poolAccount: unstakeItPool,
       protocolFee: protocolFeeAccount,
@@ -2240,11 +2224,11 @@ describe('omnisol', () => {
   })
 
   it('can not liquidate if collateral is not in priority queue', async () => {
+    const [oracle] = await client.pda.oracle()
     const oracleData = await client.fetchOracle(oracle)
     const testAddresses = [PublicKey.unique()]
     const testValues = [new BN(5000000000)]
     const { tx: tx1 } = await client.updateOracleInfo({
-      oracle,
       addresses: testAddresses,
       values: testValues,
       clear: true,
@@ -2268,7 +2252,6 @@ describe('omnisol', () => {
     const { tx } = await client.liquidateCollateral({
       amount: new BN(5000000000),
       feeAccount,
-      oracle,
       pool,
       poolAccount: unstakeItPool,
       protocolFee: protocolFeeAccount,
@@ -2294,7 +2277,6 @@ describe('omnisol', () => {
       const addresses = [queueMember.collateral]
       const values = [new BN(queueMember.amount)]
       const { tx: tx2 } = await client.updateOracleInfo({
-        oracle,
         addresses,
         values,
         clear: true,
@@ -2321,7 +2303,6 @@ describe('omnisol', () => {
     const { tx, collateral } = await client.liquidateCollateral({
       amount: new BN(5000000000),
       feeAccount,
-      oracle,
       pool,
       poolAccount: unstakeItPool,
       protocolFee: protocolFeeAccount,
@@ -2353,7 +2334,6 @@ describe('omnisol', () => {
     poolForLPAuthority = authority
 
     const { tx: tx1 } = await client.createPool({
-      oracle,
       stakeSource: stakePoolMint,
       pool: poolForLP,
       mint: poolMint,
@@ -2423,7 +2403,6 @@ describe('omnisol', () => {
     const values = [new BN(collateralData.delegationStake)]
 
     const { tx: tx5 } = await client.updateOracleInfo({
-      oracle,
       addresses,
       values,
       clear: true,
@@ -2449,7 +2428,6 @@ describe('omnisol', () => {
     const { tx } = await client.liquidateCollateral({
       amount: new BN(100000),
       feeAccount,
-      oracle,
       pool: poolForLP,
       poolAccount: unstakeItPool,
       protocolFee: protocolFeeAccount,
@@ -2479,8 +2457,23 @@ describe('omnisol', () => {
   })
 
   it('can close oracle', async () => {
-    const { tx } = await client.closeOracle({
-      oracle,
+    const { tx } = await client.closeOracle()
+
+    try {
+      await provider.sendAndConfirm(tx)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const [oracle] = await client.pda.oracle()
+    const oracleData = await client.fetchOracle(oracle)
+    assert.equal(oracleData, null)
+  })
+
+  it('can not update oracle info with non-oracle authority', async () => {
+    const { tx } = await client.initOracle({
+      oracleAuthority: web3.PublicKey.unique(),
     })
 
     try {
@@ -2490,30 +2483,9 @@ describe('omnisol', () => {
       throw e
     }
 
-    const oracleData = await client.fetchOracle(oracle)
-    assert.equal(oracleData, null)
-  })
-
-  it('can not update oracle info with non-oracle authority', async () => {
-    const oraclePair = web3.Keypair.generate()
-    oracle = oraclePair.publicKey
-
-    const { tx } = await client.initOracle({
-      oracleAuthority: web3.PublicKey.unique(),
-      oracle,
-    })
-
-    try {
-      await provider.sendAndConfirm(tx, [oraclePair])
-    } catch (e) {
-      console.log(e)
-      throw e
-    }
-
     const addresses = [web3.PublicKey.unique(), web3.PublicKey.unique()]
     const values = [new BN(100), new BN(200)]
     const { tx: tx1 } = await client.updateOracleInfo({
-      oracle,
       addresses,
       values,
       clear: true,
