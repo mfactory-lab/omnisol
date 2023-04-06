@@ -23,6 +23,7 @@ export interface CollateralArgs {
   amount: beet.bignum
   liquidatedAmount: beet.bignum
   createdAt: beet.bignum
+  creationEpoch: beet.bignum
   bump: number
   isNative: boolean
 }
@@ -45,6 +46,7 @@ export class Collateral implements CollateralArgs {
     readonly amount: beet.bignum,
     readonly liquidatedAmount: beet.bignum,
     readonly createdAt: beet.bignum,
+    readonly creationEpoch: beet.bignum,
     readonly bump: number,
     readonly isNative: boolean,
   ) {}
@@ -62,6 +64,7 @@ export class Collateral implements CollateralArgs {
       args.amount,
       args.liquidatedAmount,
       args.createdAt,
+      args.creationEpoch,
       args.bump,
       args.isNative,
     )
@@ -218,6 +221,17 @@ export class Collateral implements CollateralArgs {
         }
         return x
       })(),
+      creationEpoch: (() => {
+        const x = <{ toNumber: () => number }> this.creationEpoch
+        if (typeof x.toNumber === 'function') {
+          try {
+            return x.toNumber()
+          } catch (_) {
+            return x
+          }
+        }
+        return x
+      })(),
       bump: this.bump,
       isNative: this.isNative,
     }
@@ -244,6 +258,7 @@ export const collateralBeet = new beet.BeetStruct<
     ['amount', beet.u64],
     ['liquidatedAmount', beet.u64],
     ['createdAt', beet.i64],
+    ['creationEpoch', beet.u64],
     ['bump', beet.u8],
     ['isNative', beet.bool],
   ],

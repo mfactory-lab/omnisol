@@ -43,6 +43,8 @@ export const depositStakeStruct = new beet.BeetArgsStruct<
  * @property [_writable_] delegatedStake
  * @property [_writable_, **signer**] splitStake
  * @property [_writable_, **signer**] authority
+ * @property [_writable_, **signer**] feePayer
+ * @property [_writable_] feeReceiver
  * @property [] clock
  * @property [] stakeProgram
  * @category Instructions
@@ -58,6 +60,8 @@ export interface DepositStakeInstructionAccounts {
   delegatedStake: web3.PublicKey
   splitStake: web3.PublicKey
   authority: web3.PublicKey
+  feePayer: web3.PublicKey
+  feeReceiver: web3.PublicKey
   clock: web3.PublicKey
   stakeProgram: web3.PublicKey
   systemProgram?: web3.PublicKey
@@ -127,6 +131,16 @@ export function createDepositStakeInstruction(
       pubkey: accounts.authority,
       isWritable: true,
       isSigner: true,
+    },
+    {
+      pubkey: accounts.feePayer,
+      isWritable: true,
+      isSigner: true,
+    },
+    {
+      pubkey: accounts.feeReceiver,
+      isWritable: true,
+      isSigner: false,
     },
     {
       pubkey: accounts.clock,

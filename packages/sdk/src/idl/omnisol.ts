@@ -31,9 +31,19 @@ export interface Omnisol {
           'isSigner': false
         },
         {
+          'name': 'manager'
+          'isMut': true
+          'isSigner': false
+        },
+        {
           'name': 'authority'
           'isMut': true
           'isSigner': true
+        },
+        {
+          'name': 'feeReceiver'
+          'isMut': false
+          'isSigner': false
         },
         {
           'name': 'systemProgram'
@@ -138,7 +148,7 @@ export interface Omnisol {
       'args': []
     },
     {
-      'name': 'addToWhitelist'
+      'name': 'addToTokenWhitelist'
       'accounts': [
         {
           'name': 'authority'
@@ -156,7 +166,7 @@ export interface Omnisol {
           'isSigner': false
         },
         {
-          'name': 'stakingPool'
+          'name': 'poolProgram'
           'isMut': false
           'isSigner': false
         },
@@ -331,6 +341,16 @@ export interface Omnisol {
           'isSigner': true
         },
         {
+          'name': 'feePayer'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'feeReceiver'
+          'isMut': true
+          'isSigner': false
+        },
+        {
           'name': 'clock'
           'isMut': false
           'isSigner': false
@@ -397,6 +417,16 @@ export interface Omnisol {
           'isSigner': true
         },
         {
+          'name': 'feePayer'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'feeReceiver'
+          'isMut': true
+          'isSigner': false
+        },
+        {
           'name': 'clock'
           'isMut': false
           'isSigner': false
@@ -425,6 +455,11 @@ export interface Omnisol {
         {
           'name': 'pool'
           'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'poolAuthority'
+          'isMut': false
           'isSigner': false
         },
         {
@@ -463,12 +498,27 @@ export interface Omnisol {
           'isSigner': true
         },
         {
+          'name': 'feePayer'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'feeReceiver'
+          'isMut': true
+          'isSigner': false
+        },
+        {
           'name': 'clock'
           'isMut': false
           'isSigner': false
         },
         {
           'name': 'tokenProgram'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'systemProgram'
           'isMut': false
           'isSigner': false
         },
@@ -534,12 +584,27 @@ export interface Omnisol {
           'isSigner': true
         },
         {
+          'name': 'feePayer'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'feeReceiver'
+          'isMut': true
+          'isSigner': false
+        },
+        {
           'name': 'clock'
           'isMut': false
           'isSigner': false
         },
         {
           'name': 'tokenProgram'
+          'isMut': false
+          'isSigner': false
+        },
+        {
+          'name': 'systemProgram'
           'isMut': false
           'isSigner': false
         },
@@ -614,6 +679,16 @@ export interface Omnisol {
           'isSigner': true
         },
         {
+          'name': 'feePayer'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'feeReceiver'
+          'isMut': true
+          'isSigner': false
+        },
+        {
           'name': 'clock'
           'isMut': false
           'isSigner': false
@@ -684,6 +759,21 @@ export interface Omnisol {
         },
         {
           'name': 'withdrawInfo'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'liquidationFee'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'feePayer'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'feeReceiver'
           'isMut': true
           'isSigner': false
         },
@@ -983,6 +1073,114 @@ export interface Omnisol {
         },
       ]
     },
+    {
+      'name': 'updatePool'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'manager'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+      ]
+      'args': [
+        {
+          'name': 'data'
+          'type': {
+            'defined': 'UpdatePoolData'
+          }
+        },
+      ]
+    },
+    {
+      'name': 'withdrawSol'
+      'accounts': [
+        {
+          'name': 'pool'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'poolAuthority'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'destination'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'manager'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'systemProgram'
+          'isMut': false
+          'isSigner': false
+        },
+      ]
+      'args': [
+        {
+          'name': 'amount'
+          'type': 'u64'
+        },
+      ]
+    },
+    {
+      'name': 'setLiquidationFee'
+      'accounts': [
+        {
+          'name': 'liquidationFee'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'manager'
+          'isMut': true
+          'isSigner': false
+        },
+        {
+          'name': 'authority'
+          'isMut': true
+          'isSigner': true
+        },
+        {
+          'name': 'systemProgram'
+          'isMut': false
+          'isSigner': false
+        },
+      ]
+      'args': [
+        {
+          'name': 'fee'
+          'type': {
+            'option': 'u16'
+          }
+        },
+        {
+          'name': 'feeReceiver'
+          'type': {
+            'option': 'publicKey'
+          }
+        },
+      ]
+    },
   ]
   'accounts': [
     {
@@ -1031,6 +1229,70 @@ export interface Omnisol {
               'Flag that indicates that the pool is running or paused',
             ]
             'type': 'bool'
+          },
+          {
+            'name': 'feeReceiver'
+            'docs': [
+              'Wallet that will receive fee',
+            ]
+            'type': 'publicKey'
+          },
+          {
+            'name': 'withdrawFee'
+            'docs': [
+              'Fee for withdrawing from pool (in %)',
+            ]
+            'type': 'u16'
+          },
+          {
+            'name': 'mintFee'
+            'docs': [
+              'Fee for minting omnisol from pool (in %)',
+            ]
+            'type': 'u16'
+          },
+          {
+            'name': 'depositFee'
+            'docs': [
+              'Fee for depositing in pool (in %)',
+            ]
+            'type': 'u16'
+          },
+          {
+            'name': 'storageFee'
+            'docs': [
+              'Fee for keeping deposit in pool (in %, per epoch)',
+            ]
+            'type': 'u16'
+          },
+          {
+            'name': 'minDeposit'
+            'docs': [
+              'Minimal deposit amount',
+            ]
+            'type': 'u64'
+          },
+        ]
+      }
+    },
+    {
+      'name': 'liquidationFee'
+      'type': {
+        'kind': 'struct'
+        'fields': [
+          {
+            'name': 'feeReceiver'
+            'docs': [
+              'Wallet that will receive fee',
+            ]
+            'type': 'publicKey'
+          },
+          {
+            'name': 'fee'
+            'docs': [
+              'Fee for creating liquidation request',
+            ]
+            'type': 'u16'
           },
         ]
       }
@@ -1118,9 +1380,16 @@ export interface Omnisol {
           {
             'name': 'createdAt'
             'docs': [
-              'Time of collateral\'s creation',
+              'Time of collateral`s creation',
             ]
             'type': 'i64'
+          },
+          {
+            'name': 'creationEpoch'
+            'docs': [
+              'Epoch of collateral\'s creation',
+            ]
+            'type': 'u64'
           },
           {
             'name': 'bump'
@@ -1145,7 +1414,7 @@ export interface Omnisol {
         'kind': 'struct'
         'fields': [
           {
-            'name': 'whitelistedToken'
+            'name': 'mint'
             'docs': [
               'Token mint address that is whitelisted to the pool',
             ]
@@ -1159,7 +1428,7 @@ export interface Omnisol {
             'type': 'publicKey'
           },
           {
-            'name': 'stakingPool'
+            'name': 'poolProgram'
             'docs': [
               'LP tokens` pool (default for native stake)',
             ]
@@ -1272,6 +1541,50 @@ export interface Omnisol {
     },
   ]
   'types': [
+    {
+      'name': 'UpdatePoolData'
+      'type': {
+        'kind': 'struct'
+        'fields': [
+          {
+            'name': 'feeReceiver'
+            'type': {
+              'option': 'publicKey'
+            }
+          },
+          {
+            'name': 'withdrawFee'
+            'type': {
+              'option': 'u16'
+            }
+          },
+          {
+            'name': 'depositFee'
+            'type': {
+              'option': 'u16'
+            }
+          },
+          {
+            'name': 'mintFee'
+            'type': {
+              'option': 'u16'
+            }
+          },
+          {
+            'name': 'storageFee'
+            'type': {
+              'option': 'u16'
+            }
+          },
+          {
+            'name': 'minDeposit'
+            'type': {
+              'option': 'u64'
+            }
+          },
+        ]
+      }
+    },
     {
       'name': 'QueueMember'
       'type': {
@@ -1479,31 +1792,36 @@ export interface Omnisol {
     },
     {
       'code': 6004
+      'name': 'InsufficientFunds'
+      'msg': 'Insufficient funds'
+    },
+    {
+      'code': 6005
       'name': 'TypeOverflow'
       'msg': 'Type overflow'
     },
     {
-      'code': 6005
+      'code': 6006
       'name': 'PoolAlreadyPaused'
       'msg': 'Pool is already paused'
     },
     {
-      'code': 6006
+      'code': 6007
       'name': 'PoolAlreadyResumed'
       'msg': 'Pool is already resumed'
     },
     {
-      'code': 6007
+      'code': 6008
       'name': 'UserBlocked'
       'msg': 'User is blocked'
     },
     {
-      'code': 6008
+      'code': 6009
       'name': 'UserNotBlocked'
       'msg': 'User is not blocked'
     },
     {
-      'code': 6009
+      'code': 6010
       'name': 'WrongData'
       'msg': 'Wrong input data'
     },
@@ -1543,9 +1861,19 @@ export const IDL: Omnisol = {
           isSigner: false,
         },
         {
+          name: 'manager',
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: 'authority',
           isMut: true,
           isSigner: true,
+        },
+        {
+          name: 'feeReceiver',
+          isMut: false,
+          isSigner: false,
         },
         {
           name: 'systemProgram',
@@ -1650,7 +1978,7 @@ export const IDL: Omnisol = {
       args: [],
     },
     {
-      name: 'addToWhitelist',
+      name: 'addToTokenWhitelist',
       accounts: [
         {
           name: 'authority',
@@ -1668,7 +1996,7 @@ export const IDL: Omnisol = {
           isSigner: false,
         },
         {
-          name: 'stakingPool',
+          name: 'poolProgram',
           isMut: false,
           isSigner: false,
         },
@@ -1843,6 +2171,16 @@ export const IDL: Omnisol = {
           isSigner: true,
         },
         {
+          name: 'feePayer',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'feeReceiver',
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: 'clock',
           isMut: false,
           isSigner: false,
@@ -1909,6 +2247,16 @@ export const IDL: Omnisol = {
           isSigner: true,
         },
         {
+          name: 'feePayer',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'feeReceiver',
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: 'clock',
           isMut: false,
           isSigner: false,
@@ -1937,6 +2285,11 @@ export const IDL: Omnisol = {
         {
           name: 'pool',
           isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'poolAuthority',
+          isMut: false,
           isSigner: false,
         },
         {
@@ -1975,12 +2328,27 @@ export const IDL: Omnisol = {
           isSigner: true,
         },
         {
+          name: 'feePayer',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'feeReceiver',
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: 'clock',
           isMut: false,
           isSigner: false,
         },
         {
           name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
           isMut: false,
           isSigner: false,
         },
@@ -2046,12 +2414,27 @@ export const IDL: Omnisol = {
           isSigner: true,
         },
         {
+          name: 'feePayer',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'feeReceiver',
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: 'clock',
           isMut: false,
           isSigner: false,
         },
         {
           name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: 'systemProgram',
           isMut: false,
           isSigner: false,
         },
@@ -2126,6 +2509,16 @@ export const IDL: Omnisol = {
           isSigner: true,
         },
         {
+          name: 'feePayer',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'feeReceiver',
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: 'clock',
           isMut: false,
           isSigner: false,
@@ -2196,6 +2589,21 @@ export const IDL: Omnisol = {
         },
         {
           name: 'withdrawInfo',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'liquidationFee',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'feePayer',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'feeReceiver',
           isMut: true,
           isSigner: false,
         },
@@ -2495,6 +2903,114 @@ export const IDL: Omnisol = {
         },
       ],
     },
+    {
+      name: 'updatePool',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'manager',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [
+        {
+          name: 'data',
+          type: {
+            defined: 'UpdatePoolData',
+          },
+        },
+      ],
+    },
+    {
+      name: 'withdrawSol',
+      accounts: [
+        {
+          name: 'pool',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'poolAuthority',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'destination',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'manager',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: 'amount',
+          type: 'u64',
+        },
+      ],
+    },
+    {
+      name: 'setLiquidationFee',
+      accounts: [
+        {
+          name: 'liquidationFee',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'manager',
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: 'authority',
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: 'fee',
+          type: {
+            option: 'u16',
+          },
+        },
+        {
+          name: 'feeReceiver',
+          type: {
+            option: 'publicKey',
+          },
+        },
+      ],
+    },
   ],
   accounts: [
     {
@@ -2543,6 +3059,70 @@ export const IDL: Omnisol = {
               'Flag that indicates that the pool is running or paused',
             ],
             type: 'bool',
+          },
+          {
+            name: 'feeReceiver',
+            docs: [
+              'Wallet that will receive fee',
+            ],
+            type: 'publicKey',
+          },
+          {
+            name: 'withdrawFee',
+            docs: [
+              'Fee for withdrawing from pool (in %)',
+            ],
+            type: 'u16',
+          },
+          {
+            name: 'mintFee',
+            docs: [
+              'Fee for minting omnisol from pool (in %)',
+            ],
+            type: 'u16',
+          },
+          {
+            name: 'depositFee',
+            docs: [
+              'Fee for depositing in pool (in %)',
+            ],
+            type: 'u16',
+          },
+          {
+            name: 'storageFee',
+            docs: [
+              'Fee for keeping deposit in pool (in %, per epoch)',
+            ],
+            type: 'u16',
+          },
+          {
+            name: 'minDeposit',
+            docs: [
+              'Minimal deposit amount',
+            ],
+            type: 'u64',
+          },
+        ],
+      },
+    },
+    {
+      name: 'liquidationFee',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'feeReceiver',
+            docs: [
+              'Wallet that will receive fee',
+            ],
+            type: 'publicKey',
+          },
+          {
+            name: 'fee',
+            docs: [
+              'Fee for creating liquidation request',
+            ],
+            type: 'u16',
           },
         ],
       },
@@ -2630,9 +3210,16 @@ export const IDL: Omnisol = {
           {
             name: 'createdAt',
             docs: [
-              'Time of collateral\'s creation',
+              'Time of collateral`s creation',
             ],
             type: 'i64',
+          },
+          {
+            name: 'creationEpoch',
+            docs: [
+              'Epoch of collateral\'s creation',
+            ],
+            type: 'u64',
           },
           {
             name: 'bump',
@@ -2657,7 +3244,7 @@ export const IDL: Omnisol = {
         kind: 'struct',
         fields: [
           {
-            name: 'whitelistedToken',
+            name: 'mint',
             docs: [
               'Token mint address that is whitelisted to the pool',
             ],
@@ -2671,7 +3258,7 @@ export const IDL: Omnisol = {
             type: 'publicKey',
           },
           {
-            name: 'stakingPool',
+            name: 'poolProgram',
             docs: [
               'LP tokens` pool (default for native stake)',
             ],
@@ -2784,6 +3371,50 @@ export const IDL: Omnisol = {
     },
   ],
   types: [
+    {
+      name: 'UpdatePoolData',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'feeReceiver',
+            type: {
+              option: 'publicKey',
+            },
+          },
+          {
+            name: 'withdrawFee',
+            type: {
+              option: 'u16',
+            },
+          },
+          {
+            name: 'depositFee',
+            type: {
+              option: 'u16',
+            },
+          },
+          {
+            name: 'mintFee',
+            type: {
+              option: 'u16',
+            },
+          },
+          {
+            name: 'storageFee',
+            type: {
+              option: 'u16',
+            },
+          },
+          {
+            name: 'minDeposit',
+            type: {
+              option: 'u64',
+            },
+          },
+        ],
+      },
+    },
     {
       name: 'QueueMember',
       type: {
@@ -2991,31 +3622,36 @@ export const IDL: Omnisol = {
     },
     {
       code: 6004,
+      name: 'InsufficientFunds',
+      msg: 'Insufficient funds',
+    },
+    {
+      code: 6005,
       name: 'TypeOverflow',
       msg: 'Type overflow',
     },
     {
-      code: 6005,
+      code: 6006,
       name: 'PoolAlreadyPaused',
       msg: 'Pool is already paused',
     },
     {
-      code: 6006,
+      code: 6007,
       name: 'PoolAlreadyResumed',
       msg: 'Pool is already resumed',
     },
     {
-      code: 6007,
+      code: 6008,
       name: 'UserBlocked',
       msg: 'User is blocked',
     },
     {
-      code: 6008,
+      code: 6009,
       name: 'UserNotBlocked',
       msg: 'User is not blocked',
     },
     {
-      code: 6009,
+      code: 6010,
       name: 'WrongData',
       msg: 'Wrong input data',
     },

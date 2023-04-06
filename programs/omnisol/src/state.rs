@@ -17,10 +17,35 @@ pub struct Pool {
     pub authority_bump: u8,
     /// Flag that indicates that the pool is running or paused
     pub is_active: bool,
+    /// Wallet that will receive fee
+    pub fee_receiver: Pubkey,
+    /// Fee for withdrawing from pool (in %)
+    pub withdraw_fee: u16,
+    /// Fee for minting omnisol from pool (in %)
+    pub mint_fee: u16,
+    /// Fee for depositing in pool (in %)
+    pub deposit_fee: u16,
+    /// Fee for keeping deposit in pool (in %, per epoch)
+    pub storage_fee: u16,
+    /// Minimal deposit amount
+    pub min_deposit: u64,
 }
 
 impl Pool {
-    pub const SIZE: usize = 8 + 32 + 32 + 32 + 8 + 1 + 1;
+    pub const SIZE: usize = 8 + 32 + 32 + 32 + 8 + 1 + 1 + 32 + 2 + 2 + 2 + 2 + 8;
+}
+
+#[account]
+pub struct LiquidationFee {
+    /// Wallet that will receive fee
+    pub fee_receiver: Pubkey,
+    /// Fee for creating liquidation request
+    pub fee: u16,
+}
+
+impl LiquidationFee {
+    pub const SEED: &'static [u8] = b"liquidation_fee";
+    pub const SIZE: usize = 8 + 32 + 2;
 }
 
 #[account]
@@ -60,8 +85,10 @@ pub struct Collateral {
     pub amount: u64,
     /// An amount of "liquidated" staked tokens
     pub liquidated_amount: u64,
-    /// Time of collateral's creation
+    /// Time of collateral`s creation
     pub created_at: i64,
+    /// Epoch of collateral's creation
+    pub creation_epoch: u64,
     /// Signer bump seed for deriving PDA seeds
     pub bump: u8,
     /// Flag that indicates the type of stake (can be LP token account or native staking pool)
@@ -77,17 +104,17 @@ impl Collateral {
         }
     }
     pub const SEED: &'static [u8] = b"collateral";
-    pub const SIZE: usize = 8 + 32 + 32 + 32 + 32 + 8 + 8 + 8 + 8 + 1 + 1;
+    pub const SIZE: usize = 8 + 32 + 32 + 32 + 32 + 8 + 8 + 8 + 8 + 8 + 1 + 1;
 }
 
 #[account]
 pub struct Whitelist {
     /// Token mint address that is whitelisted to the pool
-    pub whitelisted_token: Pubkey,
+    pub mint: Pubkey,
     /// Global pool address
     pub pool: Pubkey,
     /// LP tokens` pool (default for native stake)
-    pub staking_pool: Pubkey,
+    pub pool_program: Pubkey,
 }
 
 impl Whitelist {

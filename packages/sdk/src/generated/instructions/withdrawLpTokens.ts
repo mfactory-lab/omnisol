@@ -48,6 +48,8 @@ export const withdrawLpTokensStruct = new beet.BeetArgsStruct<
  * @property [_writable_] poolMint
  * @property [_writable_] userPoolToken
  * @property [_writable_, **signer**] authority
+ * @property [_writable_, **signer**] feePayer
+ * @property [_writable_] feeReceiver
  * @property [] clock
  * @category Instructions
  * @category WithdrawLpTokens
@@ -64,8 +66,11 @@ export interface WithdrawLpTokensInstructionAccounts {
   poolMint: web3.PublicKey
   userPoolToken: web3.PublicKey
   authority: web3.PublicKey
+  feePayer: web3.PublicKey
+  feeReceiver: web3.PublicKey
   clock: web3.PublicKey
   tokenProgram?: web3.PublicKey
+  systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
@@ -144,12 +149,27 @@ export function createWithdrawLpTokensInstruction(
       isSigner: true,
     },
     {
+      pubkey: accounts.feePayer,
+      isWritable: true,
+      isSigner: true,
+    },
+    {
+      pubkey: accounts.feeReceiver,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
       pubkey: accounts.clock,
       isWritable: false,
       isSigner: false,
     },
     {
       pubkey: accounts.tokenProgram ?? splToken.TOKEN_PROGRAM_ID,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.systemProgram ?? web3.SystemProgram.programId,
       isWritable: false,
       isSigner: false,
     },

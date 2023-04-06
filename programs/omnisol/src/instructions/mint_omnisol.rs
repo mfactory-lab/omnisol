@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use anchor_lang::system_program;
 use anchor_spl::token;
 
 use crate::{
@@ -28,6 +29,21 @@ pub fn handle(ctx: Context<MintOmnisol>, amount: u64) -> Result<()> {
 
     let mint_authority_seeds = [MINT_AUTHORITY_SEED, &[ctx.bumps["mint_authority"]]];
     let clock = &ctx.accounts.clock;
+
+    if pool.mint_fee > 0 {
+        let fee = amount.saturating_div(1000).saturating_mul(pool.mint_fee as u64);
+        msg!("Transfer mint fee: {} lamports", fee);
+
+        system_program::transfer(CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            system_program::Transfer {
+                from: ctx.accounts.fee_payer.to_account_info(),
+                to: ctx.accounts.fee_receiver.to_account_info(),
+            }
+        ),
+        fee,
+        ).map_err(|_| ErrorCode::InsufficientFunds)?;
+    }
 
     // Mint new pool tokens equals to `amount`
     token::mint_to(
@@ -67,6 +83,10 @@ pub struct MintOmnisol<'info> {
     #[account(mut, address = collateral.pool)]
     pub pool: Box<Account<'info, Pool>>,
 
+    /// CHECK: no needs to check, only for signing
+    #[account(seeds = [pool.key().as_ref()], bump = pool.authority_bump)]
+    pub pool_authority: AccountInfo<'info>,
+
     /// CHECK:
     #[account(mut, address = pool.pool_mint)]
     pub pool_mint: AccountInfo<'info>,
@@ -102,6 +122,14 @@ pub struct MintOmnisol<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 
+    #[account(mut)]
+    pub fee_payer: Signer<'info>,
+
+    /// CHECK: no needs to check, only for transfer
+    #[account(mut, address = pool.fee_receiver)]
+    pub fee_receiver: AccountInfo<'info>,
+
     pub clock: Sysvar<'info, Clock>,
     pub token_program: Program<'info, token::Token>,
+    pub system_program: Program<'info, System>,
 }

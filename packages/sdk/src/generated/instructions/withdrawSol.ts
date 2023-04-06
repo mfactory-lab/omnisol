@@ -5,25 +5,24 @@
  * See: https://github.com/metaplex-foundation/solita
  */
 
-import * as splToken from '@solana/spl-token'
 import * as beet from '@metaplex-foundation/beet'
 import * as web3 from '@solana/web3.js'
 
 /**
  * @category Instructions
- * @category DepositLp
+ * @category WithdrawSol
  * @category generated
  */
-export interface DepositLpInstructionArgs {
+export interface WithdrawSolInstructionArgs {
   amount: beet.bignum
 }
 /**
  * @category Instructions
- * @category DepositLp
+ * @category WithdrawSol
  * @category generated
  */
-export const depositLpStruct = new beet.BeetArgsStruct<
-  DepositLpInstructionArgs & {
+export const withdrawSolStruct = new beet.BeetArgsStruct<
+  WithdrawSolInstructionArgs & {
     instructionDiscriminator: number[] /* size: 8 */
   }
 >(
@@ -31,66 +30,51 @@ export const depositLpStruct = new beet.BeetArgsStruct<
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
     ['amount', beet.u64],
   ],
-  'DepositLpInstructionArgs',
+  'WithdrawSolInstructionArgs',
 )
 /**
- * Accounts required by the _depositLp_ instruction
+ * Accounts required by the _withdrawSol_ instruction
  *
  * @property [_writable_] pool
- * @property [] poolAuthority
- * @property [_writable_] user
- * @property [_writable_] collateral
- * @property [_writable_] source
+ * @property [_writable_] poolAuthority
  * @property [_writable_] destination
- * @property [] whitelist
- * @property [] lpToken
+ * @property [_writable_] manager
  * @property [_writable_, **signer**] authority
- * @property [_writable_, **signer**] feePayer
- * @property [_writable_] feeReceiver
- * @property [] clock
  * @category Instructions
- * @category DepositLp
+ * @category WithdrawSol
  * @category generated
  */
-export interface DepositLpInstructionAccounts {
+export interface WithdrawSolInstructionAccounts {
   pool: web3.PublicKey
   poolAuthority: web3.PublicKey
-  user: web3.PublicKey
-  collateral: web3.PublicKey
-  source: web3.PublicKey
   destination: web3.PublicKey
-  whitelist: web3.PublicKey
-  lpToken: web3.PublicKey
+  manager: web3.PublicKey
   authority: web3.PublicKey
-  feePayer: web3.PublicKey
-  feeReceiver: web3.PublicKey
-  clock: web3.PublicKey
-  tokenProgram?: web3.PublicKey
   systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
-export const depositLpInstructionDiscriminator = [
-  83, 107, 16, 26, 26, 20, 130, 56,
+export const withdrawSolInstructionDiscriminator = [
+  145, 131, 74, 136, 65, 137, 42, 38,
 ]
 
 /**
- * Creates a _DepositLp_ instruction.
+ * Creates a _WithdrawSol_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
  * @param args to provide as instruction data to the program
  *
  * @category Instructions
- * @category DepositLp
+ * @category WithdrawSol
  * @category generated
  */
-export function createDepositLpInstruction(
-  accounts: DepositLpInstructionAccounts,
-  args: DepositLpInstructionArgs,
+export function createWithdrawSolInstruction(
+  accounts: WithdrawSolInstructionAccounts,
+  args: WithdrawSolInstructionArgs,
   programId = new web3.PublicKey('6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7'),
 ) {
-  const [data] = depositLpStruct.serialize({
-    instructionDiscriminator: depositLpInstructionDiscriminator,
+  const [data] = withdrawSolStruct.serialize({
+    instructionDiscriminator: withdrawSolInstructionDiscriminator,
     ...args,
   })
   const keys: web3.AccountMeta[] = [
@@ -101,21 +85,6 @@ export function createDepositLpInstruction(
     },
     {
       pubkey: accounts.poolAuthority,
-      isWritable: false,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.user,
-      isWritable: true,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.collateral,
-      isWritable: true,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.source,
       isWritable: true,
       isSigner: false,
     },
@@ -125,39 +94,14 @@ export function createDepositLpInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.whitelist,
-      isWritable: false,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.lpToken,
-      isWritable: false,
+      pubkey: accounts.manager,
+      isWritable: true,
       isSigner: false,
     },
     {
       pubkey: accounts.authority,
       isWritable: true,
       isSigner: true,
-    },
-    {
-      pubkey: accounts.feePayer,
-      isWritable: true,
-      isSigner: true,
-    },
-    {
-      pubkey: accounts.feeReceiver,
-      isWritable: true,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.clock,
-      isWritable: false,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.tokenProgram ?? splToken.TOKEN_PROGRAM_ID,
-      isWritable: false,
-      isSigner: false,
     },
     {
       pubkey: accounts.systemProgram ?? web3.SystemProgram.programId,

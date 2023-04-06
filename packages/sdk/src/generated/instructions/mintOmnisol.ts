@@ -37,6 +37,7 @@ export const mintOmnisolStruct = new beet.BeetArgsStruct<
  * Accounts required by the _mintOmnisol_ instruction
  *
  * @property [_writable_] pool
+ * @property [] poolAuthority
  * @property [_writable_] poolMint
  * @property [] mintAuthority
  * @property [_writable_] user
@@ -44,6 +45,8 @@ export const mintOmnisolStruct = new beet.BeetArgsStruct<
  * @property [_writable_] userPoolToken
  * @property [] stakedAddress
  * @property [_writable_, **signer**] authority
+ * @property [_writable_, **signer**] feePayer
+ * @property [_writable_] feeReceiver
  * @property [] clock
  * @category Instructions
  * @category MintOmnisol
@@ -51,6 +54,7 @@ export const mintOmnisolStruct = new beet.BeetArgsStruct<
  */
 export interface MintOmnisolInstructionAccounts {
   pool: web3.PublicKey
+  poolAuthority: web3.PublicKey
   poolMint: web3.PublicKey
   mintAuthority: web3.PublicKey
   user: web3.PublicKey
@@ -58,8 +62,11 @@ export interface MintOmnisolInstructionAccounts {
   userPoolToken: web3.PublicKey
   stakedAddress: web3.PublicKey
   authority: web3.PublicKey
+  feePayer: web3.PublicKey
+  feeReceiver: web3.PublicKey
   clock: web3.PublicKey
   tokenProgram?: web3.PublicKey
+  systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
@@ -90,6 +97,11 @@ export function createMintOmnisolInstruction(
     {
       pubkey: accounts.pool,
       isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.poolAuthority,
+      isWritable: false,
       isSigner: false,
     },
     {
@@ -128,12 +140,27 @@ export function createMintOmnisolInstruction(
       isSigner: true,
     },
     {
+      pubkey: accounts.feePayer,
+      isWritable: true,
+      isSigner: true,
+    },
+    {
+      pubkey: accounts.feeReceiver,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
       pubkey: accounts.clock,
       isWritable: false,
       isSigner: false,
     },
     {
       pubkey: accounts.tokenProgram ?? splToken.TOKEN_PROGRAM_ID,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.systemProgram ?? web3.SystemProgram.programId,
       isWritable: false,
       isSigner: false,
     },
