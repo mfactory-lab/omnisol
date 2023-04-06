@@ -16,7 +16,7 @@ use log::{info, LevelFilter};
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 use omnisol::{id, state::Oracle};
 
-use crate::utils::{generate_priority_queue, get_collateral_data, get_pool_data, get_user_data};
+use crate::utils::{generate_priority_queue, get_collateral_data, get_oracle, get_pool_data, get_user_data};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -60,12 +60,12 @@ fn main() {
     info!("Established connection: {}", args.cluster.url());
 
     // get program public key
-    let program = client.program(omnisol::id());
+    let program = client.program(id());
 
     let mut previous_queue = HashMap::new();
 
     // find oracle PDA
-    let (oracle, _) = Pubkey::find_program_address(&[Oracle::SEED], &id());
+    let oracle = get_oracle();
 
     loop {
         info!("Thread is paused for {} seconds", args.sleep_duration.as_secs());
