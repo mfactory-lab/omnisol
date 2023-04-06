@@ -1094,39 +1094,9 @@ export interface Omnisol {
       ]
       'args': [
         {
-          'name': 'feeReceiver'
+          'name': 'data'
           'type': {
-            'option': 'publicKey'
-          }
-        },
-        {
-          'name': 'withdrawFee'
-          'type': {
-            'option': 'u16'
-          }
-        },
-        {
-          'name': 'depositFee'
-          'type': {
-            'option': 'u16'
-          }
-        },
-        {
-          'name': 'mintFee'
-          'type': {
-            'option': 'u16'
-          }
-        },
-        {
-          'name': 'storageFee'
-          'type': {
-            'option': 'u16'
-          }
-        },
-        {
-          'name': 'minDeposit'
-          'type': {
-            'option': 'u64'
+            'defined': 'UpdatePoolData'
           }
         },
       ]
@@ -1571,6 +1541,50 @@ export interface Omnisol {
     },
   ]
   'types': [
+    {
+      'name': 'UpdatePoolData'
+      'type': {
+        'kind': 'struct'
+        'fields': [
+          {
+            'name': 'feeReceiver'
+            'type': {
+              'option': 'publicKey'
+            }
+          },
+          {
+            'name': 'withdrawFee'
+            'type': {
+              'option': 'u16'
+            }
+          },
+          {
+            'name': 'depositFee'
+            'type': {
+              'option': 'u16'
+            }
+          },
+          {
+            'name': 'mintFee'
+            'type': {
+              'option': 'u16'
+            }
+          },
+          {
+            'name': 'storageFee'
+            'type': {
+              'option': 'u16'
+            }
+          },
+          {
+            'name': 'minDeposit'
+            'type': {
+              'option': 'u64'
+            }
+          },
+        ]
+      }
+    },
     {
       'name': 'QueueMember'
       'type': {
@@ -2910,39 +2924,9 @@ export const IDL: Omnisol = {
       ],
       args: [
         {
-          name: 'feeReceiver',
+          name: 'data',
           type: {
-            option: 'publicKey',
-          },
-        },
-        {
-          name: 'withdrawFee',
-          type: {
-            option: 'u16',
-          },
-        },
-        {
-          name: 'depositFee',
-          type: {
-            option: 'u16',
-          },
-        },
-        {
-          name: 'mintFee',
-          type: {
-            option: 'u16',
-          },
-        },
-        {
-          name: 'storageFee',
-          type: {
-            option: 'u16',
-          },
-        },
-        {
-          name: 'minDeposit',
-          type: {
-            option: 'u64',
+            defined: 'UpdatePoolData',
           },
         },
       ],
@@ -3387,6 +3371,50 @@ export const IDL: Omnisol = {
     },
   ],
   types: [
+    {
+      name: 'UpdatePoolData',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'feeReceiver',
+            type: {
+              option: 'publicKey',
+            },
+          },
+          {
+            name: 'withdrawFee',
+            type: {
+              option: 'u16',
+            },
+          },
+          {
+            name: 'depositFee',
+            type: {
+              option: 'u16',
+            },
+          },
+          {
+            name: 'mintFee',
+            type: {
+              option: 'u16',
+            },
+          },
+          {
+            name: 'storageFee',
+            type: {
+              option: 'u16',
+            },
+          },
+          {
+            name: 'minDeposit',
+            type: {
+              option: 'u64',
+            },
+          },
+        ],
+      },
+    },
     {
       name: 'QueueMember',
       type: {

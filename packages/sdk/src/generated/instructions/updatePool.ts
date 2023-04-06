@@ -5,9 +5,10 @@
  * See: https://github.com/metaplex-foundation/solita
  */
 
-import * as web3 from '@solana/web3.js'
 import * as beet from '@metaplex-foundation/beet'
-import * as beetSolana from '@metaplex-foundation/beet-solana'
+import * as web3 from '@solana/web3.js'
+import type { UpdatePoolData } from '../types/UpdatePoolData'
+import { updatePoolDataBeet } from '../types/UpdatePoolData'
 
 /**
  * @category Instructions
@@ -15,12 +16,7 @@ import * as beetSolana from '@metaplex-foundation/beet-solana'
  * @category generated
  */
 export interface UpdatePoolInstructionArgs {
-  feeReceiver: beet.COption<web3.PublicKey>
-  withdrawFee: beet.COption<number>
-  depositFee: beet.COption<number>
-  mintFee: beet.COption<number>
-  storageFee: beet.COption<number>
-  minDeposit: beet.COption<beet.bignum>
+  data: UpdatePoolData
 }
 /**
  * @category Instructions
@@ -34,12 +30,7 @@ export const updatePoolStruct = new beet.FixableBeetArgsStruct<
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['feeReceiver', beet.coption(beetSolana.publicKey)],
-    ['withdrawFee', beet.coption(beet.u16)],
-    ['depositFee', beet.coption(beet.u16)],
-    ['mintFee', beet.coption(beet.u16)],
-    ['storageFee', beet.coption(beet.u16)],
-    ['minDeposit', beet.coption(beet.u64)],
+    ['data', updatePoolDataBeet],
   ],
   'UpdatePoolInstructionArgs',
 )

@@ -108,14 +108,9 @@ pub mod omnisol {
 
     pub fn update_pool(
         ctx: Context<UpdatePool>,
-        fee_receiver: Option<Pubkey>,
-        withdraw_fee: Option<u16>,
-        deposit_fee: Option<u16>,
-        mint_fee: Option<u16>,
-        storage_fee: Option<u16>,
-        min_deposit: Option<u64>,
+        data: UpdatePoolData,
     ) -> Result<()> {
-        update_pool::handle(ctx, fee_receiver, withdraw_fee, deposit_fee, mint_fee, storage_fee, min_deposit)
+        update_pool::handle(ctx, data)
     }
 
     pub fn withdraw_sol(ctx: Context<WithdrawSol>, amount: u64) -> Result<()> {

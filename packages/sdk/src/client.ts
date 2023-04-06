@@ -298,12 +298,14 @@ export class OmnisolClient {
         manager,
       },
       {
-        minDeposit: props.minDeposit ?? null,
-        depositFee: props.depositFee ?? null,
-        feeReceiver: props.feeReceiver ?? null,
-        mintFee: props.mintFee ?? null,
-        storageFee: props.storageFee ?? null,
-        withdrawFee: props.withdrawFee ?? null,
+        data: {
+          minDeposit: props.minDeposit ?? null,
+          depositFee: props.depositFee ?? null,
+          feeReceiver: props.feeReceiver ?? null,
+          mintFee: props.mintFee ?? null,
+          storageFee: props.storageFee ?? null,
+          withdrawFee: props.withdrawFee ?? null,
+        },
       },
     )
     const tx = new Transaction().add(instruction)
