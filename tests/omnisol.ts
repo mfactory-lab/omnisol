@@ -8,7 +8,7 @@ import { AnchorProvider, BN, Program, Wallet, web3 } from '@project-serum/anchor
 import { LAMPORTS_PER_SOL, PublicKey, Transaction } from '@solana/web3.js'
 import { assert } from 'chai'
 import { OmnisolClient } from '@omnisol/sdk'
-import { STAKE_POOL_PROGRAM_ID, depositSol, initialize } from '@solana/spl-stake-pool'
+import { STAKE_POOL_PROGRAM_ID, depositSol, initialize, withdrawSol } from '@solana/spl-stake-pool'
 import * as beet from '@metaplex-foundation/beet'
 import type {
   AddLiquidityAccounts,
@@ -469,7 +469,7 @@ describe('omnisol', () => {
         withdrawAuthority,
         withdrawAuthority,
       ),
-      lamports: lamportsForStakeAccount + 1,
+      lamports: lamportsForStakeAccount + web3.LAMPORTS_PER_SOL,
       stakePubkey: reserveStakeAccount,
     })
     await provider.sendAndConfirm(createAccountTransaction, [payerKeypair, reserveKeypair])
@@ -493,7 +493,7 @@ describe('omnisol', () => {
     } catch (e) {
       console.log(e)
     }
-    const { instructions: ixs, signers: sgs } = await depositSol(provider.connection, stakePool, provider.wallet.publicKey, 1000000)
+    const { instructions: ixs, signers: sgs } = await depositSol(provider.connection, stakePool, provider.wallet.publicKey, web3.LAMPORTS_PER_SOL)
     const transaction1 = new web3.Transaction().add(...ixs)
     transaction1.feePayer = provider.wallet.publicKey
     try {
@@ -2444,7 +2444,7 @@ describe('omnisol', () => {
 
     const { tx: tx4 } = await client.burnOmnisol({
       sourceTokenAccount: userPoolToken.address,
-      amount: new BN(100000),
+      amount: new BN(50000),
       pool,
       poolMint,
     })
@@ -2486,7 +2486,7 @@ describe('omnisol', () => {
     const poolTA = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, stakePoolMint, poolForLPAuthority, true)
 
     const { tx } = await client.liquidateCollateral({
-      amount: new BN(100000),
+      amount: new BN(50000),
       feeAccount,
       pool: poolForLP,
       poolAccount: unstakeItPool,
@@ -2504,7 +2504,92 @@ describe('omnisol', () => {
       reserveStakeAccount,
       managerFeeAccount,
       validatorListStorage: validatorList,
-      stakeToSplit: splitStake,
+      stakeToSplit: reserveStakeAccount,
+      poolTokenAccount: poolTA.address,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx, [splitKeypair])
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+  })
+
+  it('can liquidate lp token collateral using stake account', async () => {
+    const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, poolMint, provider.wallet.publicKey)
+
+    const { tx: tx1 } = await client.burnOmnisol({
+      sourceTokenAccount: userPoolToken.address,
+      amount: new BN(50000),
+      pool,
+      poolMint,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx1)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const [user] = await client.pda.user(provider.wallet.publicKey)
+    const [collateral] = await client.pda.collateral(stakePoolMint, user)
+    const addresses = [collateral]
+    const values = [new BN(50000)]
+
+    const { tx: tx2 } = await client.updateOracleInfo({
+      addresses,
+      values,
+      clear: true,
+    })
+
+    try {
+      await provider.sendAndConfirm(tx2)
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
+
+    const { instructions: ixs, signers: sgs } = await withdrawSol(provider.connection, stakePool, provider.wallet.publicKey, provider.wallet.publicKey, 0.999851000)
+    const transaction1 = new web3.Transaction().add(...ixs)
+    transaction1.feePayer = provider.wallet.publicKey
+    try {
+      await provider.sendAndConfirm(transaction1, sgs)
+    } catch (e) {
+      console.log(e)
+    }
+
+    const splitKeypair = web3.Keypair.generate()
+    const splitStake = splitKeypair.publicKey
+
+    const [stakeAccountRecord] = await web3.PublicKey.findProgramAddress(
+      [unstakeItPool.toBuffer(), stakeAccount.toBuffer()],
+      unstakeItProgram,
+    )
+
+    const poolTA = await getOrCreateAssociatedTokenAccount(provider.connection, payerKeypair, stakePoolMint, poolForLPAuthority, true)
+
+    const { tx } = await client.liquidateCollateral({
+      amount: new BN(50000),
+      feeAccount,
+      pool: poolForLP,
+      poolAccount: unstakeItPool,
+      protocolFee: protocolFeeAccount,
+      protocolFeeDestination,
+      solReserves: poolSolReserves,
+      sourceStake: stakePoolMint,
+      stakeAccountRecord,
+      collateralOwnerWallet: provider.wallet.publicKey,
+      userWallet: provider.wallet.publicKey,
+      splitStake,
+      unstakeItProgram,
+      stakePool,
+      stakePoolWithdrawAuthority: withdrawAuthority,
+      reserveStakeAccount,
+      managerFeeAccount,
+      validatorListStorage: validatorList,
+      stakeToSplit: reserveStakeAccount,
       poolTokenAccount: poolTA.address,
     })
 
