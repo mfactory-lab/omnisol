@@ -258,7 +258,7 @@ export class OmnisolClient {
         manager,
         whitelist,
         pool: props.tokenPool,
-        stakingPool: props.stakePool,
+        poolProgram: props.poolProgram,
       },
     )
     const tx = new Transaction().add(instruction)
@@ -950,7 +950,7 @@ interface ResumePoolProps {
 
 interface AddToTokenWhitelistProps {
   tokenPool: PublicKey
-  stakePool: PublicKey
+  poolProgram: PublicKey
   token: PublicKey
 }
 

@@ -166,7 +166,7 @@ export interface Omnisol {
           'isSigner': false
         },
         {
-          'name': 'stakingPool'
+          'name': 'poolProgram'
           'isMut': false
           'isSigner': false
         },
@@ -1982,7 +1982,7 @@ export const IDL: Omnisol = {
           isSigner: false,
         },
         {
-          name: 'stakingPool',
+          name: 'poolProgram',
           isMut: false,
           isSigner: false,
         },

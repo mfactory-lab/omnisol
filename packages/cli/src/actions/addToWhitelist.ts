@@ -12,7 +12,7 @@ export async function addToWhitelist(opts: Opts) {
   const { provider, client } = useContext()
 
   const { tx } = await client.addToTokenWhitelist({
-    stakePool: new web3.PublicKey(opts.stakePool),
+    poolProgram: new web3.PublicKey(opts.stakePool),
     token: new web3.PublicKey(opts.mint),
     tokenPool: new web3.PublicKey(opts.tokenPool),
   })

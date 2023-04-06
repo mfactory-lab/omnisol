@@ -7,13 +7,13 @@ pub fn handle(ctx: Context<AddToTokenWhitelist>) -> Result<()> {
     let address_to_whitelist = ctx.accounts.address_to_whitelist.key();
     // program_id
     let pool = ctx.accounts.pool.key();
-    let staking_pool = ctx.accounts.staking_pool.key();
+    let pool_program = ctx.accounts.pool_program.key();
 
     // TODO add validation
 
     whitelist.mint = address_to_whitelist;
     whitelist.pool = pool;
-    whitelist.pool_program = staking_pool;
+    whitelist.pool_program = pool_program;
 
     Ok(())
 }
@@ -29,8 +29,8 @@ pub struct AddToTokenWhitelist<'info> {
     /// CHECK: Address of LP token's global pool
     pub pool: AccountInfo<'info>,
 
-    /// CHECK: Stake pool with LP token mint address
-    pub staking_pool: AccountInfo<'info>,
+    /// CHECK: Stake pool program with LP token mint address
+    pub pool_program: AccountInfo<'info>,
 
     #[account(
         init,

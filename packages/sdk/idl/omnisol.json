@@ -166,7 +166,7 @@
           "isSigner": false
         },
         {
-          "name": "stakingPool",
+          "name": "poolProgram",
           "isMut": false,
           "isSigner": false
         },

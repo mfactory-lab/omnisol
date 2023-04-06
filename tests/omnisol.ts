@@ -505,7 +505,7 @@ describe('omnisol', () => {
     const { tx, whitelist } = await client.addToTokenWhitelist({
       token: stakePoolMint,
       tokenPool: STAKE_POOL_PROGRAM_ID,
-      stakePool,
+      poolProgram: stakePool,
     })
 
     try {
@@ -552,7 +552,7 @@ describe('omnisol', () => {
     const { tx: transaction } = await client.addToTokenWhitelist({
       token: lpToken,
       tokenPool: STAKE_POOL_PROGRAM_ID,
-      stakePool,
+      poolProgram: stakePool,
     })
     try {
       await provider.sendAndConfirm(transaction)

@@ -25,7 +25,7 @@ export const addToTokenWhitelistStruct = new beet.BeetArgsStruct<{
  * @property [_writable_, **signer**] authority
  * @property [] addressToWhitelist
  * @property [] pool
- * @property [] stakingPool
+ * @property [] poolProgram
  * @property [_writable_] whitelist
  * @property [_writable_] manager
  * @category Instructions
@@ -36,7 +36,7 @@ export interface AddToTokenWhitelistInstructionAccounts {
   authority: web3.PublicKey
   addressToWhitelist: web3.PublicKey
   pool: web3.PublicKey
-  stakingPool: web3.PublicKey
+  poolProgram: web3.PublicKey
   whitelist: web3.PublicKey
   manager: web3.PublicKey
   systemProgram?: web3.PublicKey
@@ -79,7 +79,7 @@ export function createAddToTokenWhitelistInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.stakingPool,
+      pubkey: accounts.poolProgram,
       isWritable: false,
       isSigner: false,
     },
