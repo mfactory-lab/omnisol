@@ -6,20 +6,23 @@ use std::collections::HashMap;
 use anchor_client::{solana_sdk::{
     commitment_config::CommitmentConfig,
     pubkey::Pubkey,
-    signature::{read_keypair_file, Signer},
+    signature::{read_keypair_file, Signer, Keypair},
     system_program,
     sysvar::clock,
     stake,
-}, Client, Cluster, Program};
-use anchor_client::solana_sdk::signature::Keypair;
-use anchor_spl::token::spl_token;
+    borsh::try_from_slice_unchecked,
+    stake_history::StakeHistory,
+    sysvar::SysvarId,
+}, Client, Cluster, Program, ClientError};
+use anchor_lang::prelude::AccountMeta;
+use anchor_spl::{associated_token::get_associated_token_address, token::spl_token};
 use clap::Parser;
 use log::{error, info, LevelFilter, warn};
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
-use omnisol::id;
-use omnisol::state::{Collateral, Oracle, Pool, User, WithdrawInfo};
+use spl_stake_pool::{find_stake_program_address, find_withdraw_authority_program_address, ID, state::{StakePool, ValidatorList}};
+use omnisol::{id, state::{Collateral, Oracle, Pool, User, WithdrawInfo}};
 
-use crate::utils::{get_collateral_data, get_liquidator, get_oracle, get_oracle_data, get_pool_authority, get_pool_data, get_remaining_accounts, get_user, get_user_data, get_withdraw_info_list};
+use crate::utils::{get_collateral_data, get_liquidator, get_oracle, get_oracle_data, get_pool_authority, get_pool_data, get_stake_account_record, get_token_whitelist, get_user, get_user_data, get_whitelisted_token_data, get_withdraw_info_list};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -86,149 +89,266 @@ fn main() {
     );
     info!("Established connection: {}", &args.cluster.url());
 
-    // get program public key
-    let program = client.program(id());
-
-    let oracle = get_oracle();
-    let liquidator = get_liquidator(wallet_pubkey);
+    let mut liquidator = Liquidator::new(args, client, wallet_pubkey);
 
     loop {
-        let withdraw_info_list = get_withdraw_info_list(&program).expect("Can't get withdraw info list");
+        let withdraw_info_list = get_withdraw_info_list(&liquidator.program).expect("Can't get withdraw info list");
         info!("Got {} withdraw request(s))", withdraw_info_list.len());
 
         for (withdraw_address, withdraw_info) in withdraw_info_list {
-            process_withdraw_request(&args, &program, withdraw_address, withdraw_info, oracle, liquidator, wallet_pubkey)
+            liquidator.process_withdraw_request(withdraw_address, withdraw_info);
         }
     }
 }
 
-fn process_withdraw_request(args: &Args, program: &Program, withdraw_address: Pubkey, withdraw_info: WithdrawInfo, oracle: Pubkey, liquidator: Pubkey, liquidator_wallet: Pubkey) {
-    info!("Withdraw request - {} in processing...", withdraw_address);
+pub struct Liquidator {
+    args: Args,
+    liquidator_wallet: Pubkey,
+    program: Program,
+    oracle: Pubkey,
+    liquidator: Pubkey,
 
-    let user_data = get_user_data(&program).expect("Can't get user accounts");
-    info!("Got {} user(s)", user_data.len());
-
-    let user_key = get_user(withdraw_info.authority);
-    let user = user_data
-        .get(&user_key)
-        .expect("Can't find user account");
-    info!("Got data of user that made request - {}", user_key);
-
-    if user.is_blocked {
-        warn!("User {} is blocked", user.wallet);
-        return;
-    }
-
-    let mut amount_to_liquidate = withdraw_info.amount;
-
-    let oracle_data = get_oracle_data(&program, oracle).expect("Can't get oracle account");
-    info!("Got oracle data");
-    let pool_data = get_pool_data(&program).expect("Can't get pool accounts");
-    let collateral_data = get_collateral_data(&program).expect("Can't get collateral accounts");
-    info!("Got {} collateral(s)", collateral_data.len());
-
-    while amount_to_liquidate > 0 {
-        amount_to_liquidate = liquidate(args, program, withdraw_address, user_data.clone(), user_key, user, amount_to_liquidate, oracle_data.clone(), pool_data.clone(), collateral_data.clone(), liquidator, liquidator_wallet, oracle);
-    }
-}
-
-fn liquidate(
-    args: &Args,
-    program: &Program,
     withdraw_address: Pubkey,
     user_data: HashMap<Pubkey, User>,
     user_key: Pubkey,
-    user: &User,
     amount_to_liquidate: u64,
     oracle_data: Oracle,
     pool_data: HashMap<Pubkey, Pool>,
     collateral_data: HashMap<Pubkey, Collateral>,
-    liquidator: Pubkey,
-    liquidator_wallet: Pubkey,
-    oracle: Pubkey,
-) -> u64 {
-    let mut amount_to_liquidate = amount_to_liquidate;
+}
 
-    for queue_member in &oracle_data.priority_queue {
-        info!("Thread is paused for {} seconds", args.sleep_duration.as_secs());
-        thread::sleep(args.sleep_duration);
+impl Liquidator {
+    fn new(args: Args, client: Client, liquidator_wallet: Pubkey) -> Self {
+        // get program public key
+        let program = client.program(id());
 
-        let collateral = collateral_data
-            .get(&queue_member.collateral)
-            .expect("Can't find collateral account");
+        let oracle = get_oracle();
+        let liquidator = get_liquidator(liquidator_wallet);
 
-        let pool = pool_data
-            .get(&collateral.pool)
-            .expect("Can't find pool account");
+        Self {
+            args,
+            liquidator_wallet,
+            program,
+            oracle,
+            liquidator,
+            withdraw_address: Default::default(),
+            user_data: Default::default(),
+            user_key: Default::default(),
+            amount_to_liquidate: 0,
+            oracle_data: Oracle { authority: Default::default(), priority_queue: vec![] },
+            pool_data: Default::default(),
+            collateral_data: Default::default(),
+        }
+    }
 
-        if !pool.is_active {
-            warn!("Pool {} is paused. Impossible to liquidate collateral {}", collateral.pool, queue_member.collateral);
-            continue
-        };
+    fn process_withdraw_request(&mut self, withdraw_address: Pubkey, withdraw_info: WithdrawInfo) {
+        info!("Withdraw request - {} in processing...", withdraw_address);
 
-        // find pool_authority
-        let pool_authority = get_pool_authority(collateral.pool);
+        let user_data = get_user_data(&self.program).expect("Can't get user accounts");
+        info!("Got {} user(s)", self.user_data.len());
 
-        let collateral_owner = user_data
-            .get(&collateral.user)
-            .expect("Can't find collateral owner account");
-        info!("Got data of collateral owner - {}", collateral.user);
+        self.user_data = user_data.clone();
 
-        // TODO: maybe should validate the state of user (if it blocked -> continue)
+        self.user_key = get_user(withdraw_info.authority);
+        let user = user_data
+            .get(&self.user_key)
+            .expect("Can't find user account");
+        info!("Got data of user that made request - {}", self.user_key);
 
-        let source_stake = collateral.get_source_stake();
+        if user.is_blocked {
+            warn!("User {} is blocked", user.wallet);
+            return;
+        }
 
-        let additional_signer = Keypair::new();
-        let (stake_account_record, remaining_accounts) = get_remaining_accounts(args, program, additional_signer.pubkey(), collateral, source_stake, amount_to_liquidate, queue_member.amount).expect("Can't get remaining accounts");
+        self.amount_to_liquidate = withdraw_info.amount;
 
-        let amount = if amount_to_liquidate >= queue_member.amount {
-            queue_member.amount
-        } else {
-            amount_to_liquidate
-        };
+        self.oracle_data = get_oracle_data(&self.program, self.oracle).expect("Can't get oracle account");
+        info!("Got oracle data");
+        self.pool_data = get_pool_data(&self.program).expect("Can't get pool accounts");
+        self.collateral_data = get_collateral_data(&self.program).expect("Can't get collateral accounts");
+        info!("Got {} collateral(s)", self.collateral_data.len());
 
-        // send tx to contract
-        let result = program
-            .request()
-            .accounts(omnisol::accounts::LiquidateCollateral {
-                pool: collateral.pool,
-                pool_authority,
-                collateral: queue_member.collateral,
-                collateral_owner: collateral.user,
-                collateral_owner_wallet: collateral_owner.wallet,
-                user_wallet: user.wallet,
-                user: user_key,
-                withdraw_info: withdraw_address,
-                oracle,
-                source_stake,
-                liquidator,
-                pool_account: args.pool,
-                sol_reserves: args.reserves,
-                protocol_fee: args.fee_protocol,
-                protocol_fee_destination: args.destination_fee,
-                fee_account: args.account_fee,
-                stake_account_record,
-                unstake_it_program: args.unstake_it,
-                authority: liquidator_wallet,
-                clock: clock::id(),
-                token_program: spl_token::id(),
-                stake_program: stake::program::id(),
-                system_program: system_program::id(),
-            })
-            .accounts(remaining_accounts)
-            .args(omnisol::instruction::LiquidateCollateral { amount })
-            .signer(&additional_signer)
-            .send();
+        self.withdraw_address = withdraw_address;
 
-        if let Ok(signature) = result.map_err(|e| error!("Liquidation failed with an error - {}", e)) {
-            info!("Sent transaction successfully with signature: {}", signature);
+        while self.amount_to_liquidate > 0 {
+            self.liquidate(user);
+        }
+    }
 
-            amount_to_liquidate -= amount;
-            if amount_to_liquidate == 0 {
-                break;
+    fn liquidate(&mut self, user: &User) {
+        for queue_member in &self.oracle_data.priority_queue {
+            info!("Thread is paused for {} seconds", self.args.sleep_duration.as_secs());
+            thread::sleep(self.args.sleep_duration);
+
+            let collateral = self.collateral_data
+                .get(&queue_member.collateral)
+                .expect("Can't find collateral account");
+
+            let pool = self.pool_data
+                .get(&collateral.pool)
+                .expect("Can't find pool account");
+
+            if !pool.is_active {
+                warn!("Pool {} is paused. Impossible to liquidate collateral {}", collateral.pool, queue_member.collateral);
+                continue
+            };
+
+            // find pool_authority
+            let pool_authority = get_pool_authority(collateral.pool);
+
+            let collateral_owner = self.user_data
+                .get(&collateral.user)
+                .expect("Can't find collateral owner account");
+            info!("Got data of collateral owner - {}", collateral.user);
+
+            // TODO: maybe should validate the state of user (if it blocked -> continue)
+
+            let source_stake = collateral.get_source_stake();
+
+            let additional_signer = Keypair::new();
+            let (stake_account_record, remaining_accounts) = self.get_remaining_accounts(additional_signer.pubkey(), collateral, source_stake, self.amount_to_liquidate, queue_member.amount, pool_authority).expect("Can't get remaining accounts");
+
+            let amount = if self.amount_to_liquidate >= queue_member.amount {
+                queue_member.amount
+            } else {
+                self.amount_to_liquidate
+            };
+
+            // send tx to contract
+            let result = self.program
+                .request()
+                .accounts(omnisol::accounts::LiquidateCollateral {
+                    pool: collateral.pool,
+                    pool_authority,
+                    collateral: queue_member.collateral,
+                    collateral_owner: collateral.user,
+                    collateral_owner_wallet: collateral_owner.wallet,
+                    user_wallet: user.wallet,
+                    user: self.user_key,
+                    withdraw_info: self.withdraw_address,
+                    oracle: self.oracle,
+                    source_stake,
+                    liquidator: self.liquidator,
+                    pool_account: self.args.pool,
+                    sol_reserves: self.args.reserves,
+                    protocol_fee: self.args.fee_protocol,
+                    protocol_fee_destination: self.args.destination_fee,
+                    fee_account: self.args.account_fee,
+                    stake_account_record,
+                    unstake_it_program: self.args.unstake_it,
+                    authority: self.liquidator_wallet,
+                    clock: clock::id(),
+                    token_program: spl_token::id(),
+                    stake_program: stake::program::id(),
+                    system_program: system_program::id(),
+                })
+                .accounts(remaining_accounts)
+                .args(omnisol::instruction::LiquidateCollateral { amount })
+                .signer(&additional_signer)
+                .send();
+
+            if let Ok(signature) = result.map_err(|e| error!("Liquidation failed with an error - {}", e)) {
+                info!("Sent transaction successfully with signature: {}", signature);
+
+                self.amount_to_liquidate -= amount;
+                if self.amount_to_liquidate == 0 {
+                    break;
+                }
             }
         }
     }
 
-    amount_to_liquidate
+    fn get_remaining_accounts(&self, split_stake: Pubkey, collateral: &Collateral, source_stake: Pubkey, withdraw_amount: u64, rest_amount: u64, pool_authority: Pubkey) -> Result<(Pubkey, Vec<AccountMeta>), ClientError> {
+        if collateral.is_native {
+            let stake_account = if withdraw_amount < rest_amount {
+                split_stake
+            } else {
+                source_stake
+            };
+            let stake_account_record = get_stake_account_record(self.args.pool, stake_account, self.args.unstake_it);
+            let remaining_accounts = vec![
+                AccountMeta {
+                    pubkey: split_stake,
+                    is_signer: true,
+                    is_writable: true,
+                },
+            ];
+            Ok((stake_account_record, remaining_accounts))
+        } else {
+            let stake_account_record = get_stake_account_record(self.args.pool, split_stake, self.args.unstake_it);
+            let token_whitelist = get_token_whitelist(collateral.stake_source);
+            let whitelisted_token_data = get_whitelisted_token_data(&self.program, token_whitelist)?;
+            let (stake_pool_withdraw_authority, _) = find_withdraw_authority_program_address(&ID, &whitelisted_token_data.pool);
+            let stake_pool_data = self.program.rpc().get_account_data(&whitelisted_token_data.pool).unwrap();
+            let stake_pool = try_from_slice_unchecked::<StakePool>(stake_pool_data.as_slice()).unwrap();
+            let validator_list_data = self.program.rpc().get_account_data(&stake_pool.validator_list).unwrap();
+            let validator_list = try_from_slice_unchecked::<ValidatorList>(validator_list_data.as_slice()).unwrap();
+            let amount = if withdraw_amount < rest_amount {
+                withdraw_amount
+            } else {
+                rest_amount
+            };
+            let mut split_of = stake_pool.reserve_stake;
+            for validator_stake in validator_list.validators {
+                if validator_stake.stake_lamports() >= amount {
+                    (split_of, _) = find_stake_program_address(&ID, &validator_stake.vote_account_address, &whitelisted_token_data.pool);
+                }
+            }
+            let pool_token_account = get_associated_token_address(&pool_authority, &whitelisted_token_data.mint);
+
+            let remaining_accounts = vec![
+                AccountMeta {
+                    pubkey: ID,
+                    is_signer: false,
+                    is_writable: false,
+                },
+                AccountMeta {
+                    pubkey: whitelisted_token_data.pool,
+                    is_signer: true,
+                    is_writable: false,
+                },
+                AccountMeta {
+                    pubkey: stake_pool_withdraw_authority,
+                    is_signer: false,
+                    is_writable: false,
+                },
+                AccountMeta {
+                    pubkey: stake_pool.reserve_stake,
+                    is_signer: true,
+                    is_writable: false,
+                },
+                AccountMeta {
+                    pubkey: stake_pool.manager_fee_account,
+                    is_signer: true,
+                    is_writable: false,
+                },
+                AccountMeta {
+                    pubkey: StakeHistory::id(),
+                    is_signer: false,
+                    is_writable: false,
+                },
+                AccountMeta {
+                    pubkey: stake_pool.validator_list,
+                    is_signer: true,
+                    is_writable: false,
+                },
+                AccountMeta {
+                    pubkey: split_of,
+                    is_signer: true,
+                    is_writable: false,
+                },
+                AccountMeta {
+                    pubkey: split_stake,
+                    is_signer: true,
+                    is_writable: true,
+                },
+                AccountMeta {
+                    pubkey: pool_token_account,
+                    is_signer: true,
+                    is_writable: false,
+                },
+            ];
+            Ok((stake_account_record, remaining_accounts))
+        }
+    }
 }
