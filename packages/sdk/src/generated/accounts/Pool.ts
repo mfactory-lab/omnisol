@@ -19,6 +19,7 @@ export interface PoolArgs {
   authority: web3.PublicKey
   stakeSource: web3.PublicKey
   depositAmount: beet.bignum
+  collateralsAmount: beet.bignum
   authorityBump: number
   isActive: boolean
   feeReceiver: web3.PublicKey
@@ -43,6 +44,7 @@ export class Pool implements PoolArgs {
     readonly authority: web3.PublicKey,
     readonly stakeSource: web3.PublicKey,
     readonly depositAmount: beet.bignum,
+    readonly collateralsAmount: beet.bignum,
     readonly authorityBump: number,
     readonly isActive: boolean,
     readonly feeReceiver: web3.PublicKey,
@@ -62,6 +64,7 @@ export class Pool implements PoolArgs {
       args.authority,
       args.stakeSource,
       args.depositAmount,
+      args.collateralsAmount,
       args.authorityBump,
       args.isActive,
       args.feeReceiver,
@@ -190,6 +193,17 @@ export class Pool implements PoolArgs {
         }
         return x
       })(),
+      collateralsAmount: (() => {
+        const x = <{ toNumber: () => number }> this.collateralsAmount
+        if (typeof x.toNumber === 'function') {
+          try {
+            return x.toNumber()
+          } catch (_) {
+            return x
+          }
+        }
+        return x
+      })(),
       authorityBump: this.authorityBump,
       isActive: this.isActive,
       feeReceiver: this.feeReceiver.toBase58(),
@@ -228,6 +242,7 @@ export const poolBeet = new beet.BeetStruct<
     ['authority', beetSolana.publicKey],
     ['stakeSource', beetSolana.publicKey],
     ['depositAmount', beet.u64],
+    ['collateralsAmount', beet.u64],
     ['authorityBump', beet.u8],
     ['isActive', beet.bool],
     ['feeReceiver', beetSolana.publicKey],

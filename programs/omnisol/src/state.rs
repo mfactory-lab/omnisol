@@ -13,6 +13,8 @@ pub struct Pool {
     pub stake_source: Pubkey,
     /// Total stake in deposit
     pub deposit_amount: u64,
+    /// Current amount of pools' collaterals
+    pub collaterals_amount: u64,
     /// Signer bump seed for deriving PDA seeds
     pub authority_bump: u8,
     /// Flag that indicates that the pool is running or paused
@@ -32,7 +34,7 @@ pub struct Pool {
 }
 
 impl Pool {
-    pub const SIZE: usize = 8 + 32 + 32 + 32 + 8 + 1 + 1 + 32 + 2 + 2 + 2 + 2 + 8;
+    pub const SIZE: usize = 8 + 32 + 32 + 32 + 8 + 8 + 1 + 1 + 32 + 2 + 2 + 2 + 2 + 8;
 }
 
 #[account]

@@ -1217,6 +1217,13 @@ export interface Omnisol {
             'type': 'u64'
           },
           {
+            'name': 'collateralsAmount'
+            'docs': [
+              'Current amount of pools\' collaterals',
+            ]
+            'type': 'u64'
+          },
+          {
             'name': 'authorityBump'
             'docs': [
               'Signer bump seed for deriving PDA seeds',
@@ -1782,46 +1789,51 @@ export interface Omnisol {
     },
     {
       'code': 6002
+      'name': 'StillRemainingCollaterals'
+      'msg': 'Pool still has remaining collaterals'
+    },
+    {
+      'code': 6003
       'name': 'InvalidToken'
       'msg': 'Invalid token'
     },
     {
-      'code': 6003
+      'code': 6004
       'name': 'InsufficientAmount'
       'msg': 'Insufficient amount'
     },
     {
-      'code': 6004
+      'code': 6005
       'name': 'InsufficientFunds'
       'msg': 'Insufficient funds'
     },
     {
-      'code': 6005
+      'code': 6006
       'name': 'TypeOverflow'
       'msg': 'Type overflow'
     },
     {
-      'code': 6006
+      'code': 6007
       'name': 'PoolAlreadyPaused'
       'msg': 'Pool is already paused'
     },
     {
-      'code': 6007
+      'code': 6008
       'name': 'PoolAlreadyResumed'
       'msg': 'Pool is already resumed'
     },
     {
-      'code': 6008
+      'code': 6009
       'name': 'UserBlocked'
       'msg': 'User is blocked'
     },
     {
-      'code': 6009
+      'code': 6010
       'name': 'UserNotBlocked'
       'msg': 'User is not blocked'
     },
     {
-      'code': 6010
+      'code': 6011
       'name': 'WrongData'
       'msg': 'Wrong input data'
     },
@@ -3047,6 +3059,13 @@ export const IDL: Omnisol = {
             type: 'u64',
           },
           {
+            name: 'collateralsAmount',
+            docs: [
+              'Current amount of pools\' collaterals',
+            ],
+            type: 'u64',
+          },
+          {
             name: 'authorityBump',
             docs: [
               'Signer bump seed for deriving PDA seeds',
@@ -3612,46 +3631,51 @@ export const IDL: Omnisol = {
     },
     {
       code: 6002,
+      name: 'StillRemainingCollaterals',
+      msg: 'Pool still has remaining collaterals',
+    },
+    {
+      code: 6003,
       name: 'InvalidToken',
       msg: 'Invalid token',
     },
     {
-      code: 6003,
+      code: 6004,
       name: 'InsufficientAmount',
       msg: 'Insufficient amount',
     },
     {
-      code: 6004,
+      code: 6005,
       name: 'InsufficientFunds',
       msg: 'Insufficient funds',
     },
     {
-      code: 6005,
+      code: 6006,
       name: 'TypeOverflow',
       msg: 'Type overflow',
     },
     {
-      code: 6006,
+      code: 6007,
       name: 'PoolAlreadyPaused',
       msg: 'Pool is already paused',
     },
     {
-      code: 6007,
+      code: 6008,
       name: 'PoolAlreadyResumed',
       msg: 'Pool is already resumed',
     },
     {
-      code: 6008,
+      code: 6009,
       name: 'UserBlocked',
       msg: 'User is blocked',
     },
     {
-      code: 6009,
+      code: 6010,
       name: 'UserNotBlocked',
       msg: 'User is not blocked',
     },
     {
-      code: 6010,
+      code: 6011,
       name: 'WrongData',
       msg: 'Wrong input data',
     },

@@ -233,6 +233,8 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
             collateral.to_account_info(),
             ctx.accounts.collateral_owner_wallet.to_account_info(),
         )?;
+
+        pool.collaterals_amount = pool.collaterals_amount.saturating_sub(1);
     }
 
     emit!(LiquidationEvent {

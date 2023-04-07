@@ -134,6 +134,7 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
     collateral.is_native = true;
 
     pool.deposit_amount = pool.deposit_amount.saturating_add(amount);
+    pool.collaterals_amount = pool.collaterals_amount.saturating_add(1);
 
     emit!(DepositStakeEvent {
         pool: pool.key(),
@@ -165,7 +166,7 @@ pub struct DepositStake<'info> {
     pub user: Box<Account<'info, User>>,
 
     #[account(
-        init_if_needed,
+        init,
         seeds = [Collateral::SEED, user.key().as_ref(), delegated_stake.key().as_ref()],
         bump,
         payer = authority,

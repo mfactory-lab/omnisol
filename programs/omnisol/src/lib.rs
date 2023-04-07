@@ -128,6 +128,8 @@ pub enum ErrorCode {
     Unauthorized,
     #[msg("Invalid stake account")]
     InvalidStakeAccount,
+    #[msg("Pool still has remaining collaterals")]
+    StillRemainingCollaterals,
     #[msg("Invalid token")]
     InvalidToken,
     #[msg("Insufficient amount")]

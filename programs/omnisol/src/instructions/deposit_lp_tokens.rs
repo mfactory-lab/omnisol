@@ -80,6 +80,7 @@ pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
         collateral.creation_epoch = clock.epoch;
         collateral.bump = ctx.bumps["collateral"];
         collateral.is_native = false;
+        pool.collaterals_amount = pool.collaterals_amount.saturating_add(1);
     }
 
     user.rate += amount;

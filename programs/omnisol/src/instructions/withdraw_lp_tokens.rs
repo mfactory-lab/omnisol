@@ -115,6 +115,8 @@ pub fn handle(ctx: Context<WithdrawLPTokens>, amount: u64, with_burn: bool) -> R
     if collateral.delegation_stake == collateral.liquidated_amount && collateral.amount == collateral.delegation_stake {
         // close the collateral account
         utils::close(collateral.to_account_info(), ctx.accounts.authority.to_account_info())?;
+
+        pool.collaterals_amount = pool.collaterals_amount.saturating_sub(1);
     }
 
     emit!(WithdrawStakeEvent {
