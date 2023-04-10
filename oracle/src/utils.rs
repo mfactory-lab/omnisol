@@ -143,6 +143,7 @@ mod tests {
             amount: 0,
             liquidated_amount: 100,
             created_at: 0,
+            creation_epoch: 0,
             bump: 0,
             is_native: false,
         };
@@ -155,6 +156,7 @@ mod tests {
             amount: 0,
             liquidated_amount: 0,
             created_at: 0,
+            creation_epoch: 0,
             bump: 0,
             is_native: false,
         };
@@ -167,6 +169,7 @@ mod tests {
             amount: 0,
             liquidated_amount: 50,
             created_at: 0,
+            creation_epoch: 0,
             bump: 0,
             is_native: false,
         };
@@ -179,6 +182,7 @@ mod tests {
             amount: 0,
             liquidated_amount: 0,
             created_at: 0,
+            creation_epoch: 0,
             bump: 0,
             is_native: false,
         };
@@ -191,6 +195,7 @@ mod tests {
             amount: 0,
             liquidated_amount: 99,
             created_at: 0,
+            creation_epoch: 0,
             bump: 0,
             is_native: false,
         };
@@ -208,6 +213,6 @@ mod tests {
         result.insert(collateral_address_4, 100);
         result.insert(collateral_address_5, 1);
 
-        assert_eq!(generate_priority_queue(user_data, collateral_data), result);
+        assert_eq!(generate_priority_queue(user_data, collateral_data, vec![]), result);
     }
 }
