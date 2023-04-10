@@ -10,7 +10,7 @@ interface Opts {
   stakeAccount: string
   withBurn: string
   delegatedStake: string
-  toMerge: string
+  toMerge?: string
   mergableStake?: string
 }
 
@@ -21,7 +21,8 @@ export async function withdrawStake(opts: Opts) {
   const splitAccount = splitKeypair.publicKey
 
   const poolMint = new web3.PublicKey(opts.mint)
-  const withMerge = opts.toMerge.includes('true')
+  const toMerge = opts.toMerge ?? 'false'
+  const withMerge = toMerge.includes('true')
 
   const userPoolToken = await getOrCreateAssociatedTokenAccount(provider.connection, keypair, poolMint, provider.wallet.publicKey)
 
