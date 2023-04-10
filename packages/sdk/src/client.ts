@@ -63,6 +63,7 @@ export class OmnisolClient {
     return new OmnisolPDA()
   }
 
+  // Fetch functions
   async fetchGlobalPool(address: Address) {
     return await this.program.account.pool.fetchNullable(address) as unknown as Pool
   }
@@ -132,6 +133,7 @@ export class OmnisolClient {
     return await this.program.account.user.all()
   }
 
+  // Functions that construct instructions using pre-generated sdk
   async createPool(props: CreatePoolProps) {
     const payer = this.wallet.publicKey
     const pool = props.pool
@@ -857,6 +859,7 @@ export class OmnisolClient {
   }
 }
 
+// PDA searching functions
 class OmnisolPDA {
   poolAuthority = (pool: Address) => this.pda([
     new web3.PublicKey(pool).toBuffer(),
@@ -926,6 +929,7 @@ export interface Wallet {
   publicKey: PublicKey
 }
 
+// Interfaces for instruction-constructing functions
 interface OmnisolClientProps {
   wallet: Wallet
   program: Program<typeof IDL>
