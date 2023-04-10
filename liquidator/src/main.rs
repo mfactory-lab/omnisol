@@ -104,6 +104,7 @@ fn main() {
     let mut liquidator = Liquidator::new(args, client, wallet_pubkey);
 
     loop {
+        // get withdraw requests sorted by creation time
         let withdraw_info_list = get_withdraw_info_list(&liquidator.program).expect("Can't get withdraw info list");
         info!("Got {} withdraw request(s))", withdraw_info_list.len());
 
@@ -119,7 +120,6 @@ pub struct Liquidator {
     program: Program,
     oracle: Pubkey,
     liquidator: Pubkey,
-
     withdraw_address: Pubkey,
     user_data: HashMap<Pubkey, User>,
     user_key: Pubkey,
@@ -183,12 +183,14 @@ impl Liquidator {
 
         self.withdraw_address = withdraw_address;
 
+        // liquidate collaterals while withdraw request won't be processed
         while self.amount_to_liquidate > 0 {
             self.liquidate(user);
         }
     }
 
     fn liquidate(&mut self, user: &User) {
+        // iterating threw the priority queue
         for queue_member in &self.oracle_data.priority_queue {
             info!("Thread is paused for {} seconds", self.args.sleep_duration.as_secs());
             thread::sleep(self.args.sleep_duration);
@@ -219,9 +221,14 @@ impl Liquidator {
 
             // TODO: maybe should validate the state of user (if it blocked -> continue)
 
+            // get collateral's source stake address
+            // it can be liquidity token mint address or delegated stake account address
             let source_stake = collateral.get_source_stake();
 
+            // create additional_keypair for split stake account
             let additional_signer = Keypair::new();
+
+            // get some remaining accounts
             let (stake_account_record, remaining_accounts) = self
                 .get_remaining_accounts(
                     additional_signer.pubkey(),
@@ -293,6 +300,8 @@ impl Liquidator {
         rest_amount: u64,
         pool_authority: Pubkey,
     ) -> Result<(Pubkey, Vec<AccountMeta>), ClientError> {
+        // check if collateral's delegation is native stake or liquidity pool token
+        // any of this types need it's own list of remaining accounts
         if collateral.is_native {
             let stake_account = if withdraw_amount < rest_amount {
                 split_stake
@@ -300,6 +309,8 @@ impl Liquidator {
                 source_stake
             };
             let stake_account_record = get_stake_account_record(self.args.pool, stake_account, self.args.unstake_it);
+
+            // get list of remaining accounts
             let remaining_accounts = vec![AccountMeta {
                 pubkey: split_stake,
                 is_signer: true,
@@ -308,8 +319,12 @@ impl Liquidator {
             Ok((stake_account_record, remaining_accounts))
         } else {
             let stake_account_record = get_stake_account_record(self.args.pool, split_stake, self.args.unstake_it);
+
+            // get whitelist data to fetch additional token info
             let token_whitelist = get_token_whitelist(collateral.stake_source);
             let whitelisted_token_data = get_whitelisted_token_data(&self.program, token_whitelist)?;
+
+            // get additional data from staking pool program
             let (stake_pool_withdraw_authority, _) =
                 find_withdraw_authority_program_address(&ID, &whitelisted_token_data.pool);
             let stake_pool_data = self
@@ -337,6 +352,7 @@ impl Liquidator {
             }
             let pool_token_account = get_associated_token_address(&pool_authority, &whitelisted_token_data.mint);
 
+            // get list of remaining accounts
             let remaining_accounts = vec![
                 AccountMeta {
                     pubkey: ID,
