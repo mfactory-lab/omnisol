@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 
 use crate::state::{Manager, Whitelist};
 
+/// The manager can remove token from whitelist.
 pub fn handle(_ctx: Context<RemoveFromWhitelist>) -> Result<()> {
     Ok(())
 }

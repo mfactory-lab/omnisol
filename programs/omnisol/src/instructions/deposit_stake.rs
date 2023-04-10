@@ -7,10 +7,8 @@ use crate::{
     ErrorCode,
 };
 
-/// The user can use their deposit as collateral and mint omniSOL.
-/// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
+/// The user can use their deposit as collateral.
 /// As their stake accounts continue to earn yield, the amount of lamports under them increases.
-/// Call the amount of lamports in excess of the initial deposit the **reserve amount.**
 pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 

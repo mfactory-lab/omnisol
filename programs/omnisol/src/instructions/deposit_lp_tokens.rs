@@ -7,8 +7,8 @@ use crate::{
     ErrorCode,
 };
 
-/// The user can use their deposit as collateral and mint omniSOL.
-/// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
+/// The user can use their deposit as collateral.
+/// Caller provides some [amount] of lp-token-lamports that are to be delegated.
 pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
     if amount == 0 {
         return Err(ErrorCode::InsufficientAmount.into());

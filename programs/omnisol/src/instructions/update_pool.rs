@@ -5,6 +5,8 @@ use crate::{
     utils::fee::check_fee,
 };
 
+/// The manager can update pool.
+/// All possible pool fees, fee receiver wallet and minimal pool deposit value can be updated.
 pub fn handle(ctx: Context<UpdatePool>, data: UpdatePoolData) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 

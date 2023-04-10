@@ -4,6 +4,7 @@ use anchor_lang::prelude::*;
 
 use crate::state::{Oracle, ADMIN};
 
+/// The admin can close oracle
 pub fn handle(_ctx: Context<CloseOracle>) -> Result<()> {
     Ok(())
 }

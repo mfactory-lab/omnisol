@@ -7,8 +7,10 @@ use crate::{
     ErrorCode,
 };
 
-/// Withdraw a given amount of omniSOL (without an account).
-/// Caller provides some [amount] of omni-lamports that are to be burned in
+/// The user can burn omniSOL.
+/// Burn a given amount of omniSOL and create a withdraw request.
+/// This request will be processed by the liquidator in some time.
+/// Caller provides some [amount] of omni-lamports that are to be burned.
 pub fn handle(ctx: Context<BurnOmnisol>, amount: u64) -> Result<()> {
     if amount == 0 {
         return Err(ErrorCode::InsufficientAmount.into());

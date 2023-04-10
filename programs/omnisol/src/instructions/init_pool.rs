@@ -6,6 +6,7 @@ use crate::{
     ErrorCode,
 };
 
+/// The manager can initialize pool for special liquidity token or native stake program.
 pub fn handle(ctx: Context<InitPool>) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
     let mint_authority = ctx.accounts.mint_authority.key;

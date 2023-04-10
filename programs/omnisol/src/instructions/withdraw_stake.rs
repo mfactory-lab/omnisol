@@ -8,11 +8,13 @@ use crate::{
     ErrorCode,
 };
 
-/// Withdraw a given amount of omniSOL (with an stake account).
-/// Caller provides some [amount] of omni-lamports that are to be burned in.
-///
-/// Any omniSOL minter can at any time return withdrawn omniSOL to their account.
-/// This burns the omniSOL, allowing the minter to withdraw their staked SOL.
+/// The user can withdraw stake from collateral.
+/// There will be an error if collateral`s delegation has already been liquidated.
+/// Caller provides some [amount] of lamports that are to be withdrawn.
+/// Caller provides [with_burn] flag that indicates the priority of withdrawal.
+/// If [with_burn] is true, than firstly all possible omniSol will be burned (in equivalent of withdrawal amount).
+/// Caller provides [with_merge] flag that indicates the possibility to merge.
+/// If [with_merge] is true, than delegated stake account or split stake of it will be merged with the source one.
 pub fn handle(ctx: Context<WithdrawStake>, amount: u64, with_burn: bool, with_merge: bool) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 

@@ -10,8 +10,8 @@ use crate::{
     ErrorCode,
 };
 
-/// The user can use their deposit as collateral and mint omniSOL.
-/// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
+/// The liquidator can get collateral from priority queue and withdraw SOL from it to process withdraw request.
+/// The user, that made this request, instantly gets his SOL.
 pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>, amount: u64) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 

@@ -2,6 +2,8 @@ use anchor_lang::prelude::*;
 
 use crate::state::{Manager, Whitelist};
 
+/// The manager can add new token and additional data to whitelist.
+/// Whitelisted tokens can be used by users on the platform.
 pub fn handle(ctx: Context<AddToTokenWhitelist>) -> Result<()> {
     let whitelist = &mut ctx.accounts.whitelist;
     let address_to_whitelist = ctx.accounts.address_to_whitelist.key();

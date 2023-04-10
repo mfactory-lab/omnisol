@@ -5,6 +5,8 @@ use crate::{
     ErrorCode,
 };
 
+/// The manager can withdraw SOL from pool account.
+/// It is useful when pool do not have any special fee_receiver and all fee is transferred to pool.
 pub fn handle(ctx: Context<WithdrawSol>, amount: u64) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
     let pool_key = pool.key();

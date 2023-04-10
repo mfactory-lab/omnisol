@@ -5,6 +5,8 @@ use crate::{
     ErrorCode,
 };
 
+/// The manager can block user.
+/// If the user is blocked, then all instructions on the platform are blocked for him
 pub fn handle(ctx: Context<BlockUser>) -> Result<()> {
     let user = &mut ctx.accounts.user;
 

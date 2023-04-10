@@ -9,8 +9,11 @@ use crate::{
     ErrorCode,
 };
 
-/// The user can use their deposit as collateral and mint omniSOL.
-/// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
+/// The user can withdraw liquidity pool tokens from collateral.
+/// There will be an error if collateral`s delegation has already been liquidated.
+/// Caller provides some [amount] of lp-token-lamports that are to be withdrawn.
+/// Caller provides [with_burn] flag that indicates the priority of withdrawal.
+/// If [with_burn] is true, than firstly all possible omniSol will be burned (in equivalent of withdrawal amount).
 pub fn handle(ctx: Context<WithdrawLPTokens>, amount: u64, with_burn: bool) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 

@@ -4,6 +4,7 @@ use anchor_lang::prelude::*;
 
 use crate::state::{Manager, ADMIN};
 
+/// The admin can remove manager.
 pub fn handle(_ctx: Context<RemoveManager>) -> Result<()> {
     Ok(())
 }

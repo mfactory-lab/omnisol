@@ -4,6 +4,7 @@ use anchor_lang::prelude::*;
 
 use crate::state::{Oracle, ADMIN};
 
+/// The admin can init oracle.
 pub fn handle(ctx: Context<InitOracle>) -> Result<()> {
     let oracle = &mut ctx.accounts.oracle;
 

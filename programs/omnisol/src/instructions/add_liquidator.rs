@@ -2,6 +2,8 @@ use anchor_lang::prelude::*;
 
 use crate::state::{Liquidator, Manager};
 
+/// The manager can add new liquidator.
+/// Liquidator is the wallet that can liquidate collaterals.
 pub fn handle(ctx: Context<AddLiquidator>) -> Result<()> {
     let liquidator = &mut ctx.accounts.liquidator;
     let wallet_of_liquidator = ctx.accounts.wallet_of_liquidator.key();
