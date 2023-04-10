@@ -1,12 +1,10 @@
-use anchor_lang::prelude::*;
-use anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL;
+use anchor_lang::{prelude::*, solana_program::native_token::LAMPORTS_PER_SOL};
 use anchor_spl::token;
 
 use crate::{
-    state::{Pool, MINT_AUTHORITY_SEED},
+    state::{Manager, Pool, MINT_AUTHORITY_SEED},
     ErrorCode,
 };
-use crate::state::Manager;
 
 pub fn handle(ctx: Context<InitPool>) -> Result<()> {
     let pool = &mut ctx.accounts.pool;

@@ -1,7 +1,4 @@
-use anchor_lang::{
-    prelude::*,
-    solana_program::program::invoke_signed,
-};
+use anchor_lang::{prelude::*, solana_program::program::invoke_signed};
 use anchor_spl::token;
 use spl_stake_pool::instruction::{withdraw_sol, withdraw_stake};
 
@@ -42,7 +39,8 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
         return Err(ErrorCode::InsufficientAmount.into());
     }
 
-    let mut queue_member = oracle.priority_queue
+    let mut queue_member = oracle
+        .priority_queue
         .iter_mut()
         .find(|queue_member| queue_member.collateral == collateral.key() && queue_member.amount == rest_amount)
         .ok_or::<Error>(ErrorCode::WrongData.into())?;
@@ -152,7 +150,6 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
         ];
 
         if let Err(_) = invoke_signed(&ix, &account_infos, &[&pool_authority_seeds]) {
-
             let ix = withdraw_stake(
                 staking_pool_program.key,
                 stake_pool.key,

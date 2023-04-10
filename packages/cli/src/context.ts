@@ -1,6 +1,6 @@
-import { OmnisolClient } from '@omnisol/sdk'
 import { Buffer } from 'buffer'
 import fs from 'fs'
+import { OmnisolClient } from '@omnisol/sdk'
 import { AnchorProvider, Program, Wallet, web3 } from '@project-serum/anchor'
 import type { Cluster } from '@solana/web3.js'
 import { Keypair } from '@solana/web3.js'

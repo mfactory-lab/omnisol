@@ -1,9 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::{
-    state::Pool,
-    ErrorCode,
-};
+use crate::{state::Pool, ErrorCode};
 
 pub fn handle(ctx: Context<ClosePool>) -> Result<()> {
     if ctx.accounts.pool.collaterals_amount > 0 {

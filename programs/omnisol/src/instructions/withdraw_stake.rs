@@ -4,10 +4,9 @@ use anchor_spl::token;
 use crate::{
     events::*,
     state::{Collateral, Pool, User},
-    utils::{self, stake},
+    utils::{self, fee::get_storage_fee, stake},
     ErrorCode,
 };
-use crate::utils::fee::get_storage_fee;
 
 /// Withdraw a given amount of omniSOL (with an stake account).
 /// Caller provides some [amount] of omni-lamports that are to be burned in.
@@ -43,15 +42,17 @@ pub fn handle(ctx: Context<WithdrawStake>, amount: u64, with_burn: bool, with_me
         let fee = amount.saturating_div(1000).saturating_mul(pool.withdraw_fee as u64);
         msg!("Transfer withdraw fee: {} lamports", fee);
 
-        system_program::transfer(CpiContext::new(
-            ctx.accounts.system_program.to_account_info(),
-            system_program::Transfer {
-                from: ctx.accounts.fee_payer.to_account_info(),
-                to: ctx.accounts.fee_receiver.to_account_info(),
-            }
-        ),
-        fee,
-        ).map_err(|_| ErrorCode::InsufficientFunds)?;
+        system_program::transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                system_program::Transfer {
+                    from: ctx.accounts.fee_payer.to_account_info(),
+                    to: ctx.accounts.fee_receiver.to_account_info(),
+                },
+            ),
+            fee,
+        )
+        .map_err(|_| ErrorCode::InsufficientFunds)?;
     }
 
     let source_stake = if amount < rest_amount {
@@ -159,15 +160,17 @@ pub fn handle(ctx: Context<WithdrawStake>, amount: u64, with_burn: bool, with_me
         let fee = get_storage_fee(pool.storage_fee as u64, clock.epoch, collateral.creation_epoch, amount);
         msg!("Transfer storage fee: {} lamports", fee);
 
-        system_program::transfer(CpiContext::new(
-            ctx.accounts.system_program.to_account_info(),
-            system_program::Transfer {
-                from: ctx.accounts.fee_payer.to_account_info(),
-                to: ctx.accounts.fee_receiver.to_account_info(),
-            }
-        ),
-        fee,
-        ).map_err(|_| ErrorCode::InsufficientFunds)?;
+        system_program::transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                system_program::Transfer {
+                    from: ctx.accounts.fee_payer.to_account_info(),
+                    to: ctx.accounts.fee_receiver.to_account_info(),
+                },
+            ),
+            fee,
+        )
+        .map_err(|_| ErrorCode::InsufficientFunds)?;
     }
 
     collateral.delegation_stake -= amount;

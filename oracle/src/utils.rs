@@ -6,7 +6,10 @@ use anchor_client::{
     ClientError, Program,
 };
 use gimli::ReaderOffset;
-use omnisol::{id, state::{Collateral, Oracle, Pool, User}};
+use omnisol::{
+    id,
+    state::{Collateral, Oracle, Pool, User},
+};
 
 pub const USER_DISCRIMINATOR: [u8; 8] = [159, 117, 95, 227, 239, 151, 58, 236];
 pub const COLLATERAL_DISCRIMINATOR: [u8; 8] = [123, 130, 234, 63, 255, 240, 255, 92];

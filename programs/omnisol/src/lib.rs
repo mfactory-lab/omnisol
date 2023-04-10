@@ -87,7 +87,12 @@ pub mod omnisol {
         close_oracle::handle(ctx)
     }
 
-    pub fn update_oracle_info(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>, clear: bool) -> Result<()> {
+    pub fn update_oracle_info(
+        ctx: Context<UpdateOracleInfo>,
+        addresses: Vec<Pubkey>,
+        values: Vec<u64>,
+        clear: bool,
+    ) -> Result<()> {
         update_oracle_info::handle(ctx, addresses, values, clear)
     }
 
@@ -106,10 +111,7 @@ pub mod omnisol {
         liquidate_collateral::handle(ctx, amount)
     }
 
-    pub fn update_pool(
-        ctx: Context<UpdatePool>,
-        data: UpdatePoolData,
-    ) -> Result<()> {
+    pub fn update_pool(ctx: Context<UpdatePool>, data: UpdatePoolData) -> Result<()> {
         update_pool::handle(ctx, data)
     }
 
@@ -117,7 +119,11 @@ pub mod omnisol {
         withdraw_sol::handle(ctx, amount)
     }
 
-    pub fn set_liquidation_fee(ctx: Context<SetLiquidationFee>, fee: Option<u16>, fee_receiver: Option<Pubkey>) -> Result<()> {
+    pub fn set_liquidation_fee(
+        ctx: Context<SetLiquidationFee>,
+        fee: Option<u16>,
+        fee_receiver: Option<Pubkey>,
+    ) -> Result<()> {
         set_liquidation_fee::handle(ctx, fee, fee_receiver)
     }
 }

@@ -12,8 +12,8 @@ use anchor_client::{
 };
 use clap::Parser;
 use log::{info, LevelFilter};
-use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 use omnisol::{id, state::Oracle};
+use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 
 use crate::utils::{generate_priority_queue, get_collateral_data, get_oracle, get_pool_data, get_user_data};
 
@@ -127,7 +127,11 @@ fn main() {
                     oracle,
                     system_program: system_program::id(),
                 })
-                .args(omnisol::instruction::UpdateOracleInfo { addresses, values, clear })
+                .args(omnisol::instruction::UpdateOracleInfo {
+                    addresses,
+                    values,
+                    clear,
+                })
                 .send()
                 .expect("Transaction failed.");
 

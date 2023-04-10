@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    state::{Manager, LiquidationFee},
+    state::{LiquidationFee, Manager},
     ErrorCode,
 };
 

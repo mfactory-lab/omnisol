@@ -1,5 +1,4 @@
-use anchor_lang::prelude::*;
-use anchor_lang::system_program;
+use anchor_lang::{prelude::*, system_program};
 use anchor_spl::token;
 
 use crate::{
@@ -34,15 +33,17 @@ pub fn handle(ctx: Context<MintOmnisol>, amount: u64) -> Result<()> {
         let fee = amount.saturating_div(1000).saturating_mul(pool.mint_fee as u64);
         msg!("Transfer mint fee: {} lamports", fee);
 
-        system_program::transfer(CpiContext::new(
-            ctx.accounts.system_program.to_account_info(),
-            system_program::Transfer {
-                from: ctx.accounts.fee_payer.to_account_info(),
-                to: ctx.accounts.fee_receiver.to_account_info(),
-            }
-        ),
-        fee,
-        ).map_err(|_| ErrorCode::InsufficientFunds)?;
+        system_program::transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                system_program::Transfer {
+                    from: ctx.accounts.fee_payer.to_account_info(),
+                    to: ctx.accounts.fee_receiver.to_account_info(),
+                },
+            ),
+            fee,
+        )
+        .map_err(|_| ErrorCode::InsufficientFunds)?;
     }
 
     // Mint new pool tokens equals to `amount`
