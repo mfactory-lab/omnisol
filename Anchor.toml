@@ -12,13 +12,13 @@ cluster = "testnet"
 wallet = "~/.config/solana/id.json"
 
 [programs.localnet]
-omnisol = "6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7"
+omnisol = "DMG9gp5VHPVpA3bst6yhC4L4D4aZiUjUTibVQGvJzpjy"
 
 [programs.devnet]
-omnisol = "6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7"
+omnisol = "DMG9gp5VHPVpA3bst6yhC4L4D4aZiUjUTibVQGvJzpjy"
 
 [programs.testnet]
-omnisol = "6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7"
+omnisol = "DMG9gp5VHPVpA3bst6yhC4L4D4aZiUjUTibVQGvJzpjy"
 
 [[test.genesis]]
 address = "SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy"

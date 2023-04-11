@@ -57,7 +57,7 @@ export const addToTokenWhitelistInstructionDiscriminator = [
  */
 export function createAddToTokenWhitelistInstruction(
   accounts: AddToTokenWhitelistInstructionAccounts,
-  programId = new web3.PublicKey('6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7'),
+  programId = new web3.PublicKey('DMG9gp5VHPVpA3bst6yhC4L4D4aZiUjUTibVQGvJzpjy'),
 ) {
   const [data] = addToTokenWhitelistStruct.serialize({
     instructionDiscriminator: addToTokenWhitelistInstructionDiscriminator,

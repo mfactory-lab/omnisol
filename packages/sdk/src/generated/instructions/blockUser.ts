@@ -52,7 +52,7 @@ export const blockUserInstructionDiscriminator = [
  */
 export function createBlockUserInstruction(
   accounts: BlockUserInstructionAccounts,
-  programId = new web3.PublicKey('6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7'),
+  programId = new web3.PublicKey('DMG9gp5VHPVpA3bst6yhC4L4D4aZiUjUTibVQGvJzpjy'),
 ) {
   const [data] = blockUserStruct.serialize({
     instructionDiscriminator: blockUserInstructionDiscriminator,

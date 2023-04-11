@@ -53,7 +53,7 @@ export const removeLiquidatorInstructionDiscriminator = [
  */
 export function createRemoveLiquidatorInstruction(
   accounts: RemoveLiquidatorInstructionAccounts,
-  programId = new web3.PublicKey('6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7'),
+  programId = new web3.PublicKey('DMG9gp5VHPVpA3bst6yhC4L4D4aZiUjUTibVQGvJzpjy'),
 ) {
   const [data] = removeLiquidatorStruct.serialize({
     instructionDiscriminator: removeLiquidatorInstructionDiscriminator,
