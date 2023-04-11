@@ -137,6 +137,10 @@ export class OmnisolClient {
     return await this.program.account.user.all()
   }
 
+  async findPools() {
+    return await this.program.account.pool.all()
+  }
+
   // Functions that construct instructions using pre-generated sdk
   async createPool(props: CreatePoolProps) {
     const payer = this.wallet.publicKey

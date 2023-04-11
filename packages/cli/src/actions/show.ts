@@ -2,6 +2,17 @@ import { web3 } from '@project-serum/anchor'
 import log from 'loglevel'
 import { useContext } from '../context'
 
+export async function showPools() {
+  const { client } = useContext()
+
+  const accounts = await client.findPools()
+  for (const account of accounts) {
+    log.info('--------------------------------------------------------------------------')
+    log.info(`Pool address: ${account.publicKey}`)
+  }
+  log.info('--------------------------------------------------------------------------')
+}
+
 export async function showPool(address: string) {
   const { client, cluster } = useContext()
 
@@ -50,7 +61,7 @@ export async function showLiquidationFee() {
   const liquidationFee = await client.fetchLiquidationFee(liquidationFeeKey)
 
   log.info('--------------------------------------------------------------------------')
-  log.info(`PDA address: ${liquidationFee}`)
+  log.info(`PDA address: ${liquidationFeeKey}`)
   log.info(`Fee: ${liquidationFee.fee}`)
   log.info(`Fee receiver: ${liquidationFee.feeReceiver}`)
   log.info('--------------------------------------------------------------------------')
