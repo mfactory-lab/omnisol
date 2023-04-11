@@ -129,6 +129,10 @@ export class OmnisolClient {
     return accounts.filter(a => a.account.pool.toBase58() === pool.toBase58())
   }
 
+  async findManagers() {
+    return await this.program.account.manager.all()
+  }
+
   async findUsers() {
     return await this.program.account.user.all()
   }

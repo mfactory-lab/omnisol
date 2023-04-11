@@ -17,8 +17,20 @@ export async function showPool(address: string) {
   log.info(`Deposit amount: ${pool.depositAmount}`)
   log.info(`Is active: ${pool.isActive}`)
   log.info(`Authority bump: ${pool.authorityBump}`)
-  const accounts = await client.findPoolCollaterals(new web3.PublicKey(address))
-  for (const account of accounts) {
+  log.info(`Deposit fee: ${pool.depositFee}`)
+  log.info(`Withdraw fee: ${pool.withdrawFee}`)
+  log.info(`Mint fee: ${pool.mintFee}`)
+  log.info(`Storage fee: ${pool.storageFee}`)
+  log.info(`Minimal deposit amount: ${pool.minDeposit}`)
+  log.info(`Fee receiver: ${pool.feeReceiver}`)
+  const managerAccounts = await client.findManagers()
+  for (const account of managerAccounts) {
+    log.info('--------------------------------------------------------------------------')
+    log.info(`Manager PDA: ${account.publicKey}`)
+    log.info(`Manager wallet: ${account.account.manager}`)
+  }
+  const collateralAccounts = await client.findPoolCollaterals(new web3.PublicKey(address))
+  for (const account of collateralAccounts) {
     log.info('--------------------------------------------------------------------------')
     log.info(`Collateral: ${account.publicKey}`)
     if (account.account.isNative) {
@@ -28,6 +40,19 @@ export async function showPool(address: string) {
     }
     log.info(`See all info: "pnpm cli -c ${cluster} collateral show ${account.publicKey}"`)
   }
+  log.info('--------------------------------------------------------------------------')
+}
+
+export async function showLiquidationFee() {
+  const { client } = useContext()
+
+  const [liquidationFeeKey] = await client.pda.liquidationFee()
+  const liquidationFee = await client.fetchLiquidationFee(liquidationFeeKey)
+
+  log.info('--------------------------------------------------------------------------')
+  log.info(`PDA address: ${liquidationFee}`)
+  log.info(`Fee: ${liquidationFee.fee}`)
+  log.info(`Fee receiver: ${liquidationFee.feeReceiver}`)
   log.info('--------------------------------------------------------------------------')
 }
 
@@ -64,8 +89,8 @@ export async function showWhitelist(address: string) {
   log.info('--------------------------------------------------------------------------')
   log.info(`Whitelist pda: ${whitelistKey}`)
   log.info(`Pool: ${whitelist.pool}`)
-  log.info(`Token address: ${whitelist.whitelistedToken}`)
-  log.info(`Staking pool: ${whitelist.stakingPool}`)
+  log.info(`Token address: ${whitelist.mint}`)
+  log.info(`Staking pool program: ${whitelist.poolProgram}`)
   log.info('--------------------------------------------------------------------------')
 }
 
@@ -150,6 +175,7 @@ export async function showCollateral(collateralAddress: string) {
   }
   log.info(`Is native stake: ${collateral.isNative}`)
   log.info(`Created at: ${collateral.createdAt}`)
+  log.info(`Creation epoch: ${collateral.creationEpoch}`)
   log.info('--------------------------------------------------------------------------')
 }
 

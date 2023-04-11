@@ -283,6 +283,22 @@ withdrawInfo.command('show')
   .argument('<INDEX>', 'Index of withdraw request')
   .action(actions.showWithdrawInfo)
 
+// -------------------------------------------------------
+// LiquidationFee
+// -------------------------------------------------------
+
+const liquidationFee = cli.command('liquidationFee')
+
+liquidationFee.command('set')
+  .description('Set liquidation fee')
+  .option('-r, --fee-receiver <FEE_RECEIVER>', 'Wallet that will receive fee')
+  .option('-f, --fee <FEE>', 'Fee amount')
+  .action(actions.setLiquidationFee)
+
+liquidationFee.command('show')
+  .description('Show liquidation fee info')
+  .action(actions.showLiquidationFee)
+
 cli.parseAsync(process.argv).then(
   () => {},
   (e: unknown) => {
