@@ -808,8 +808,8 @@ describe('omnisol', () => {
 
       const lamportsForStakeAccount
         = (await provider.connection.getMinimumBalanceForRentExemption(
-        web3.StakeProgram.space,
-      ))
+          web3.StakeProgram.space,
+        ))
 
       const createAccountTransaction = web3.StakeProgram.createAccount({
         fromPubkey: provider.wallet.publicKey,
@@ -891,8 +891,8 @@ describe('omnisol', () => {
 
       const lamportsForStakeAccount
         = (await provider.connection.getMinimumBalanceForRentExemption(
-        web3.StakeProgram.space,
-      ))
+          web3.StakeProgram.space,
+        ))
 
       const createAccountTransaction = web3.StakeProgram.createAccount({
         fromPubkey: provider.wallet.publicKey,
@@ -931,8 +931,8 @@ describe('omnisol', () => {
 
       const lamportsForStakeAccount
         = (await provider.connection.getMinimumBalanceForRentExemption(
-        web3.StakeProgram.space,
-      ))
+          web3.StakeProgram.space,
+        ))
 
       const createAccountTransaction = web3.StakeProgram.createAccount({
         fromPubkey: provider.wallet.publicKey,
@@ -1818,8 +1818,8 @@ describe('omnisol', () => {
 
       const lamportsForStakeAccount
         = (await provider.connection.getMinimumBalanceForRentExemption(
-        web3.StakeProgram.space,
-      ))
+          web3.StakeProgram.space,
+        ))
 
       const createAccountTransaction = web3.StakeProgram.createAccount({
         fromPubkey: provider.wallet.publicKey,
