@@ -11,22 +11,32 @@ Located at:
 
 Build a program:
 
-> make build
+```bash
+make build
+```
 
 Generate SDK:
 
-> pnpm api:gen
+```bash
+pnpm api:gen
+```
 
 Configure cluster to deploy to:
 
-> solana config set --url CLUSTER
+```bash
+solana config set --url <CLUSTER>
+```
 
 Where CLUSTER is a solana cluster address.
 
 Deploy program:
 
-> anchor deploy
+```bash
+anchor deploy
+```
 
 Run tests:
 
-> make test
+```bash
+make test
+```

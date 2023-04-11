@@ -6,7 +6,9 @@ Liquidator is the off-chain service that fetches PDAs from Omnisol contract, fet
 
 To run the service, write this command:
 
-> cargo run -- -k path/to/id.json -c CLUSTER -s SLEEP_TIME -p UNSTAKE_IT_POOL -f PROTOCOL_FEE -d DESTINATION_FEE -r RESERVE_STAKE -u UNSTAKE_IT_PROGRAM -a FEE_ACCOUNT
+```bash
+cargo run -- -k path/to/id.json -c <CLUSTER> -s <SLEEP_TIME> -p <UNSTAKE_IT_POOL> -f <PROTOCOL_FEE> -d <DESTINATION_FEE> -r <RESERVE_STAKE> -u <UNSTAKE_IT_PROGRAM> -a <FEE_ACCOUNT>
+```
 
 Where:
 

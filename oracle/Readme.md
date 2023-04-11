@@ -6,7 +6,9 @@ Oracle is the off-chain service that fetches PDAs from Omnisol contract, generat
 
 To run the service, write this command:
 
-> cargo run -- -k path/to/id.json -c CLUSTER -s SLEEP_TIME
+```bash
+cargo run -- -k path/to/id.json -c <CLUSTER> -s <SLEEP_TIME>
+```
 
 Where:
 
