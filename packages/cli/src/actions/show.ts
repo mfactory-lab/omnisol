@@ -156,7 +156,11 @@ export async function showOracle() {
 
   log.info('--------------------------------------------------------------------------')
   log.info(`Oracle: ${oracle}`)
-  log.info(`\nPriority queue: \n${JSON.stringify(oracleData.priorityQueue, null, 2)}\n`)
+  log.info('\nPriority queue: \n')
+  for (let i = 0; i < oracleData.priorityQueue.length; i++) {
+    log.info(`Collateral: ${oracleData.priorityQueue[i].collateral}`)
+    log.info(`Value: ${oracleData.priorityQueue[i].amount}`)
+  }
   log.info('--------------------------------------------------------------------------')
 }
 
