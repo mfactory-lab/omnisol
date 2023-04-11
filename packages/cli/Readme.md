@@ -219,3 +219,17 @@ Show withdraw request's data (user)
 ```bash
 pnpm cli withdrawInfo show
 ```
+
+-------------------------------------------------------
+LiquidationFee
+-------------------------------------------------------
+
+Set liquidation fee and fee receiver (manager)
+```bash
+pnpm cli liquidationFee set
+```
+
+Show liquidation fee PDA's data (user)
+```bash
+pnpm cli liquidationFee show
+```
