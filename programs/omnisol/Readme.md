@@ -1,41 +1,40 @@
-# OmniSOL v.0.0.1
+# omniSOL v.0.0.1
 
-OmniSol program.
+omniSOL program.
 
-# Set-up guide
+# Setup
 
-To change admin - write admin wallet address at ADMIN const (line 3).
-Located at:
+1. To change the admin, set a new admin wallet address for the ADMIN constant (Line 3) in:
 
 > src/state.rs
 
-Build a program:
+2. Build the program:
 
 ```bash
 make build
 ```
 
-Generate SDK:
+3. Generate an SDK:
 
 ```bash
 pnpm api:gen
 ```
 
-Configure cluster to deploy to:
+4. Set the cluster to deploy to:
 
 ```bash
 solana config set --url <CLUSTER>
 ```
 
-Where CLUSTER is a solana cluster address.
+Where CLUSTER is a Solana cluster address.
 
-Deploy program:
+5. Deploy the program:
 
 ```bash
 anchor deploy
 ```
 
-Run tests:
+6. Run tests:
 
 ```bash
 make test
