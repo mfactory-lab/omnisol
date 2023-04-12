@@ -1,6 +1,6 @@
 # Liquidator v.0.0.1
 
-Liquidator is an off-chain service that fetches PDAs from the omniSOL contract, withdrawal requests, and priority queue data, as well as sends transactions to liquidate collateral on-chain.
+Liquidator is an off-chain service that fetches PDAs from the omniSOL contract, fetches withdrawal requests, fetches priority queue data, then sends transactions to liquidate collateral on-chain.
 
 # Setup
 
