@@ -1,10 +1,10 @@
 # Oracle v.0.0.1
 
-Oracle is the off-chain service that fetches PDAs from Omnisol contract, generated priority queue and send transaction to update it on-chain.
+Oracle is an off-chain service that fetches PDAs from the omniSOL contract, generates a priority queue, and sends a transaction to update it on-chain.
 
-# Set-up guide
+# Setup
 
-To run the service, write this command:
+To laucnch the service, run:
 
 ```bash
 cargo run -- -k path/to/id.json -c <CLUSTER> -s <SLEEP_TIME>
@@ -12,6 +12,6 @@ cargo run -- -k path/to/id.json -c <CLUSTER> -s <SLEEP_TIME>
 
 Where:
 
-- path/to/id.json is a path to oracle keypair file
-- CLUSTER is a Solana cluster (could be full rpc url, WebSocket url, word - like 'testnet', or letter - like 't' )
-- SLEEP_TIME is a delay that thread will wait between algorithm processing
+- path/to/id.json: a path to the Oracle keypair file
+- CLUSTER: a Solana cluster. It can be a full RPC URL, a WebSocket URL, a word (e.g., "testnet"), or a letter (e.g., "t")
+- SLEEP_TIME: the time that a thread will wait between algorithm-based processing iterations
