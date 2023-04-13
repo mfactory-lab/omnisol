@@ -103,7 +103,7 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
                 system_program: ctx.accounts.system_program.to_account_info(),
             },
             &[&pool_authority_seeds],
-        ))?;
+        ), ctx.accounts.unstake_it_program.key())?;
     } else {
         if collateral.stake_source != ctx.accounts.source_stake.key() {
             return Err(ErrorCode::InvalidToken.into());
@@ -202,7 +202,7 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
                     system_program: ctx.accounts.system_program.to_account_info(),
                 },
                 &[&pool_authority_seeds],
-            ))?;
+            ), ctx.accounts.unstake_it_program.key())?;
         }
     }
 

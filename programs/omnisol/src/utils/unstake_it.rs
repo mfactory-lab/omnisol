@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use anchor_lang::{
     prelude::*,
     solana_program::{account_info::AccountInfo, instruction::Instruction, program::invoke_signed},
@@ -7,11 +5,9 @@ use anchor_lang::{
 
 use crate::{AccountMeta, Accounts, Pubkey};
 
-/// unstake.it program address
-const PROGRAM_ADDRESS: &str = "unpXTU2Ndrc7WWNyEhQWe4udTzSibLPi25SXv2xbCHQ";
 const UNSTAKE_IX_DISCM: [u8; 8] = [90, 95, 107, 42, 205, 124, 50, 225];
 
-pub fn unstake<'info>(ctx: CpiContext<'_, '_, '_, 'info, Unstake<'info>>) -> Result<()> {
+pub fn unstake<'info>(ctx: CpiContext<'_, '_, '_, 'info, Unstake<'info>>, program_id: Pubkey) -> Result<()> {
     let account_metas = vec![
         AccountMeta::new(ctx.accounts.payer.key(), true),
         AccountMeta::new_readonly(ctx.accounts.unstaker.key(), true),
@@ -28,7 +24,6 @@ pub fn unstake<'info>(ctx: CpiContext<'_, '_, '_, 'info, Unstake<'info>>) -> Res
         AccountMeta::new_readonly(ctx.accounts.system_program.key(), false),
     ];
 
-    let program_id = Pubkey::from_str(PROGRAM_ADDRESS).unwrap();
     let ix = Instruction::new_with_bincode(program_id, &UNSTAKE_IX_DISCM, account_metas);
 
     let account_infos = vec![
