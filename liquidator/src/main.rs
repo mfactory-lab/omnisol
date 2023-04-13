@@ -49,10 +49,15 @@ pub struct Args {
     #[arg(short, long)]
     pub cluster: Cluster,
 
-    /// Sleep duration in seconds
+    /// Sleep duration in seconds for external loop
     #[arg(short, long)]
     #[arg(value_parser = |arg: &str| -> Result<Duration, ParseIntError> {Ok(Duration::from_secs(arg.parse()?))})]
-    pub sleep_duration: Duration,
+    pub external_sleep_duration: Duration,
+
+    /// Sleep duration in seconds for internal loop
+    #[arg(short, long)]
+    #[arg(value_parser = |arg: &str| -> Result<Duration, ParseIntError> {Ok(Duration::from_secs(arg.parse()?))})]
+    pub internal_sleep_duration: Duration,
 
     /// Unstake.it pool address
     #[arg(short, long)]
@@ -95,31 +100,39 @@ fn main() {
     let wallet_pubkey = wallet_keypair.pubkey();
     info!("Read liquidator keypair file: {}", wallet_pubkey);
 
+    let signer = Rc::new(wallet_keypair);
+
     // establish connection
     let client = Client::new_with_options(
         args.cluster.clone(),
-        Rc::new(wallet_keypair),
+        signer.clone(),
         CommitmentConfig::confirmed(),
     );
     info!("Established connection: {}", &args.cluster.url());
 
-    let mut liquidator = Liquidator::new(args, client, wallet_pubkey);
+    let mut liquidator = Liquidator::new(args, client, signer.as_ref());
 
     loop {
+        info!("Thread is paused for {} seconds", liquidator.args.external_sleep_duration.as_secs());
+        thread::sleep(liquidator.args.external_sleep_duration);
+
         // get withdraw requests sorted by creation time
         let withdraw_info_list = get_withdraw_info_list(&liquidator.program).expect("Can't get withdraw info list");
         info!("Got {} withdraw request(s))", withdraw_info_list.len());
 
         for (withdraw_address, withdraw_info) in withdraw_info_list {
+            info!("Thread is paused for {} seconds", liquidator.args.internal_sleep_duration.as_secs());
+            thread::sleep(liquidator.args.internal_sleep_duration);
+
             liquidator.process_withdraw_request(withdraw_address, withdraw_info);
         }
     }
 }
 
-pub struct Liquidator {
+pub struct Liquidator<'a> {
     args: Args,
     liquidator_wallet: Pubkey,
-    liquidator_keypair: Keypair,
+    liquidator_keypair: &'a Keypair,
     program: Program,
     oracle: Pubkey,
     liquidator: Pubkey,
@@ -132,15 +145,14 @@ pub struct Liquidator {
     collateral_data: HashMap<Pubkey, Collateral>,
 }
 
-impl Liquidator {
-    fn new(args: Args, client: Client, liquidator_wallet: Pubkey) -> Self {
+impl<'a> Liquidator<'a> {
+    fn new(args: Args, client: Client, liquidator_keypair: &'a Keypair) -> Self {
         // get program public key
         let program = client.program(id());
 
         let oracle = get_oracle();
+        let liquidator_wallet = liquidator_keypair.pubkey();
         let liquidator = get_liquidator(liquidator_wallet);
-
-        let liquidator_keypair = read_keypair_file(&args.keypair).expect("Can't open keypair");
 
         Self {
             args,
@@ -198,9 +210,6 @@ impl Liquidator {
     fn liquidate(&mut self, user: &User) {
         // iterating threw the priority queue
         for queue_member in &self.oracle_data.priority_queue {
-            info!("Thread is paused for {} seconds", self.args.sleep_duration.as_secs());
-            thread::sleep(self.args.sleep_duration);
-
             let collateral = self
                 .collateral_data
                 .get(&queue_member.collateral)
@@ -287,7 +296,7 @@ impl Liquidator {
 
             let instructions = request.instructions().expect("");
 
-            let signers:Vec<& dyn Signer> = vec![&self.liquidator_keypair, &additional_signer];
+            let signers:Vec<& dyn Signer> = vec![self.liquidator_keypair, &additional_signer];
 
             let rpc_client = RpcClient::new_with_commitment(String::from("https://api.testnet.solana.com"), CommitmentConfig::confirmed());
 
