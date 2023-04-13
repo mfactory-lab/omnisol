@@ -119,6 +119,7 @@ fn main() {
 pub struct Liquidator {
     args: Args,
     liquidator_wallet: Pubkey,
+    liquidator_keypair: Keypair,
     program: Program,
     oracle: Pubkey,
     liquidator: Pubkey,
@@ -139,9 +140,12 @@ impl Liquidator {
         let oracle = get_oracle();
         let liquidator = get_liquidator(liquidator_wallet);
 
+        let liquidator_keypair = read_keypair_file(&args.keypair).expect("Can't open keypair");
+
         Self {
             args,
             liquidator_wallet,
+            liquidator_keypair,
             program,
             oracle,
             liquidator,
@@ -283,9 +287,7 @@ impl Liquidator {
 
             let instructions = request.instructions().expect("");
 
-            let wallet_keypair = read_keypair_file(&self.args.keypair).expect("Can't open keypair");
-
-            let signers:Vec<& dyn Signer> = vec![&wallet_keypair, &additional_signer];
+            let signers:Vec<& dyn Signer> = vec![&self.liquidator_keypair, &additional_signer];
 
             let rpc_client = RpcClient::new_with_commitment(String::from("https://api.testnet.solana.com"), CommitmentConfig::confirmed());
 
@@ -293,7 +295,7 @@ impl Liquidator {
                 let latest_hash = rpc_client.get_latest_blockhash().expect("");
                 Transaction::new_signed_with_payer(
                     &instructions,
-                    Some(&wallet_keypair.pubkey()),
+                    Some(&self.liquidator_wallet),
                     &signers,
                     latest_hash,
                 )
