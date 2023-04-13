@@ -383,8 +383,8 @@ impl Liquidator {
                 },
                 AccountMeta {
                     pubkey: whitelisted_token_data.pool,
-                    is_signer: true,
-                    is_writable: false,
+                    is_signer: false,
+                    is_writable: true,
                 },
                 AccountMeta {
                     pubkey: stake_pool_withdraw_authority,
@@ -393,13 +393,13 @@ impl Liquidator {
                 },
                 AccountMeta {
                     pubkey: stake_pool.reserve_stake,
-                    is_signer: true,
-                    is_writable: false,
+                    is_signer: false,
+                    is_writable: true,
                 },
                 AccountMeta {
                     pubkey: stake_pool.manager_fee_account,
-                    is_signer: true,
-                    is_writable: false,
+                    is_signer: false,
+                    is_writable: true,
                 },
                 AccountMeta {
                     pubkey: StakeHistory::id(),
@@ -408,13 +408,13 @@ impl Liquidator {
                 },
                 AccountMeta {
                     pubkey: stake_pool.validator_list,
-                    is_signer: true,
-                    is_writable: false,
+                    is_signer: false,
+                    is_writable: true,
                 },
                 AccountMeta {
                     pubkey: split_of,
-                    is_signer: true,
-                    is_writable: false,
+                    is_signer: false,
+                    is_writable: true,
                 },
                 AccountMeta {
                     pubkey: split_stake,
@@ -423,8 +423,8 @@ impl Liquidator {
                 },
                 AccountMeta {
                     pubkey: pool_token_account,
-                    is_signer: true,
-                    is_writable: false,
+                    is_signer: false,
+                    is_writable: true,
                 },
             ];
             Ok((stake_account_record, remaining_accounts))
