@@ -1,6 +1,6 @@
-# Omnisol CLI v.0.0.1
+# omniSOL CLI v.0.0.1
 
-CLI with Omnisol program endpoints.
+CLI with omniSOL program endpoints.
 
 # Commands
 
@@ -8,29 +8,29 @@ CLI with Omnisol program endpoints.
 pnpm cli -c <CLUSTER> -k <PATH_TO_PRIVATE_KEY> -l <LOG_LEVEL> <COMMAND>
 ```
 
-CLUSTER - (mainnet-beta, testnet, devnet) - devnet is a default value
+CLUSTER: mainnet-beta, testnet or devnet; devnet is the default value
 
-PATH_TO_PRIVATE_KEY - default value is ${process.env.HOME}/.config/solana/id.json
+PATH_TO_PRIVATE_KEY: the default value is ${process.env.HOME}/.config/solana/id.json
 
-LOG_LEVEL - change the log level (info, error, warn)
+LOG_LEVEL: info, error or warn
 
-COMMAND - the main command, that classify the request to Omnisol contract
+COMMAND: the main command that determines the request that will be sent to the omniSOL contract
 
 ### Example
+
+Running the command (manager add) for the Testnet cluster:
 
 ```bash
 pnpm cli -c testnet manager add
 ```
 
-Run cli with testnet cluster and command (manager add)
+Running the command (manager add) for the default Devnet cluster:
 
 ```bash
 pnpm cli manager add
 ```
 
-Run cli with default devnet cluster and command (manager add)
-
-> NOTES: User need to add one or several required and optional arguments to the command. To understand what exactly user need to write, add -h or --help.
+> NOTE: The command takes required and optional arguments. To view them, run it with -h or --help.
 
 ```bash
 pnpm cli manager add -h
@@ -40,27 +40,40 @@ pnpm cli manager add -h
 Pool
 -------------------------------------------------------
 
-Create pool (manager)
+> NOTE: The parentheses at the end specify a role that can call the instruction. 
+
+Create a pool (manager):
+
 ```bash
 pnpm cli pool create
 ```
-Pause pool (manager)
+
+Pause a pool (manager):
+
 ```bash
 pnpm cli pool pause
 ```
-Resume pool (manager)
+
+Resume a pool (manager):
+
 ```bash
 pnpm cli pool resume
 ```
-Close pool (pool manager)
+
+Close a pool (pool manager)
+
 ```bash
 pnpm cli pool close
 ```
-Show pool data (user)
+
+Show pool data (user):
+
 ```bash
 pnpm cli pool show
 ```
-Update pool (manager)
+
+Update a pool (manager):
+
 ```bash
 pnpm cli pool update
 ```
@@ -69,15 +82,20 @@ pnpm cli pool update
 Liquidator
 -------------------------------------------------------
 
-Add liquidator (manager)
+Add a liquidator (manager):
+
 ```bash
 pnpm cli liquidator add
 ```
-Remove liquidator (manager)
+
+Remove a liquidator (manager):
+
 ```bash
 pnpm cli liquidator remove
 ```
-Show liquidator data (user)
+
+Show liquidator data (user):
+
 ```bash
 pnpm cli liquidator show
 ```
@@ -86,15 +104,20 @@ pnpm cli liquidator show
 Manager
 -------------------------------------------------------
 
-Add manager (admin)
+Add a manager (admin):
+
 ```bash
 pnpm cli manager add
 ```
-Remove manager (admin)
+
+Remove a manager (admin):
+
 ```bash
 pnpm cli manager remove
 ```
-Show manager data (user)
+
+Show manager data (user):
+
 ```bash
 pnpm cli manager show
 ```
@@ -103,15 +126,20 @@ pnpm cli manager show
 Whitelist
 -------------------------------------------------------
 
-Add token to whitelist (manager)
+Add a token to the whitelist (manager):
+
 ```bash
 pnpm cli whitelist add
 ```
-Remove token from whitelist (manager)
+
+Remove a token from the whitelist (manager):
+
 ```bash
 pnpm cli whitelist remove
 ```
-Show whitelisted token data (user)
+
+Show whitelisted token data (user):
+
 ```bash
 pnpm cli whitelist show
 ```
@@ -120,19 +148,26 @@ pnpm cli whitelist show
 User
 -------------------------------------------------------
 
-Block user (manager)
+Block a user (manager):
+
 ```bash
 pnpm cli user block
 ```
-Unblock user (manager)
+
+Unblock a user (manager):
+
 ```bash
 pnpm cli user unblock
 ```
-Find user by wallet and show data (user)
+
+Find a user via their wallet address, and show the data (user):
+
 ```bash
 pnpm cli user find
 ```
-Show user data by PDA address (user)
+
+Retrieve user data via PDA address (user):
+
 ```bash
 pnpm cli user show
 ```
@@ -141,15 +176,19 @@ pnpm cli user show
 Oracle
 -------------------------------------------------------
 
-Initialize oracle (admin)
+Initialize Oracle (admin):
+
 ```bash
 pnpm cli oracle init
 ```
-Close oracle PDA (admin)
+
+Close an Oracle PDA (admin):
 ```bash
 pnpm cli oracle close
 ```
-Show oracle data (user)
+
+Show Oracle data (user):
+
 ```bash
 pnpm cli oracle show
 ```
@@ -158,11 +197,14 @@ pnpm cli oracle show
 Deposit
 -------------------------------------------------------
 
-Deposit stake account (user)
+Deposit a stake account (user):
+
 ```bash
 pnpm cli deposit stake
 ```
-Deposit liquidity pool token (user)
+
+Deposit a liquidity pool token (user):
+
 ```bash
 pnpm cli deposit lp-token
 ```
@@ -171,11 +213,14 @@ pnpm cli deposit lp-token
 Withdraw
 -------------------------------------------------------
 
-Withdraw stake account from your collateral (user)
+Withdraw a stake account from your collateral (user):
+
 ```bash
 pnpm cli withdraw stake
 ```
-Withdraw liquidity pool token from your collateral (user)
+
+Withdraw a liquidity pool token from your collateral (user):
+
 ```bash
 pnpm cli withdraw lp-token
 ```
@@ -184,7 +229,7 @@ pnpm cli withdraw lp-token
 Burn
 -------------------------------------------------------
 
-Burn Omnisol token to create withdraw request (user)
+Burn omniSOL tokens to create a withdrawal request (user):
 ```bash
 pnpm cli burn
 ```
@@ -193,7 +238,8 @@ pnpm cli burn
 Mint
 -------------------------------------------------------
 
-Mint Omnisol token from your collateral (user)
+Mint omniSOL tokens from your collateral (user):
+
 ```bash
 pnpm cli mint
 ```
@@ -202,11 +248,14 @@ pnpm cli mint
 Collateral
 -------------------------------------------------------
 
-Find collateral's PDA address by source stake and user PDA addresses and show data (user)
+Find a collateral PDA via source stake and user PDAs, and show the data (user):
+
 ```bash
 pnpm cli collateral find
 ```
-Show collateral's data (user)
+
+Show data on a collateral (user):
+
 ```bash
 pnpm cli collateral show
 ```
@@ -215,7 +264,8 @@ pnpm cli collateral show
 WithdrawInfo
 -------------------------------------------------------
 
-Show withdraw request's data (user)
+Show data on a withdrawal request (user):
+
 ```bash
 pnpm cli withdrawInfo show
 ```
@@ -224,12 +274,13 @@ pnpm cli withdrawInfo show
 LiquidationFee
 -------------------------------------------------------
 
-Set liquidation fee and fee receiver (manager)
+Set a liquidation fee and a fee receiver (manager):
+
 ```bash
 pnpm cli liquidationFee set
 ```
 
-Show liquidation fee PDA's data (user)
+Show data on a liquidation fee PDA (user):
 ```bash
 pnpm cli liquidationFee show
 ```
