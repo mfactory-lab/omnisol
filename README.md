@@ -16,13 +16,13 @@ while gaining the staking yields of that particular validator.
 
 ## Components
 
-[Program](./programs/omnisol/Readme.md)
+[Program](./programs/omnisol/Readme.md): omniSOL program.
 
-[Oracle service](./oracle/Readme.md)
+[Oracle service](./oracle/Readme.md): off-chain service for updating priority queues.
 
-[Liquidator service](./liquidator/Readme.md)
+[Liquidator service](./liquidator/Readme.md): off-chain service for liquidating collateral on-chain.
 
-[CLI](./packages/cli/Readme.md)
+[CLI](./packages/cli/Readme.md): CLI with omniSOL program endpoints.
 
 # Problems with existing solutions
 
