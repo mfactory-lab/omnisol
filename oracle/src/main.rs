@@ -21,15 +21,31 @@ use crate::utils::{generate_priority_queue, get_collateral_data, get_oracle, get
 #[command(author, version, about, long_about = None)]
 pub struct Args {
     /// Path to private key
-    #[arg(short, long)]
+    #[arg(
+        short,
+        long,
+        value_name = "KEYPAIR",
+        env = "KEYPAIR",
+        default_value = "keypair.json"
+    )]
     pub keypair: PathBuf,
 
     /// Solana cluster name
-    #[arg(short, long)]
+    #[arg(
+        short,
+        long,
+        value_name = "CLUSTER",
+        env = "CLUSTER"
+    )]
     pub cluster: Cluster,
 
     /// Sleep duration in seconds
-    #[arg(short, long)]
+    #[arg(
+        short,
+        long,
+        value_name = "SLEEP",
+        env = "SLEEP"
+    )]
     #[arg(value_parser = |arg: &str| -> Result<Duration, ParseIntError> {Ok(Duration::from_secs(arg.parse()?))})]
     pub sleep_duration: Duration,
 }

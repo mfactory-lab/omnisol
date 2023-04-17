@@ -42,45 +42,96 @@ use crate::utils::{
 #[command(author, version, about, long_about = None)]
 pub struct Args {
     /// Path to private key
-    #[arg(short, long)]
+    #[arg(
+        short,
+        long,
+        value_name = "KEYPAIR",
+        env = "KEYPAIR",
+        default_value = "keypair.json"
+    )]
     pub keypair: PathBuf,
 
     /// Solana cluster name
-    #[arg(short, long)]
+    #[arg(
+        short,
+        long,
+        value_name = "CLUSTER",
+        env = "CLUSTER"
+    )]
     pub cluster: Cluster,
 
     /// Sleep duration in seconds for external loop
-    #[arg(short, long)]
+    #[arg(
+        short,
+        long,
+        value_name = "EXTERNAL_SLEEP",
+        env = "EXTERNAL_SLEEP"
+    )]
     #[arg(value_parser = |arg: &str| -> Result<Duration, ParseIntError> {Ok(Duration::from_secs(arg.parse()?))})]
     pub external_sleep_duration: Duration,
 
     /// Sleep duration in seconds for internal loop
-    #[arg(short, long)]
+    #[arg(
+        short,
+        long,
+        value_name = "INTERNAL_SLEEP",
+        env = "INTERNAL_SLEEP"
+    )]
     #[arg(value_parser = |arg: &str| -> Result<Duration, ParseIntError> {Ok(Duration::from_secs(arg.parse()?))})]
     pub internal_sleep_duration: Duration,
 
     /// Unstake.it pool address
-    #[arg(short, long)]
+    #[arg(
+        short,
+        long,
+        value_name = "POOL",
+        env = "POOL"
+    )]
     pub pool: Pubkey,
 
     /// Unstake.it protocol fee address
-    #[arg(short, long)]
+    #[arg(
+        short,
+        long,
+        value_name = "PROTOCOL_FEE",
+        env = "PROTOCOL_FEE"
+    )]
     pub fee_protocol: Pubkey,
 
     /// Unstake.it destination fee address
-    #[arg(short, long)]
+    #[arg(
+        short,
+        long,
+        value_name = "DESTINATION_FEE",
+        env = "DESTINATION_FEE"
+    )]
     pub destination_fee: Pubkey,
 
     /// Unstake.it SOL reserves address
-    #[arg(short, long)]
+    #[arg(
+        short,
+        long,
+        value_name = "SOL_RESERVES",
+        env = "SOL_RESERVES"
+    )]
     pub reserves: Pubkey,
 
     /// Unstake.it address
-    #[arg(short, long)]
+    #[arg(
+        short,
+        long,
+        value_name = "UNSTAKE_IT",
+        env = "UNSTAKE_IT"
+    )]
     pub unstake_it: Pubkey,
 
     /// Fee account address
-    #[arg(short, long)]
+    #[arg(
+        short,
+        long,
+        value_name = "FEE_ACCOUNT",
+        env = "FEE_ACCOUNT"
+    )]
     pub account_fee: Pubkey,
 }
 
