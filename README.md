@@ -14,6 +14,16 @@ while gaining the staking yields of that particular validator.
 
 [GNU AGPL v3](./LICENSE)
 
+## Components
+
+[Program](./programs/omnisol/Readme.md)
+
+[Oracle service](./oracle/Readme.md)
+
+[Liquidator service](./liquidator/Readme.md)
+
+[CLI](./packages/cli/Readme.md)
+
 # Problems with existing solutions
 
 Currently, users have to choose between being able to control where they stake their SOL, and being able to access the broader DeFi ecosystem.
