@@ -26,7 +26,7 @@ pub struct Args {
         long,
         value_name = "KEYPAIR",
         env = "KEYPAIR",
-        default_value = "keypair.json"
+        default_value = "../keypair.json"
     )]
     pub keypair: PathBuf,
 
