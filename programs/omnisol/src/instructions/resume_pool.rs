@@ -5,6 +5,7 @@ use crate::{
     ErrorCode,
 };
 
+/// The manager can resume pool.
 pub fn handle(ctx: Context<ResumePool>) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 

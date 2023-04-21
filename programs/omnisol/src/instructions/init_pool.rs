@@ -1,13 +1,12 @@
-use anchor_lang::prelude::*;
-use anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL;
+use anchor_lang::{prelude::*, solana_program::native_token::LAMPORTS_PER_SOL};
 use anchor_spl::token;
 
 use crate::{
-    state::{Pool, MINT_AUTHORITY_SEED},
+    state::{Manager, Pool, MINT_AUTHORITY_SEED},
     ErrorCode,
 };
-use crate::state::Manager;
 
+/// The manager can initialize pool for special liquidity token or native stake program.
 pub fn handle(ctx: Context<InitPool>) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
     let mint_authority = ctx.accounts.mint_authority.key;

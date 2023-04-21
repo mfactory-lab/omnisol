@@ -7,10 +7,8 @@ use crate::{
     ErrorCode,
 };
 
-/// The user can use their deposit as collateral and mint omniSOL.
-/// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
+/// The user can use their deposit as collateral.
 /// As their stake accounts continue to earn yield, the amount of lamports under them increases.
-/// Call the amount of lamports in excess of the initial deposit the **reserve amount.**
 pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 
@@ -38,15 +36,17 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
         let fee = amount.saturating_div(1000).saturating_mul(pool.deposit_fee as u64);
         msg!("Transfer deposit fee: {} lamports", fee);
 
-        system_program::transfer(CpiContext::new(
-            ctx.accounts.system_program.to_account_info(),
-            system_program::Transfer {
-                from: ctx.accounts.fee_payer.to_account_info(),
-                to: ctx.accounts.fee_receiver.to_account_info(),
-            }
-        ),
-        fee,
-        ).map_err(|_| ErrorCode::InsufficientFunds)?;
+        system_program::transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                system_program::Transfer {
+                    from: ctx.accounts.fee_payer.to_account_info(),
+                    to: ctx.accounts.fee_receiver.to_account_info(),
+                },
+            ),
+            fee,
+        )
+        .map_err(|_| ErrorCode::InsufficientFunds)?;
     }
 
     let pool_key = pool.key();

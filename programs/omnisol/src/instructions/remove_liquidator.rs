@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 
 use crate::state::{Liquidator, Manager};
 
+/// The manager can remove liquidator.
 pub fn handle(_ctx: Context<RemoveLiquidator>) -> Result<()> {
     Ok(())
 }

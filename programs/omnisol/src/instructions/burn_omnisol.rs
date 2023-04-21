@@ -1,16 +1,16 @@
-use anchor_lang::prelude::*;
-use anchor_lang::system_program;
+use anchor_lang::{prelude::*, system_program};
 use anchor_spl::token::{self, Token, TokenAccount};
 
 use crate::{
     events::WithdrawRequestCreationEvent,
-    state::{Pool, User, WithdrawInfo},
+    state::{LiquidationFee, Pool, User, WithdrawInfo},
     ErrorCode,
 };
-use crate::state::LiquidationFee;
 
-/// Withdraw a given amount of omniSOL (without an account).
-/// Caller provides some [amount] of omni-lamports that are to be burned in
+/// The user can burn omniSOL.
+/// Burn a given amount of omniSOL and create a withdraw request.
+/// This request will be processed by the liquidator in some time.
+/// Caller provides some [amount] of omni-lamports that are to be burned.
 pub fn handle(ctx: Context<BurnOmnisol>, amount: u64) -> Result<()> {
     if amount == 0 {
         return Err(ErrorCode::InsufficientAmount.into());
@@ -42,15 +42,17 @@ pub fn handle(ctx: Context<BurnOmnisol>, amount: u64) -> Result<()> {
         let fee = amount.saturating_div(1000).saturating_mul(liquidation_fee.fee as u64);
         msg!("Transfer liquidation fee: {} lamports", fee);
 
-        system_program::transfer(CpiContext::new(
-            ctx.accounts.system_program.to_account_info(),
-            system_program::Transfer {
-                from: ctx.accounts.fee_payer.to_account_info(),
-                to: ctx.accounts.fee_receiver.to_account_info(),
-            }
-        ),
-        fee,
-        ).map_err(|_| ErrorCode::InsufficientFunds)?;
+        system_program::transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                system_program::Transfer {
+                    from: ctx.accounts.fee_payer.to_account_info(),
+                    to: ctx.accounts.fee_receiver.to_account_info(),
+                },
+            ),
+            fee,
+        )
+        .map_err(|_| ErrorCode::InsufficientFunds)?;
     }
 
     user.last_withdraw_index += 1;

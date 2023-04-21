@@ -1,10 +1,8 @@
 use anchor_lang::prelude::*;
 
-use crate::{
-    state::Pool,
-    ErrorCode,
-};
+use crate::{state::Pool, ErrorCode};
 
+/// The pool manager can close pool.
 pub fn handle(ctx: Context<ClosePool>) -> Result<()> {
     if ctx.accounts.pool.collaterals_amount > 0 {
         msg!("Please, wait until all collaterals will be closed");

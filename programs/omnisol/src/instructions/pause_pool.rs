@@ -5,6 +5,8 @@ use crate::{
     ErrorCode,
 };
 
+/// The manager can pause pool.
+/// If pool is paused, users can't do any operations with it.
 pub fn handle(ctx: Context<PausePool>) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 

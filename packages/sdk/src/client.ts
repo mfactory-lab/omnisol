@@ -41,13 +41,13 @@ const ORACLE_SEED_PREFIX = 'oracle'
 const LIQUIDATION_FEE_SEED_PREFIX = 'liquidation_fee'
 const WITHDRAW_INFO_PREFIX = 'withdraw_info'
 const MINT_AUTHORITY_PREFIX = 'mint_authority'
+const STAKE_POOL_PROGRAM_ID = new web3.PublicKey('SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy')
 
 export class OmnisolClient {
   static programId = PROGRAM_ID
   static IDL = IDL
   static clock = web3.SYSVAR_CLOCK_PUBKEY
   static stakeProgram = web3.StakeProgram.programId
-  static stakingPoolProgram = new web3.PublicKey('SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy')
 
   constructor(private readonly props: OmnisolClientProps) {}
 
@@ -63,6 +63,7 @@ export class OmnisolClient {
     return new OmnisolPDA()
   }
 
+  // Fetch functions
   async fetchGlobalPool(address: Address) {
     return await this.program.account.pool.fetchNullable(address) as unknown as Pool
   }
@@ -128,10 +129,19 @@ export class OmnisolClient {
     return accounts.filter(a => a.account.pool.toBase58() === pool.toBase58())
   }
 
+  async findManagers() {
+    return await this.program.account.manager.all()
+  }
+
   async findUsers() {
     return await this.program.account.user.all()
   }
 
+  async findPools() {
+    return await this.program.account.pool.all()
+  }
+
+  // Functions that construct instructions using pre-generated sdk
   async createPool(props: CreatePoolProps) {
     const payer = this.wallet.publicKey
     const pool = props.pool
@@ -746,7 +756,7 @@ export class OmnisolClient {
     const collateralData = await this.fetchCollateral(collateral)
     let anchorRemainingAccounts: web3.AccountMeta[]
     if (collateralData.isNative) {
-      const splitStake = props.splitStake ?? web3.Keypair.generate().publicKey
+      const splitStake = props.splitStake ?? web3.PublicKey.default
       anchorRemainingAccounts = [{
         pubkey: splitStake,
         isWritable: true,
@@ -754,18 +764,18 @@ export class OmnisolClient {
       }]
     } else {
       const stakePool = props.stakePool ?? web3.Keypair.generate().publicKey
-      const stakePoolWithdrawAuthority = props.stakePoolWithdrawAuthority ?? web3.Keypair.generate().publicKey
-      const reserveStakeAccount = props.reserveStakeAccount ?? web3.Keypair.generate().publicKey
-      const managerFeeAccount = props.managerFeeAccount ?? web3.Keypair.generate().publicKey
+      const stakePoolWithdrawAuthority = props.stakePoolWithdrawAuthority ?? web3.PublicKey.default
+      const reserveStakeAccount = props.reserveStakeAccount ?? web3.PublicKey.default
+      const managerFeeAccount = props.managerFeeAccount ?? web3.PublicKey.default
       const stakeHistory = SYSVAR_STAKE_HISTORY_PUBKEY
-      const validatorListStorage = props.validatorListStorage ?? web3.Keypair.generate().publicKey
-      const stakeToSplit = props.stakeToSplit ?? web3.Keypair.generate().publicKey
-      const splitStake = props.splitStake ?? web3.Keypair.generate().publicKey
-      const poolTokenAccount = props.poolTokenAccount ?? web3.Keypair.generate().publicKey
+      const validatorListStorage = props.validatorListStorage ?? web3.PublicKey.default
+      const stakeToSplit = props.stakeToSplit ?? web3.PublicKey.default
+      const splitStake = props.splitStake ?? web3.PublicKey.default
+      const poolTokenAccount = props.poolTokenAccount ?? web3.PublicKey.default
 
       anchorRemainingAccounts = [
         {
-          pubkey: OmnisolClient.stakingPoolProgram,
+          pubkey: STAKE_POOL_PROGRAM_ID,
           isWritable: false,
           isSigner: false,
         },
@@ -857,6 +867,7 @@ export class OmnisolClient {
   }
 }
 
+// PDA searching functions
 class OmnisolPDA {
   poolAuthority = (pool: Address) => this.pda([
     new web3.PublicKey(pool).toBuffer(),
@@ -926,6 +937,7 @@ export interface Wallet {
   publicKey: PublicKey
 }
 
+// Interfaces for instruction-constructing functions
 interface OmnisolClientProps {
   wallet: Wallet
   program: Program<typeof IDL>

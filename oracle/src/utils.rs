@@ -6,13 +6,16 @@ use anchor_client::{
     ClientError, Program,
 };
 use gimli::ReaderOffset;
-use omnisol::{id, state::{Collateral, Oracle, Pool, User}};
+use omnisol::{
+    id,
+    state::{Collateral, Oracle, Pool, User},
+};
 
 pub const USER_DISCRIMINATOR: [u8; 8] = [159, 117, 95, 227, 239, 151, 58, 236];
 pub const COLLATERAL_DISCRIMINATOR: [u8; 8] = [123, 130, 234, 63, 255, 240, 255, 92];
 pub const POOL_DISCRIMINATOR: [u8; 8] = [241, 154, 109, 4, 17, 177, 109, 188];
 
-pub fn get_oracle() -> Pubkey {
+pub fn get_oracle_address() -> Pubkey {
     Pubkey::find_program_address(&[Oracle::SEED], &id()).0
 }
 
@@ -140,6 +143,7 @@ mod tests {
             amount: 0,
             liquidated_amount: 100,
             created_at: 0,
+            creation_epoch: 0,
             bump: 0,
             is_native: false,
         };
@@ -152,6 +156,7 @@ mod tests {
             amount: 0,
             liquidated_amount: 0,
             created_at: 0,
+            creation_epoch: 0,
             bump: 0,
             is_native: false,
         };
@@ -164,6 +169,7 @@ mod tests {
             amount: 0,
             liquidated_amount: 50,
             created_at: 0,
+            creation_epoch: 0,
             bump: 0,
             is_native: false,
         };
@@ -176,6 +182,7 @@ mod tests {
             amount: 0,
             liquidated_amount: 0,
             created_at: 0,
+            creation_epoch: 0,
             bump: 0,
             is_native: false,
         };
@@ -188,6 +195,7 @@ mod tests {
             amount: 0,
             liquidated_amount: 99,
             created_at: 0,
+            creation_epoch: 0,
             bump: 0,
             is_native: false,
         };
@@ -205,6 +213,6 @@ mod tests {
         result.insert(collateral_address_4, 100);
         result.insert(collateral_address_5, 1);
 
-        assert_eq!(generate_priority_queue(user_data, collateral_data), result);
+        assert_eq!(generate_priority_queue(user_data, collateral_data, vec![]), result);
     }
 }

@@ -14,6 +14,16 @@ while gaining the staking yields of that particular validator.
 
 [GNU AGPL v3](./LICENSE)
 
+## Components
+
+[Program](./programs/omnisol/Readme.md): omniSOL program.
+
+[Oracle service](./oracle/Readme.md): off-chain service for updating priority queues.
+
+[Liquidator service](./liquidator/Readme.md): off-chain service for liquidating collateral on-chain.
+
+[CLI](./packages/cli/Readme.md): CLI with omniSOL program endpoints.
+
 # Problems with existing solutions
 
 Currently, users have to choose between being able to control where they stake their SOL, and being able to access the broader DeFi ecosystem.

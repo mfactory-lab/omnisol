@@ -71,7 +71,7 @@ export const withdrawSolInstructionDiscriminator = [
 export function createWithdrawSolInstruction(
   accounts: WithdrawSolInstructionAccounts,
   args: WithdrawSolInstructionArgs,
-  programId = new web3.PublicKey('6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7'),
+  programId = new web3.PublicKey('DMG9gp5VHPVpA3bst6yhC4L4D4aZiUjUTibVQGvJzpjy'),
 ) {
   const [data] = withdrawSolStruct.serialize({
     instructionDiscriminator: withdrawSolInstructionDiscriminator,

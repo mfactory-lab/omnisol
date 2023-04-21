@@ -51,10 +51,25 @@ pool.command('close')
   .requiredOption('-p, --pool <POOL>', 'Pool address to close')
   .action(actions.closePool)
 
+pool.command('update')
+  .description('Update pool')
+  .requiredOption('-p, --pool <POOL>', 'Pool address to update')
+  .option('-r, --fee-receiver <FEE_RECEIVER>', 'WFee receiver wallet to update')
+  .option('-w, --withdraw-fee <WITHDRAW_FEE>', 'Withdraw fee to update')
+  .option('-d, --deposit-fee <DEPOSIT_FEE>', 'Deposit fee to update')
+  .option('-m, --mint-fee <MINT_FEE>', 'Mint fee to update')
+  .option('-s, --storage-fee <STORAGE_FEE>', 'Storage fee to update')
+  .option('-md, --min-deposit <MIN_DEPOSIT>', 'Minimal deposit value to update')
+  .action(actions.updatePool)
+
 pool.command('show')
   .description('Show pool info')
   .argument('<ADDRESS>', 'Pool address')
   .action(actions.showPool)
+
+pool.command('show-all')
+  .description('Show all pools')
+  .action(actions.showPools)
 
 // -------------------------------------------------------
 // Liquidator
@@ -64,12 +79,12 @@ const liquidator = cli.command('liquidator')
 
 liquidator.command('add')
   .description('Add new liquidator')
-  .requiredOption('-l, --liquidator <LIQUIDATOR>', 'Liquidator wallet address')
+  .requiredOption('-L, --liquidator <LIQUIDATOR>', 'Liquidator wallet address')
   .action(actions.addLiquidator)
 
 liquidator.command('remove')
   .description('Remove liquidator')
-  .requiredOption('-l, --liquidator <LIQUIDATOR>', 'Liquidator wallet address')
+  .requiredOption('-L, --liquidator <LIQUIDATOR>', 'Liquidator wallet address')
   .action(actions.removeLiquidator)
 
 liquidator.command('show')
@@ -203,9 +218,9 @@ withdraw.command('stake')
   .requiredOption('-m, --mint <MINT>', 'Omnisol token mint address')
   .requiredOption('-s, --stake-account <STAKE_ACCOUNT>', 'Address of source stake account')
   .requiredOption('-w, --with-burn <WITH_BURN>', 'Flag that indicates if user need to withdraw with burning your omnisol tokens or without')
-  .requiredOption('-t, --to-merge <TO_MERGE>', 'Flag that indicates if user need to withdraw with merging stake account')
+  .option('-t, --to-merge <TO_MERGE>', 'Flag that indicates if user need to withdraw with merging stake account')
   .requiredOption('-d, --delegated-stake <DELEGATED_STAKE>', 'Delegated stake account')
-  .option('-m, --mergable-stake <MERGABLE_STAKE>', 'Mergable stake account to merge withdrew stake account')
+  .option('-ms, --mergable-stake <MERGABLE_STAKE>', 'Mergable stake account to merge withdrew stake account')
   .action(actions.withdrawStake)
 
 withdraw.command('lp-token')
@@ -271,6 +286,22 @@ withdrawInfo.command('show')
   .argument('<ADDRESS>', 'User wallet address')
   .argument('<INDEX>', 'Index of withdraw request')
   .action(actions.showWithdrawInfo)
+
+// -------------------------------------------------------
+// LiquidationFee
+// -------------------------------------------------------
+
+const liquidationFee = cli.command('liquidationFee')
+
+liquidationFee.command('set')
+  .description('Set liquidation fee')
+  .option('-r, --fee-receiver <FEE_RECEIVER>', 'Wallet that will receive fee')
+  .option('-f, --fee <FEE>', 'Fee amount')
+  .action(actions.setLiquidationFee)
+
+liquidationFee.command('show')
+  .description('Show liquidation fee info')
+  .action(actions.showLiquidationFee)
 
 cli.parseAsync(process.argv).then(
   () => {},

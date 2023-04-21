@@ -4,6 +4,7 @@ use anchor_lang::prelude::*;
 
 use crate::state::{Manager, ADMIN};
 
+/// The admin can add new manager.
 pub fn handle(ctx: Context<AddManager>) -> Result<()> {
     let manager = &mut ctx.accounts.manager;
     let manager_wallet = ctx.accounts.manager_wallet.key();

@@ -1,11 +1,15 @@
 use std::collections::HashMap;
+
 use anchor_client::{
     solana_client::rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType},
     solana_sdk::pubkey::Pubkey,
     ClientError, Program,
 };
 use gimli::ReaderOffset;
-use omnisol::{id, state::{Oracle, User, WithdrawInfo, Collateral, Liquidator, Pool, Whitelist}};
+use omnisol::{
+    id,
+    state::{Collateral, Liquidator, Oracle, Pool, User, Whitelist, WithdrawInfo},
+};
 
 pub const WITHDRAW_INFO_DISCRIMINATOR: [u8; 8] = [103, 244, 107, 42, 135, 228, 81, 107];
 pub const USER_DISCRIMINATOR: [u8; 8] = [159, 117, 95, 227, 239, 151, 58, 236];

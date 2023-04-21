@@ -1,12 +1,13 @@
 use anchor_lang::prelude::*;
 
-use crate::state::{Pool, Manager};
-use crate::utils::fee::check_fee;
+use crate::{
+    state::{Manager, Pool},
+    utils::fee::check_fee,
+};
 
-pub fn handle(
-    ctx: Context<UpdatePool>,
-    data: UpdatePoolData,
-) -> Result<()> {
+/// The manager can update pool.
+/// All possible pool fees, fee receiver wallet and minimal pool deposit value can be updated.
+pub fn handle(ctx: Context<UpdatePool>, data: UpdatePoolData) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
 
     if let Some(fee_receiver) = data.fee_receiver {

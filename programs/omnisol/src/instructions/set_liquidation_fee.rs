@@ -1,10 +1,11 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    state::{Manager, LiquidationFee},
+    state::{LiquidationFee, Manager},
     ErrorCode,
 };
 
+/// The manager can set liquidation fee.
 pub fn handle(ctx: Context<SetLiquidationFee>, fee: Option<u16>, fee_receiver: Option<Pubkey>) -> Result<()> {
     let liquidation_fee = &mut ctx.accounts.liquidation_fee;
 

@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 anchor-client = "0.25.0"
 spl-stake-pool = "0.6.4"
-clap = { version = "4.1.6", features = ["derive"] }
+clap = { version = "4.1.6", features = ["derive", "env"] }
 omnisol = { path = "../programs/omnisol" }
 gimli = "0.27.2"
 anchor-lang = "0.25.0"

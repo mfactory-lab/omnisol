@@ -1,11 +1,12 @@
-use anchor_lang::prelude::*;
-use anchor_lang::system_program;
+use anchor_lang::{prelude::*, system_program};
 
 use crate::{
-    state::{Pool, Manager},
+    state::{Manager, Pool},
     ErrorCode,
 };
 
+/// The manager can withdraw SOL from pool account.
+/// It is useful when pool do not have any special fee_receiver and all fee is transferred to pool.
 pub fn handle(ctx: Context<WithdrawSol>, amount: u64) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
     let pool_key = pool.key();
@@ -16,15 +17,16 @@ pub fn handle(ctx: Context<WithdrawSol>, amount: u64) -> Result<()> {
         return Err(ErrorCode::InsufficientAmount.into());
     }
 
-    system_program::transfer(CpiContext::new_with_signer(
-        ctx.accounts.system_program.to_account_info(),
-        system_program::Transfer {
-            from: ctx.accounts.pool_authority.to_account_info(),
-            to: ctx.accounts.destination.to_account_info(),
-        },
-        &[&pool_authority_seeds],
-    ),
-    amount,
+    system_program::transfer(
+        CpiContext::new_with_signer(
+            ctx.accounts.system_program.to_account_info(),
+            system_program::Transfer {
+                from: ctx.accounts.pool_authority.to_account_info(),
+                to: ctx.accounts.destination.to_account_info(),
+            },
+            &[&pool_authority_seeds],
+        ),
+        amount,
     )?;
 
     Ok(())

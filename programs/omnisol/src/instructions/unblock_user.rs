@@ -5,6 +5,7 @@ use crate::{
     ErrorCode,
 };
 
+/// The manager can unblock user.
 pub fn handle(ctx: Context<UnblockUser>) -> Result<()> {
     let user = &mut ctx.accounts.user;
 

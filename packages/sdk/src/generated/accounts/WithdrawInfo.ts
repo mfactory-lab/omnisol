@@ -82,7 +82,7 @@ export class WithdrawInfo implements WithdrawInfoArgs {
    */
   static gpaBuilder(
     programId: web3.PublicKey = new web3.PublicKey(
-      '6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7',
+      'DMG9gp5VHPVpA3bst6yhC4L4D4aZiUjUTibVQGvJzpjy',
     ),
   ) {
     return beetSolana.GpaBuilder.fromStruct(programId, withdrawInfoBeet)

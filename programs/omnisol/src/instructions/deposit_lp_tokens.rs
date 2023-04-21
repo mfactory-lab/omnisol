@@ -1,5 +1,4 @@
-use anchor_lang::prelude::*;
-use anchor_lang::system_program;
+use anchor_lang::{prelude::*, system_program};
 use anchor_spl::token;
 
 use crate::{
@@ -8,8 +7,8 @@ use crate::{
     ErrorCode,
 };
 
-/// The user can use their deposit as collateral and mint omniSOL.
-/// They can now withdraw this omniSOL and do whatever they want with it e.g. sell it, participate in DeFi, etc.
+/// The user can use their deposit as collateral.
+/// Caller provides some [amount] of lp-token-lamports that are to be delegated.
 pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
     if amount == 0 {
         return Err(ErrorCode::InsufficientAmount.into());
@@ -27,15 +26,17 @@ pub fn handle(ctx: Context<DepositLPTokens>, amount: u64) -> Result<()> {
         let fee = amount.saturating_div(1000).saturating_mul(pool.deposit_fee as u64);
         msg!("Transfer deposit fee: {} lamports", fee);
 
-        system_program::transfer(CpiContext::new(
-            ctx.accounts.system_program.to_account_info(),
-            system_program::Transfer {
-                from: ctx.accounts.fee_payer.to_account_info(),
-                to: ctx.accounts.fee_receiver.to_account_info(),
-            }
-        ),
-        fee,
-        ).map_err(|_| ErrorCode::InsufficientFunds)?;
+        system_program::transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                system_program::Transfer {
+                    from: ctx.accounts.fee_payer.to_account_info(),
+                    to: ctx.accounts.fee_receiver.to_account_info(),
+                },
+            ),
+            fee,
+        )
+        .map_err(|_| ErrorCode::InsufficientFunds)?;
     }
 
     // Transfer LP tokens to the pool

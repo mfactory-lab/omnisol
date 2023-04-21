@@ -2,6 +2,17 @@ import { web3 } from '@project-serum/anchor'
 import log from 'loglevel'
 import { useContext } from '../context'
 
+export async function showPools() {
+  const { client } = useContext()
+
+  const accounts = await client.findPools()
+  for (const account of accounts) {
+    log.info('--------------------------------------------------------------------------')
+    log.info(`Pool address: ${account.publicKey}`)
+  }
+  log.info('--------------------------------------------------------------------------')
+}
+
 export async function showPool(address: string) {
   const { client, cluster } = useContext()
 
@@ -17,8 +28,20 @@ export async function showPool(address: string) {
   log.info(`Deposit amount: ${pool.depositAmount}`)
   log.info(`Is active: ${pool.isActive}`)
   log.info(`Authority bump: ${pool.authorityBump}`)
-  const accounts = await client.findPoolCollaterals(new web3.PublicKey(address))
-  for (const account of accounts) {
+  log.info(`Deposit fee: ${pool.depositFee}`)
+  log.info(`Withdraw fee: ${pool.withdrawFee}`)
+  log.info(`Mint fee: ${pool.mintFee}`)
+  log.info(`Storage fee: ${pool.storageFee}`)
+  log.info(`Minimal deposit amount: ${pool.minDeposit}`)
+  log.info(`Fee receiver: ${pool.feeReceiver}`)
+  const managerAccounts = await client.findManagers()
+  for (const account of managerAccounts) {
+    log.info('--------------------------------------------------------------------------')
+    log.info(`Manager PDA: ${account.publicKey}`)
+    log.info(`Manager wallet: ${account.account.manager}`)
+  }
+  const collateralAccounts = await client.findPoolCollaterals(new web3.PublicKey(address))
+  for (const account of collateralAccounts) {
     log.info('--------------------------------------------------------------------------')
     log.info(`Collateral: ${account.publicKey}`)
     if (account.account.isNative) {
@@ -28,6 +51,19 @@ export async function showPool(address: string) {
     }
     log.info(`See all info: "pnpm cli -c ${cluster} collateral show ${account.publicKey}"`)
   }
+  log.info('--------------------------------------------------------------------------')
+}
+
+export async function showLiquidationFee() {
+  const { client } = useContext()
+
+  const [liquidationFeeKey] = await client.pda.liquidationFee()
+  const liquidationFee = await client.fetchLiquidationFee(liquidationFeeKey)
+
+  log.info('--------------------------------------------------------------------------')
+  log.info(`PDA address: ${liquidationFeeKey}`)
+  log.info(`Fee: ${liquidationFee.fee}`)
+  log.info(`Fee receiver: ${liquidationFee.feeReceiver}`)
   log.info('--------------------------------------------------------------------------')
 }
 
@@ -64,8 +100,8 @@ export async function showWhitelist(address: string) {
   log.info('--------------------------------------------------------------------------')
   log.info(`Whitelist pda: ${whitelistKey}`)
   log.info(`Pool: ${whitelist.pool}`)
-  log.info(`Token address: ${whitelist.whitelistedToken}`)
-  log.info(`Staking pool: ${whitelist.stakingPool}`)
+  log.info(`Token address: ${whitelist.mint}`)
+  log.info(`Staking pool program: ${whitelist.poolProgram}`)
   log.info('--------------------------------------------------------------------------')
 }
 
@@ -120,7 +156,11 @@ export async function showOracle() {
 
   log.info('--------------------------------------------------------------------------')
   log.info(`Oracle: ${oracle}`)
-  log.info(`\nPriority queue: \n${JSON.stringify(oracleData.priorityQueue, null, 2)}\n`)
+  log.info('\nPriority queue: \n')
+  for (let i = 0; i < oracleData.priorityQueue.length; i++) {
+    log.info(`Collateral: ${oracleData.priorityQueue[i].collateral}`)
+    log.info(`Value: ${oracleData.priorityQueue[i].amount}`)
+  }
   log.info('--------------------------------------------------------------------------')
 }
 
@@ -150,6 +190,7 @@ export async function showCollateral(collateralAddress: string) {
   }
   log.info(`Is native stake: ${collateral.isNative}`)
   log.info(`Created at: ${collateral.createdAt}`)
+  log.info(`Creation epoch: ${collateral.creationEpoch}`)
   log.info('--------------------------------------------------------------------------')
 }
 

@@ -5,6 +5,8 @@ use crate::{
     ErrorCode,
 };
 
+/// The oracle can update priority queue data.
+/// It does it by the special algorithm off-chain and save update by this instruction.
 pub fn handle(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>, clear: bool) -> Result<()> {
     let oracle = &mut ctx.accounts.oracle;
 
