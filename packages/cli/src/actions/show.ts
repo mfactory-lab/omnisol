@@ -12,7 +12,6 @@ export async function showPool(address: string) {
   log.info(`Pool: ${address}`)
   log.info(`Pool authority: ${poolAuthorityKey}`)
   log.info(`Pool mint: ${pool.poolMint}`)
-  log.info(`Oracle: ${pool.oracle}`)
   log.info(`Stake source: ${pool.stakeSource}`)
   log.info(`Authority: ${pool.authority}`)
   log.info(`Deposit amount: ${pool.depositAmount}`)
@@ -25,7 +24,7 @@ export async function showPool(address: string) {
     if (account.account.isNative) {
       log.info(`Delegated stake: ${account.account.delegatedStake}`)
     } else {
-      log.info(`LP token: ${account.account.sourceStake}`)
+      log.info(`LP token: ${account.account.stakeSource}`)
     }
     log.info(`See all info: "pnpm cli -c ${cluster} collateral show ${account.publicKey}"`)
   }
@@ -113,14 +112,15 @@ export async function showUsers() {
   log.info('--------------------------------------------------------------------------')
 }
 
-export async function showOracle(address: string) {
+export async function showOracle() {
   const { client } = useContext()
 
-  const oracle = await client.fetchOracle(address)
+  const [oracle] = await client.pda.oracle()
+  const oracleData = await client.fetchOracle(oracle)
 
   log.info('--------------------------------------------------------------------------')
-  log.info(`Oracle: ${address}`)
-  log.info(`\nPriority queue: \n${JSON.stringify(oracle.priorityQueue, null, 2)}\n`)
+  log.info(`Oracle: ${oracle}`)
+  log.info(`\nPriority queue: \n${JSON.stringify(oracleData.priorityQueue, null, 2)}\n`)
   log.info('--------------------------------------------------------------------------')
 }
 
@@ -144,7 +144,7 @@ export async function showCollateral(collateralAddress: string) {
   log.info(`Minted amount: ${collateral.amount}`)
   log.info(`Liquidated amount: ${collateral.liquidatedAmount}`)
   log.info(`Can be minted: ${rest_to_mint}`)
-  log.info(`Address of lp token or native stake account deposited: ${collateral.sourceStake}`)
+  log.info(`Address of lp token or native stake account deposited: ${collateral.stakeSource}`)
   if (collateral.isNative) {
     log.info(`Delegated stake account: ${collateral.delegatedStake}`)
   }
@@ -165,7 +165,7 @@ export async function showCollaterals() {
     if (account.account.isNative) {
       log.info(`Delegated stake: ${account.account.delegatedStake}`)
     } else {
-      log.info(`LP token: ${account.account.sourceStake}`)
+      log.info(`LP token: ${account.account.stakeSource}`)
     }
     log.info(`See all info: "pnpm cli -c ${cluster} collateral show ${account.publicKey}"`)
   }

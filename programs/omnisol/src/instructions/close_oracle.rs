@@ -10,14 +10,18 @@ pub fn handle(_ctx: Context<CloseOracle>) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct CloseOracle<'info> {
-    #[account(mut)]
+    #[account(
+        mut,
+        address = Pubkey::from_str(ADMIN).unwrap()
+    )]
     pub authority: Signer<'info>,
 
     #[account(
         mut,
-        constraint = authority.key() == Pubkey::from_str(ADMIN).unwrap(),
-        close = authority)
-    ]
+        seeds = [Oracle::SEED],
+        bump,
+        close = authority
+    )]
     pub oracle: Box<Account<'info, Oracle>>,
 
     pub system_program: Program<'info, System>,

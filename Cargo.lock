@@ -2010,6 +2010,7 @@ dependencies = [
  "log",
  "omnisol",
  "simplelog",
+ "spl-stake-pool",
 ]
 
 [[package]]

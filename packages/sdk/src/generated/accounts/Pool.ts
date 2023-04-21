@@ -17,11 +17,17 @@ import * as beetSolana from '@metaplex-foundation/beet-solana'
 export interface PoolArgs {
   poolMint: web3.PublicKey
   authority: web3.PublicKey
-  oracle: web3.PublicKey
   stakeSource: web3.PublicKey
   depositAmount: beet.bignum
+  collateralsAmount: beet.bignum
   authorityBump: number
   isActive: boolean
+  feeReceiver: web3.PublicKey
+  withdrawFee: number
+  mintFee: number
+  depositFee: number
+  storageFee: number
+  minDeposit: beet.bignum
 }
 
 export const poolDiscriminator = [241, 154, 109, 4, 17, 177, 109, 188]
@@ -36,11 +42,17 @@ export class Pool implements PoolArgs {
   private constructor(
     readonly poolMint: web3.PublicKey,
     readonly authority: web3.PublicKey,
-    readonly oracle: web3.PublicKey,
     readonly stakeSource: web3.PublicKey,
     readonly depositAmount: beet.bignum,
+    readonly collateralsAmount: beet.bignum,
     readonly authorityBump: number,
     readonly isActive: boolean,
+    readonly feeReceiver: web3.PublicKey,
+    readonly withdrawFee: number,
+    readonly mintFee: number,
+    readonly depositFee: number,
+    readonly storageFee: number,
+    readonly minDeposit: beet.bignum,
   ) {}
 
   /**
@@ -50,11 +62,17 @@ export class Pool implements PoolArgs {
     return new Pool(
       args.poolMint,
       args.authority,
-      args.oracle,
       args.stakeSource,
       args.depositAmount,
+      args.collateralsAmount,
       args.authorityBump,
       args.isActive,
+      args.feeReceiver,
+      args.withdrawFee,
+      args.mintFee,
+      args.depositFee,
+      args.storageFee,
+      args.minDeposit,
     )
   }
 
@@ -163,7 +181,6 @@ export class Pool implements PoolArgs {
     return {
       poolMint: this.poolMint.toBase58(),
       authority: this.authority.toBase58(),
-      oracle: this.oracle.toBase58(),
       stakeSource: this.stakeSource.toBase58(),
       depositAmount: (() => {
         const x = <{ toNumber: () => number }> this.depositAmount
@@ -176,8 +193,35 @@ export class Pool implements PoolArgs {
         }
         return x
       })(),
+      collateralsAmount: (() => {
+        const x = <{ toNumber: () => number }> this.collateralsAmount
+        if (typeof x.toNumber === 'function') {
+          try {
+            return x.toNumber()
+          } catch (_) {
+            return x
+          }
+        }
+        return x
+      })(),
       authorityBump: this.authorityBump,
       isActive: this.isActive,
+      feeReceiver: this.feeReceiver.toBase58(),
+      withdrawFee: this.withdrawFee,
+      mintFee: this.mintFee,
+      depositFee: this.depositFee,
+      storageFee: this.storageFee,
+      minDeposit: (() => {
+        const x = <{ toNumber: () => number }> this.minDeposit
+        if (typeof x.toNumber === 'function') {
+          try {
+            return x.toNumber()
+          } catch (_) {
+            return x
+          }
+        }
+        return x
+      })(),
     }
   }
 }
@@ -196,11 +240,17 @@ export const poolBeet = new beet.BeetStruct<
     ['accountDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
     ['poolMint', beetSolana.publicKey],
     ['authority', beetSolana.publicKey],
-    ['oracle', beetSolana.publicKey],
     ['stakeSource', beetSolana.publicKey],
     ['depositAmount', beet.u64],
+    ['collateralsAmount', beet.u64],
     ['authorityBump', beet.u8],
     ['isActive', beet.bool],
+    ['feeReceiver', beetSolana.publicKey],
+    ['withdrawFee', beet.u16],
+    ['mintFee', beet.u16],
+    ['depositFee', beet.u16],
+    ['storageFee', beet.u16],
+    ['minDeposit', beet.u64],
   ],
   Pool.fromArgs,
   'Pool',

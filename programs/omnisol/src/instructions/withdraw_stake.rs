@@ -1,4 +1,4 @@
-use anchor_lang::{prelude::*, solana_program::stake::state::StakeAuthorize};
+use anchor_lang::{prelude::*, solana_program::stake::state::StakeAuthorize, system_program};
 use anchor_spl::token;
 
 use crate::{
@@ -7,6 +7,7 @@ use crate::{
     utils::{self, stake},
     ErrorCode,
 };
+use crate::utils::fee::get_storage_fee;
 
 /// Withdraw a given amount of omniSOL (with an stake account).
 /// Caller provides some [amount] of omni-lamports that are to be burned in.
@@ -37,6 +38,21 @@ pub fn handle(ctx: Context<WithdrawStake>, amount: u64, with_burn: bool, with_me
     let pool_key = pool.key();
     let pool_authority_seeds = [pool_key.as_ref(), &[pool.authority_bump]];
     let clock = &ctx.accounts.clock;
+
+    if pool.withdraw_fee > 0 {
+        let fee = amount.saturating_div(1000).saturating_mul(pool.withdraw_fee as u64);
+        msg!("Transfer withdraw fee: {} lamports", fee);
+
+        system_program::transfer(CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            system_program::Transfer {
+                from: ctx.accounts.fee_payer.to_account_info(),
+                to: ctx.accounts.fee_receiver.to_account_info(),
+            }
+        ),
+        fee,
+        ).map_err(|_| ErrorCode::InsufficientFunds)?;
+    }
 
     let source_stake = if amount < rest_amount {
         stake::split(
@@ -139,6 +155,21 @@ pub fn handle(ctx: Context<WithdrawStake>, amount: u64, with_burn: bool, with_me
         collateral.amount -= burn_amount;
     }
 
+    if pool.storage_fee > 0 {
+        let fee = get_storage_fee(pool.storage_fee as u64, clock.epoch, collateral.creation_epoch, amount);
+        msg!("Transfer storage fee: {} lamports", fee);
+
+        system_program::transfer(CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            system_program::Transfer {
+                from: ctx.accounts.fee_payer.to_account_info(),
+                to: ctx.accounts.fee_receiver.to_account_info(),
+            }
+        ),
+        fee,
+        ).map_err(|_| ErrorCode::InsufficientFunds)?;
+    }
+
     collateral.delegation_stake -= amount;
     user.rate -= amount - burn_amount;
 
@@ -150,6 +181,8 @@ pub fn handle(ctx: Context<WithdrawStake>, amount: u64, with_burn: bool, with_me
     if collateral.delegation_stake == collateral.liquidated_amount && collateral.amount == collateral.delegation_stake {
         // close the collateral account
         utils::close(collateral.to_account_info(), ctx.accounts.authority.to_account_info())?;
+
+        pool.collaterals_amount = pool.collaterals_amount.saturating_sub(1);
     }
 
     emit!(WithdrawStakeEvent {
@@ -194,7 +227,7 @@ pub struct WithdrawStake<'info> {
     #[account(mut, address = pool.pool_mint)]
     pub pool_mint: AccountInfo<'info>,
 
-    #[account(mut, constraint = collateral.source_stake == source_stake.key())]
+    #[account(mut, constraint = collateral.stake_source == source_stake.key())]
     pub source_stake: Box<Account<'info, stake::StakeAccount>>,
 
     #[account(mut, constraint = collateral.delegated_stake == delegated_stake.key())]
@@ -217,6 +250,13 @@ pub struct WithdrawStake<'info> {
 
     #[account(mut)]
     pub authority: Signer<'info>,
+
+    #[account(mut)]
+    pub fee_payer: Signer<'info>,
+
+    /// CHECK: no needs to check, only for transfer
+    #[account(mut, address = pool.fee_receiver)]
+    pub fee_receiver: AccountInfo<'info>,
 
     pub clock: Sysvar<'info, Clock>,
     pub stake_history: Sysvar<'info, StakeHistory>,

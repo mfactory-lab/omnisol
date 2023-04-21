@@ -1,12 +1,9 @@
 use anchor_lang::{
     prelude::*,
-    solana_program::program::{invoke, invoke_signed},
+    solana_program::program::invoke_signed,
 };
 use anchor_spl::token;
-use spl_stake_pool::{
-    id,
-    instruction::{withdraw_sol, withdraw_stake},
-};
+use spl_stake_pool::instruction::{withdraw_sol, withdraw_stake};
 
 use crate::{
     events::*,
@@ -110,21 +107,27 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
             &[&pool_authority_seeds],
         ))?;
     } else {
-        if collateral.source_stake != ctx.accounts.source_stake.key() {
+        if collateral.stake_source != ctx.accounts.source_stake.key() {
             return Err(ErrorCode::InvalidToken.into());
         }
 
-        let stake_pool = ctx.remaining_accounts.get(0).expect("Expect #0 account");
-        let stake_pool_withdraw_authority = ctx.remaining_accounts.get(1).expect("Expect #1 account");
-        let reserve_stake_account = ctx.remaining_accounts.get(2).expect("Expect #2 account");
-        let manager_fee_account = ctx.remaining_accounts.get(3).expect("Expect #3 account");
+        let staking_pool_program = ctx.remaining_accounts.get(0).expect("Expect #0 account");
+        let stake_pool = ctx.remaining_accounts.get(1).expect("Expect #1 account");
+        let stake_pool_withdraw_authority = ctx.remaining_accounts.get(2).expect("Expect #2 account");
+        let reserve_stake_account = ctx.remaining_accounts.get(3).expect("Expect #3 account");
+        let manager_fee_account = ctx.remaining_accounts.get(4).expect("Expect #4 account");
+        let stake_history = ctx.remaining_accounts.get(5).expect("Expect #5 account");
+        let validator_list_storage = ctx.remaining_accounts.get(6).expect("Expect #6 account");
+        let stake_to_split = ctx.remaining_accounts.get(7).expect("Expect #7 account");
+        let stake_to_receive = ctx.remaining_accounts.get(8).expect("Expect #8 account");
+        let pool_token_account = ctx.remaining_accounts.get(9).expect("Expect #9 account");
 
         let ix = withdraw_sol(
-            &id(),
+            staking_pool_program.key,
             stake_pool.key,
             stake_pool_withdraw_authority.key,
             ctx.accounts.pool_authority.key,
-            ctx.accounts.pool_authority.key,
+            pool_token_account.key,
             reserve_stake_account.key,
             ctx.accounts.user_wallet.key,
             manager_fee_account.key,
@@ -137,7 +140,7 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
             stake_pool.to_account_info(),
             stake_pool_withdraw_authority.to_account_info(),
             ctx.accounts.pool_authority.to_account_info(),
-            ctx.accounts.pool_authority.to_account_info(),
+            pool_token_account.to_account_info(),
             reserve_stake_account.to_account_info(),
             ctx.accounts.user_wallet.to_account_info(),
             manager_fee_account.to_account_info(),
@@ -149,14 +152,9 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
         ];
 
         if let Err(_) = invoke_signed(&ix, &account_infos, &[&pool_authority_seeds]) {
-            let stake_history = ctx.remaining_accounts.get(4).expect("Expect #4 account");
-            let validator_list_storage = ctx.remaining_accounts.get(5).expect("Expect #5 account");
-            let stake_to_split = ctx.remaining_accounts.get(6).expect("Expect #6 account");
-            let stake_to_receive = ctx.remaining_accounts.get(7).expect("Expect #7 account");
-            let pool_token_account = ctx.remaining_accounts.get(8).expect("Expect #8 account");
 
             let ix = withdraw_stake(
-                &id(),
+                staking_pool_program.key,
                 stake_pool.key,
                 validator_list_storage.key,
                 stake_pool_withdraw_authority.key,
@@ -235,6 +233,8 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
             collateral.to_account_info(),
             ctx.accounts.collateral_owner_wallet.to_account_info(),
         )?;
+
+        pool.collaterals_amount = pool.collaterals_amount.saturating_sub(1);
     }
 
     emit!(LiquidationEvent {
@@ -295,14 +295,18 @@ pub struct LiquidateCollateral<'info> {
         mut,
         seeds = [
             WithdrawInfo::SEED,
-            authority.key().as_ref(),
+            user_wallet.key().as_ref(),
             user.get_index().to_le_bytes().as_ref(),
         ],
         bump,
     )]
     pub withdraw_info: Box<Account<'info, WithdrawInfo>>,
 
-    #[account(mut, address = pool.oracle)]
+    #[account(
+        mut,
+        seeds = [Oracle::SEED],
+        bump,
+    )]
     pub oracle: Box<Account<'info, Oracle>>,
 
     /// CHECK: Address of lp token or stake account

@@ -2,12 +2,12 @@ import type { Address, BN, Program } from '@project-serum/anchor'
 import type { PublicKey } from '@solana/web3.js'
 import { SYSVAR_STAKE_HISTORY_PUBKEY, Transaction } from '@solana/web3.js'
 import { web3 } from '@project-serum/anchor'
-import type { Collateral, Liquidator, Manager, Oracle, Pool, User, Whitelist, WithdrawInfo } from './generated'
+import type { Collateral, LiquidationFee, Liquidator, Manager, Oracle, Pool, User, Whitelist, WithdrawInfo } from './generated'
 import {
   PROGRAM_ID,
   createAddLiquidatorInstruction,
   createAddManagerInstruction,
-  createAddToWhitelistInstruction,
+  createAddToTokenWhitelistInstruction,
   createBlockUserInstruction,
   createBurnOmnisolInstruction,
   createCloseOracleInstruction,
@@ -23,8 +23,12 @@ import {
   createRemoveLiquidatorInstruction,
   createRemoveManagerInstruction,
   createResumePoolInstruction,
+  createSetLiquidationFeeInstruction,
   createUnblockUserInstruction,
-  createUpdateOracleInfoInstruction, createWithdrawLpTokensInstruction, createWithdrawStakeInstruction,
+  createUpdateOracleInfoInstruction,
+  createUpdatePoolInstruction,
+  createWithdrawLpTokensInstruction,
+  createWithdrawSolInstruction, createWithdrawStakeInstruction,
 } from './generated'
 import { IDL } from './idl/omnisol'
 
@@ -33,6 +37,8 @@ const WHITELIST_SEED_PREFIX = 'whitelist'
 const USER_SEED_PREFIX = 'user'
 const MANAGER_SEED_PREFIX = 'manager'
 const LIQUIDATOR_SEED_PREFIX = 'liquidator'
+const ORACLE_SEED_PREFIX = 'oracle'
+const LIQUIDATION_FEE_SEED_PREFIX = 'liquidation_fee'
 const WITHDRAW_INFO_PREFIX = 'withdraw_info'
 const MINT_AUTHORITY_PREFIX = 'mint_authority'
 
@@ -41,6 +47,7 @@ export class OmnisolClient {
   static IDL = IDL
   static clock = web3.SYSVAR_CLOCK_PUBKEY
   static stakeProgram = web3.StakeProgram.programId
+  static stakingPoolProgram = new web3.PublicKey('SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy')
 
   constructor(private readonly props: OmnisolClientProps) {}
 
@@ -78,6 +85,10 @@ export class OmnisolClient {
 
   async fetchOracle(address: Address) {
     return await this.program.account.oracle.fetchNullable(address) as unknown as Oracle
+  }
+
+  async fetchLiquidationFee(address: Address) {
+    return await this.program.account.liquidationFee.fetchNullable(address) as unknown as LiquidationFee
   }
 
   async fetchLiquidator(address: Address) {
@@ -127,11 +138,14 @@ export class OmnisolClient {
     const stakeSource = props.stakeSource
     const [poolAuthority, bump] = await this.pda.poolAuthority(pool)
     const [mintAuthority] = await this.pda.mintAuthority()
+    const [manager] = await this.pda.manager(payer)
+    const feeReceiver = props.feeReceiver ?? poolAuthority
     const ix = createInitPoolInstruction(
       {
+        manager,
+        feeReceiver,
         authority: payer,
         mintAuthority,
-        oracle: props.oracle,
         pool,
         poolAuthority,
         poolMint: props.mint,
@@ -233,18 +247,18 @@ export class OmnisolClient {
     }
   }
 
-  async addToWhitelist(props: AddToWhitelistProps) {
+  async addToTokenWhitelist(props: AddToTokenWhitelistProps) {
     const payer = this.wallet.publicKey
     const [whitelist] = await this.pda.whitelist(props.token)
     const [manager] = await this.pda.manager(payer)
-    const instruction = createAddToWhitelistInstruction(
+    const instruction = createAddToTokenWhitelistInstruction(
       {
         addressToWhitelist: props.token,
         authority: payer,
         manager,
         whitelist,
         pool: props.tokenPool,
-        stakingPool: props.stakePool,
+        poolProgram: props.poolProgram,
       },
     )
     const tx = new Transaction().add(instruction)
@@ -265,6 +279,79 @@ export class OmnisolClient {
         authority: payer,
         manager,
         whitelist,
+      },
+    )
+    const tx = new Transaction().add(instruction)
+
+    return {
+      tx,
+    }
+  }
+
+  async updatePool(props: UpdatePoolProps) {
+    const payer = this.wallet.publicKey
+    const [manager] = await this.pda.manager(payer)
+    const instruction = createUpdatePoolInstruction(
+      {
+        pool: props.pool,
+        authority: payer,
+        manager,
+      },
+      {
+        data: {
+          minDeposit: props.minDeposit ?? null,
+          depositFee: props.depositFee ?? null,
+          feeReceiver: props.feeReceiver ?? null,
+          mintFee: props.mintFee ?? null,
+          storageFee: props.storageFee ?? null,
+          withdrawFee: props.withdrawFee ?? null,
+        },
+      },
+    )
+    const tx = new Transaction().add(instruction)
+
+    return {
+      tx,
+    }
+  }
+
+  async setLiquidationFee(props: SetLiquidationFeeProps) {
+    const payer = this.wallet.publicKey
+    const [manager] = await this.pda.manager(payer)
+    const [liquidationFee] = await this.pda.liquidationFee()
+    const instruction = createSetLiquidationFeeInstruction(
+      {
+        liquidationFee,
+        authority: payer,
+        manager,
+      },
+      {
+        feeReceiver: props.feeReceiver ?? null,
+        fee: props.fee ?? null,
+      },
+    )
+    const tx = new Transaction().add(instruction)
+
+    return {
+      tx,
+      liquidationFee,
+    }
+  }
+
+  async withdrawSol(props: WithdrawPoolFeeProps) {
+    const payer = this.wallet.publicKey
+    const [manager] = await this.pda.manager(payer)
+    const [poolAuthority] = await this.pda.poolAuthority(props.pool)
+    const instruction = createWithdrawSolInstruction(
+      {
+        destination: props.destination,
+        pool: props.pool,
+        authority: payer,
+        manager,
+        poolAuthority,
+      },
+      {
+        amount: props.amount,
       },
     )
     const tx = new Transaction().add(instruction)
@@ -320,8 +407,12 @@ export class OmnisolClient {
     const [user] = await this.pda.user(payer)
     const [whitelist] = await this.pda.whitelist(props.lpToken)
     const [collateral, bump] = await this.pda.collateral(props.lpToken, user)
+    const feePayer = props.feePayer ?? payer
+    const poolData = await this.fetchGlobalPool(props.pool)
     const instruction = createDepositLpInstruction(
       {
+        feeReceiver: poolData.feeReceiver,
+        feePayer,
         authority: payer,
         clock: OmnisolClient.clock,
         collateral,
@@ -352,8 +443,12 @@ export class OmnisolClient {
     const [poolAuthority] = await this.pda.poolAuthority(props.pool)
     const [user] = await this.pda.user(payer)
     const [collateral, bump] = await this.pda.collateral(props.delegatedStake, user)
+    const feePayer = props.feePayer ?? payer
+    const poolData = await this.fetchGlobalPool(props.pool)
     const instruction = createDepositStakeInstruction(
       {
+        feeReceiver: poolData.feeReceiver,
+        feePayer,
         delegatedStake: props.delegatedStake,
         authority: payer,
         clock: OmnisolClient.clock,
@@ -384,8 +479,14 @@ export class OmnisolClient {
     const [mintAuthority] = await this.pda.mintAuthority()
     const [user] = await this.pda.user(payer)
     const [collateral] = await this.pda.collateral(props.stakedAddress, user)
+    const [poolAuthority] = await this.pda.poolAuthority(props.pool)
+    const feePayer = props.feePayer ?? payer
+    const poolData = await this.fetchGlobalPool(props.pool)
     const instruction = createMintOmnisolInstruction(
       {
+        feeReceiver: poolData.feeReceiver,
+        poolAuthority,
+        feePayer,
         mintAuthority,
         authority: payer,
         clock: OmnisolClient.clock,
@@ -414,8 +515,12 @@ export class OmnisolClient {
     const [poolAuthority] = await this.pda.poolAuthority(props.pool)
     const [user] = await this.pda.user(payer)
     const [collateral] = await this.pda.collateral(props.lpToken, user)
+    const feePayer = props.feePayer ?? payer
+    const poolData = await this.fetchGlobalPool(props.pool)
     const instruction = createWithdrawLpTokensInstruction(
       {
+        feeReceiver: poolData.feeReceiver,
+        feePayer,
         destination: props.destination,
         source: props.source,
         authority: payer,
@@ -450,8 +555,12 @@ export class OmnisolClient {
     const stakeProgram = props.stakeProgram ?? web3.StakeProgram.programId
     const stakeHistory = props.stakeHistory ?? web3.SYSVAR_STAKE_HISTORY_PUBKEY
     const mergableStake = props.mergableStake ?? props.stakeAccount
+    const feePayer = props.feePayer ?? payer
+    const poolData = await this.fetchGlobalPool(props.pool)
     const instruction = createWithdrawStakeInstruction(
       {
+        feeReceiver: poolData.feeReceiver,
+        feePayer,
         mergableStake,
         stakeHistory,
         authority: payer,
@@ -484,11 +593,12 @@ export class OmnisolClient {
 
   async initOracle(props: InitOracleProps) {
     const payer = this.wallet.publicKey
+    const [oracle] = await this.pda.oracle()
 
     const ix = createInitOracleInstruction(
       {
         authority: payer,
-        oracle: props.oracle,
+        oracle,
         oracleAuthority: props.oracleAuthority,
       },
     )
@@ -496,15 +606,18 @@ export class OmnisolClient {
 
     return {
       tx,
+      oracle,
     }
   }
 
-  async closeOracle(props: CloseOracleProps) {
+  async closeOracle() {
     const payer = this.wallet.publicKey
+    const [oracle] = await this.pda.oracle()
+
     const ix = createCloseOracleInstruction(
       {
         authority: payer,
-        oracle: props.oracle,
+        oracle,
       },
     )
     const tx = new Transaction().add(ix)
@@ -558,20 +671,24 @@ export class OmnisolClient {
 
   async updateOracleInfo(props: UpdateOracleInfoProps) {
     const payer = this.wallet.publicKey
+    const [oracle] = await this.pda.oracle()
+
     const ix = createUpdateOracleInfoInstruction(
       {
         authority: payer,
-        oracle: props.oracle,
+        oracle,
       },
       {
         addresses: props.addresses,
         values: props.values,
+        clear: props.clear,
       },
     )
     const tx = new Transaction().add(ix)
 
     return {
       tx,
+      oracle,
     }
   }
 
@@ -581,8 +698,13 @@ export class OmnisolClient {
     const userData = await this.fetchUser(user)
     const withdrawIndex = userData.lastWithdrawIndex === undefined ? 0 : userData.lastWithdrawIndex
     const [withdrawInfo] = await this.pda.withdrawInfo(payer, withdrawIndex + 1)
+    const [liquidationFee] = await this.pda.liquidationFee()
+    const liquidationFeeData = await this.fetchLiquidationFee(liquidationFee)
     const ix = createBurnOmnisolInstruction(
       {
+        feePayer: props.feePayer ?? payer,
+        feeReceiver: liquidationFeeData.feeReceiver,
+        liquidationFee,
         authority: payer,
         clock: OmnisolClient.clock,
         pool: props.pool,
@@ -615,6 +737,7 @@ export class OmnisolClient {
     const [collateral] = await this.pda.collateral(props.sourceStake, collateralOwner)
     const [poolAuthority] = await this.pda.poolAuthority(pool)
     const [liquidator] = await this.pda.liquidator(payer)
+    const [oracle] = await this.pda.oracle()
 
     const userData = await this.fetchUser(user)
     const withdrawIndex = userData.lastWithdrawIndex - userData.requestsAmount + 1
@@ -641,6 +764,11 @@ export class OmnisolClient {
       const poolTokenAccount = props.poolTokenAccount ?? web3.Keypair.generate().publicKey
 
       anchorRemainingAccounts = [
+        {
+          pubkey: OmnisolClient.stakingPoolProgram,
+          isWritable: false,
+          isSigner: false,
+        },
         {
           pubkey: stakePool,
           isWritable: true,
@@ -697,7 +825,7 @@ export class OmnisolClient {
         collateralOwnerWallet,
         feeAccount: props.feeAccount,
         liquidator,
-        oracle: props.oracle,
+        oracle,
         pool,
         poolAccount: props.poolAccount,
         poolAuthority,
@@ -764,10 +892,18 @@ class OmnisolPDA {
     new web3.PublicKey(wallet).toBuffer(),
   ])
 
+  oracle = () => this.pda([
+    Buffer.from(ORACLE_SEED_PREFIX),
+  ])
+
   withdrawInfo = (wallet: Address, index: number) => this.pda([
     Buffer.from(WITHDRAW_INFO_PREFIX),
     new web3.PublicKey(wallet).toBuffer(),
     toLeInt32Bytes(index),
+  ])
+
+  liquidationFee = () => this.pda([
+    Buffer.from(LIQUIDATION_FEE_SEED_PREFIX),
   ])
 
   private async pda(seeds: Array<Buffer | Uint8Array>) {
@@ -798,8 +934,8 @@ interface OmnisolClientProps {
 interface CreatePoolProps {
   pool: PublicKey
   mint: PublicKey
-  oracle: PublicKey
   stakeSource: PublicKey
+  feeReceiver?: PublicKey
 }
 
 interface ClosePoolProps {
@@ -814,9 +950,9 @@ interface ResumePoolProps {
   pool: PublicKey
 }
 
-interface AddToWhitelistProps {
+interface AddToTokenWhitelistProps {
   tokenPool: PublicKey
-  stakePool: PublicKey
+  poolProgram: PublicKey
   token: PublicKey
 }
 
@@ -837,6 +973,7 @@ interface DepositLPTokenProps {
   lpToken: PublicKey
   source: PublicKey
   destination: PublicKey
+  feePayer?: PublicKey
   amount: BN
 }
 
@@ -845,6 +982,7 @@ interface DepositStakeProps {
   sourceStake: PublicKey
   splitStake: PublicKey
   delegatedStake: PublicKey
+  feePayer?: PublicKey
   amount: BN
 }
 
@@ -853,6 +991,7 @@ interface MintOmnisolProps {
   poolMint: PublicKey
   userPoolToken: PublicKey
   stakedAddress: PublicKey
+  feePayer?: PublicKey
   amount: BN
 }
 
@@ -873,6 +1012,7 @@ interface WithdrawLPProps {
   destination: PublicKey
   amount: BN
   withBurn: boolean
+  feePayer?: PublicKey
 }
 
 interface WithdrawStakeProps {
@@ -888,15 +1028,11 @@ interface WithdrawStakeProps {
   amount: BN
   withBurn: boolean
   withMerge: boolean
+  feePayer?: PublicKey
 }
 
 interface InitOracleProps {
-  oracle: PublicKey
   oracleAuthority: PublicKey
-}
-
-interface CloseOracleProps {
-  oracle: PublicKey
 }
 
 interface AddLiquidatorProps {
@@ -908,9 +1044,9 @@ interface RemoveLiquidatorProps {
 }
 
 interface UpdateOracleInfoProps {
-  oracle: PublicKey
   addresses: PublicKey[]
   values: BN[]
+  clear: boolean
 }
 
 interface BurnOmnisolProps {
@@ -918,6 +1054,7 @@ interface BurnOmnisolProps {
   poolMint: PublicKey
   sourceTokenAccount: PublicKey
   amount: BN
+  feePayer?: PublicKey
 }
 
 interface LiquidateCollateralProps {
@@ -925,7 +1062,6 @@ interface LiquidateCollateralProps {
   sourceStake: PublicKey
   collateralOwnerWallet: PublicKey
   userWallet: PublicKey
-  oracle: PublicKey
   poolAccount: PublicKey
   solReserves: PublicKey
   protocolFee: PublicKey
@@ -941,5 +1077,26 @@ interface LiquidateCollateralProps {
   validatorListStorage?: PublicKey
   stakeToSplit?: PublicKey
   poolTokenAccount?: PublicKey
+  amount: BN
+}
+
+interface UpdatePoolProps {
+  pool: PublicKey
+  feeReceiver?: PublicKey
+  withdrawFee?: number
+  depositFee?: number
+  mintFee?: number
+  storageFee?: number
+  minDeposit?: BN
+}
+
+interface SetLiquidationFeeProps {
+  feeReceiver?: PublicKey
+  fee?: number
+}
+
+interface WithdrawPoolFeeProps {
+  pool: PublicKey
+  destination: PublicKey
   amount: BN
 }

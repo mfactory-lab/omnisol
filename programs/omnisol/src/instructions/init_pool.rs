@@ -1,10 +1,12 @@
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL;
 use anchor_spl::token;
 
 use crate::{
-    state::{Oracle, Pool, MINT_AUTHORITY_SEED},
+    state::{Pool, MINT_AUTHORITY_SEED},
     ErrorCode,
 };
+use crate::state::Manager;
 
 pub fn handle(ctx: Context<InitPool>) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
@@ -18,9 +20,10 @@ pub fn handle(ctx: Context<InitPool>) -> Result<()> {
 
     pool.authority = ctx.accounts.authority.key();
     pool.pool_mint = ctx.accounts.pool_mint.key();
-    pool.oracle = ctx.accounts.oracle.key();
     pool.stake_source = ctx.accounts.stake_source.key();
+    pool.fee_receiver = ctx.accounts.fee_receiver.key();
     pool.authority_bump = ctx.bumps["pool_authority"];
+    pool.min_deposit = LAMPORTS_PER_SOL / 2;
     pool.deposit_amount = 0;
     pool.is_active = true;
 
@@ -31,9 +34,6 @@ pub fn handle(ctx: Context<InitPool>) -> Result<()> {
 pub struct InitPool<'info> {
     #[account(init, payer = authority, space = Pool::SIZE)]
     pub pool: Box<Account<'info, Pool>>,
-
-    #[account(mut)]
-    pub oracle: Box<Account<'info, Oracle>>,
 
     #[account(mut)]
     pub pool_mint: Account<'info, token::Mint>,
@@ -49,8 +49,14 @@ pub struct InitPool<'info> {
     /// CHECK: Address of LP token or native stake program
     pub stake_source: AccountInfo<'info>,
 
+    #[account(mut, seeds = [Manager::SEED, authority.key().as_ref()], bump)]
+    pub manager: Box<Account<'info, Manager>>,
+
     #[account(mut)]
     pub authority: Signer<'info>,
+
+    /// CHECK: Address of wallet that will receive fee
+    pub fee_receiver: AccountInfo<'info>,
 
     pub system_program: Program<'info, System>,
 }

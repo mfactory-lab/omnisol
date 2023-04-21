@@ -42,6 +42,9 @@ export const burnOmnisolStruct = new beet.BeetArgsStruct<
  * @property [_writable_, **signer**] authority
  * @property [_writable_] user
  * @property [_writable_] withdrawInfo
+ * @property [_writable_] liquidationFee
+ * @property [_writable_, **signer**] feePayer
+ * @property [_writable_] feeReceiver
  * @property [] clock
  * @category Instructions
  * @category BurnOmnisol
@@ -54,6 +57,9 @@ export interface BurnOmnisolInstructionAccounts {
   authority: web3.PublicKey
   user: web3.PublicKey
   withdrawInfo: web3.PublicKey
+  liquidationFee: web3.PublicKey
+  feePayer: web3.PublicKey
+  feeReceiver: web3.PublicKey
   clock: web3.PublicKey
   tokenProgram?: web3.PublicKey
   systemProgram?: web3.PublicKey
@@ -111,6 +117,21 @@ export function createBurnOmnisolInstruction(
     },
     {
       pubkey: accounts.withdrawInfo,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.liquidationFee,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.feePayer,
+      isWritable: true,
+      isSigner: true,
+    },
+    {
+      pubkey: accounts.feeReceiver,
       isWritable: true,
       isSigner: false,
     },

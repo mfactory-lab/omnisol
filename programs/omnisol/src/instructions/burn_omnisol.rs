@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use anchor_lang::system_program;
 use anchor_spl::token::{self, Token, TokenAccount};
 
 use crate::{
@@ -6,6 +7,7 @@ use crate::{
     state::{Pool, User, WithdrawInfo},
     ErrorCode,
 };
+use crate::state::LiquidationFee;
 
 /// Withdraw a given amount of omniSOL (without an account).
 /// Caller provides some [amount] of omni-lamports that are to be burned in
@@ -32,6 +34,23 @@ pub fn handle(ctx: Context<BurnOmnisol>, amount: u64) -> Result<()> {
 
     if user.is_blocked {
         return Err(ErrorCode::UserBlocked.into());
+    }
+
+    let liquidation_fee = &mut ctx.accounts.liquidation_fee;
+
+    if liquidation_fee.fee > 0 {
+        let fee = amount.saturating_div(1000).saturating_mul(liquidation_fee.fee as u64);
+        msg!("Transfer liquidation fee: {} lamports", fee);
+
+        system_program::transfer(CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            system_program::Transfer {
+                from: ctx.accounts.fee_payer.to_account_info(),
+                to: ctx.accounts.fee_receiver.to_account_info(),
+            }
+        ),
+        fee,
+        ).map_err(|_| ErrorCode::InsufficientFunds)?;
     }
 
     user.last_withdraw_index += 1;
@@ -105,6 +124,20 @@ pub struct BurnOmnisol<'info> {
         space = WithdrawInfo::SIZE
     )]
     pub withdraw_info: Box<Account<'info, WithdrawInfo>>,
+
+    #[account(
+        mut,
+        seeds = [LiquidationFee::SEED],
+        bump,
+    )]
+    pub liquidation_fee: Box<Account<'info, LiquidationFee>>,
+
+    #[account(mut)]
+    pub fee_payer: Signer<'info>,
+
+    /// CHECK: no needs to check, only for transfer
+    #[account(mut, address = liquidation_fee.fee_receiver)]
+    pub fee_receiver: AccountInfo<'info>,
 
     pub clock: Sysvar<'info, Clock>,
     pub token_program: Program<'info, Token>,

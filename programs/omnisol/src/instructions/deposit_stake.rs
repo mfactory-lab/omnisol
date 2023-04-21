@@ -1,4 +1,4 @@
-use anchor_lang::{prelude::*, solana_program::stake::state::StakeAuthorize};
+use anchor_lang::{prelude::*, solana_program::stake::state::StakeAuthorize, system_program};
 
 use crate::{
     events::*,
@@ -32,6 +32,21 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
         || (amount != delegation.stake && ctx.accounts.delegated_stake.key() == ctx.accounts.source_stake.key())
     {
         return Err(ErrorCode::InvalidStakeAccount.into());
+    }
+
+    if pool.deposit_fee > 0 {
+        let fee = amount.saturating_div(1000).saturating_mul(pool.deposit_fee as u64);
+        msg!("Transfer deposit fee: {} lamports", fee);
+
+        system_program::transfer(CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            system_program::Transfer {
+                from: ctx.accounts.fee_payer.to_account_info(),
+                to: ctx.accounts.fee_receiver.to_account_info(),
+            }
+        ),
+        fee,
+        ).map_err(|_| ErrorCode::InsufficientFunds)?;
     }
 
     let pool_key = pool.key();
@@ -108,16 +123,18 @@ pub fn handle(ctx: Context<DepositStake>, amount: u64) -> Result<()> {
 
     collateral.user = ctx.accounts.user.key();
     collateral.pool = pool_key;
-    collateral.source_stake = ctx.accounts.source_stake.key();
+    collateral.stake_source = ctx.accounts.source_stake.key();
     collateral.delegated_stake = stake_account.key();
     collateral.delegation_stake = amount;
     collateral.amount = 0;
     collateral.liquidated_amount = 0;
     collateral.created_at = clock.unix_timestamp;
+    collateral.creation_epoch = clock.epoch;
     collateral.bump = ctx.bumps["collateral"];
     collateral.is_native = true;
 
     pool.deposit_amount = pool.deposit_amount.saturating_add(amount);
+    pool.collaterals_amount = pool.collaterals_amount.saturating_add(1);
 
     emit!(DepositStakeEvent {
         pool: pool.key(),
@@ -149,7 +166,7 @@ pub struct DepositStake<'info> {
     pub user: Box<Account<'info, User>>,
 
     #[account(
-        init_if_needed,
+        init,
         seeds = [Collateral::SEED, user.key().as_ref(), delegated_stake.key().as_ref()],
         bump,
         payer = authority,
@@ -170,6 +187,13 @@ pub struct DepositStake<'info> {
 
     #[account(mut)]
     pub authority: Signer<'info>,
+
+    #[account(mut)]
+    pub fee_payer: Signer<'info>,
+
+    /// CHECK: no needs to check, only for transfer
+    #[account(mut, address = pool.fee_receiver)]
+    pub fee_receiver: AccountInfo<'info>,
 
     pub clock: Sysvar<'info, Clock>,
     pub stake_program: Program<'info, stake::Stake>,

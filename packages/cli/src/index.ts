@@ -33,7 +33,6 @@ const pool = cli.command('pool')
 pool.command('create')
   .description('Create new pool')
   .requiredOption('-m, --mint <MINT>', 'Omnisol mint address')
-  .requiredOption('-o, --oracle <ORACLE>', 'Oracle address')
   .requiredOption('-s, --stake-source <STAKE_SOURCE>', 'Address of LP token or native stake program')
   .action(actions.createPool)
 
@@ -164,19 +163,10 @@ oracle.command('init')
 
 oracle.command('close')
   .description('Close oracle')
-  .requiredOption('-o, --oracle <ORACLE>', 'Address of oracle pda to close')
   .action(actions.closeOracle)
-
-oracle.command('update')
-  .description('Update oracle')
-  .requiredOption('-o, --oracle <ORACLE>', 'Address of oracle pda')
-  .requiredOption('-a, --addresses <ADDRESSES>', 'Addresses of collaterals in priority queue (separated by comma)')
-  .requiredOption('-v, --values <VALUES>', 'Values of liquidation amounts of collaterals (separated by comma)')
-  .action(actions.updateOracleInfo)
 
 oracle.command('show')
   .description('Show oracle info')
-  .argument('<ADDRESS>', 'Oracle address')
   .action(actions.showOracle)
 
 // -------------------------------------------------------

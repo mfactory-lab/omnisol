@@ -11,8 +11,8 @@ interface Opts {
 export async function addToWhitelist(opts: Opts) {
   const { provider, client } = useContext()
 
-  const { tx } = await client.addToWhitelist({
-    stakePool: new web3.PublicKey(opts.stakePool),
+  const { tx } = await client.addToTokenWhitelist({
+    poolProgram: new web3.PublicKey(opts.stakePool),
     token: new web3.PublicKey(opts.mint),
     tokenPool: new web3.PublicKey(opts.tokenPool),
   })

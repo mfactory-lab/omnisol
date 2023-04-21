@@ -5,87 +5,92 @@
  * See: https://github.com/metaplex-foundation/solita
  */
 
-import * as web3 from '@solana/web3.js'
 import * as beet from '@metaplex-foundation/beet'
+import * as web3 from '@solana/web3.js'
 import * as beetSolana from '@metaplex-foundation/beet-solana'
 
 /**
  * @category Instructions
- * @category UpdateOracleInfo
+ * @category SetLiquidationFee
  * @category generated
  */
-export interface UpdateOracleInfoInstructionArgs {
-  addresses: web3.PublicKey[]
-  values: beet.bignum[]
-  clear: boolean
+export interface SetLiquidationFeeInstructionArgs {
+  fee: beet.COption<number>
+  feeReceiver: beet.COption<web3.PublicKey>
 }
 /**
  * @category Instructions
- * @category UpdateOracleInfo
+ * @category SetLiquidationFee
  * @category generated
  */
-export const updateOracleInfoStruct = new beet.FixableBeetArgsStruct<
-  UpdateOracleInfoInstructionArgs & {
+export const setLiquidationFeeStruct = new beet.FixableBeetArgsStruct<
+  SetLiquidationFeeInstructionArgs & {
     instructionDiscriminator: number[] /* size: 8 */
   }
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['addresses', beet.array(beetSolana.publicKey)],
-    ['values', beet.array(beet.u64)],
-    ['clear', beet.bool],
+    ['fee', beet.coption(beet.u16)],
+    ['feeReceiver', beet.coption(beetSolana.publicKey)],
   ],
-  'UpdateOracleInfoInstructionArgs',
+  'SetLiquidationFeeInstructionArgs',
 )
 /**
- * Accounts required by the _updateOracleInfo_ instruction
+ * Accounts required by the _setLiquidationFee_ instruction
  *
+ * @property [_writable_] liquidationFee
+ * @property [_writable_] manager
  * @property [_writable_, **signer**] authority
- * @property [_writable_] oracle
  * @category Instructions
- * @category UpdateOracleInfo
+ * @category SetLiquidationFee
  * @category generated
  */
-export interface UpdateOracleInfoInstructionAccounts {
+export interface SetLiquidationFeeInstructionAccounts {
+  liquidationFee: web3.PublicKey
+  manager: web3.PublicKey
   authority: web3.PublicKey
-  oracle: web3.PublicKey
   systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
-export const updateOracleInfoInstructionDiscriminator = [
-  164, 24, 241, 250, 136, 128, 30, 227,
+export const setLiquidationFeeInstructionDiscriminator = [
+  23, 215, 203, 90, 133, 247, 235, 183,
 ]
 
 /**
- * Creates a _UpdateOracleInfo_ instruction.
+ * Creates a _SetLiquidationFee_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
  * @param args to provide as instruction data to the program
  *
  * @category Instructions
- * @category UpdateOracleInfo
+ * @category SetLiquidationFee
  * @category generated
  */
-export function createUpdateOracleInfoInstruction(
-  accounts: UpdateOracleInfoInstructionAccounts,
-  args: UpdateOracleInfoInstructionArgs,
+export function createSetLiquidationFeeInstruction(
+  accounts: SetLiquidationFeeInstructionAccounts,
+  args: SetLiquidationFeeInstructionArgs,
   programId = new web3.PublicKey('6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7'),
 ) {
-  const [data] = updateOracleInfoStruct.serialize({
-    instructionDiscriminator: updateOracleInfoInstructionDiscriminator,
+  const [data] = setLiquidationFeeStruct.serialize({
+    instructionDiscriminator: setLiquidationFeeInstructionDiscriminator,
     ...args,
   })
   const keys: web3.AccountMeta[] = [
     {
+      pubkey: accounts.liquidationFee,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.manager,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
       pubkey: accounts.authority,
       isWritable: true,
       isSigner: true,
-    },
-    {
-      pubkey: accounts.oracle,
-      isWritable: true,
-      isSigner: false,
     },
     {
       pubkey: accounts.systemProgram ?? web3.SystemProgram.programId,

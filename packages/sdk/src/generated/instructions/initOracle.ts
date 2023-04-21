@@ -23,7 +23,7 @@ export const initOracleStruct = new beet.BeetArgsStruct<{
  * Accounts required by the _initOracle_ instruction
  *
  * @property [_writable_, **signer**] authority
- * @property [_writable_, **signer**] oracle
+ * @property [_writable_] oracle
  * @property [] oracleAuthority
  * @category Instructions
  * @category InitOracle
@@ -65,7 +65,7 @@ export function createInitOracleInstruction(
     {
       pubkey: accounts.oracle,
       isWritable: true,
-      isSigner: true,
+      isSigner: false,
     },
     {
       pubkey: accounts.oracleAuthority,

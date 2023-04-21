@@ -5,18 +5,18 @@ use crate::{
     ErrorCode,
 };
 
-pub fn handle(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>) -> Result<()> {
+pub fn handle(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>, clear: bool) -> Result<()> {
     let oracle = &mut ctx.accounts.oracle;
 
     if addresses.is_empty() || values.is_empty() || addresses.len() != values.len() {
         return Err(ErrorCode::WrongData.into());
     }
 
-    oracle.priority_queue = vec![];
+    if clear {
+        oracle.priority_queue = vec![];
+    }
 
-    for i in 0..addresses.len() {
-        let collateral = *addresses.get(i).unwrap();
-        let amount = *values.get(i).unwrap();
+    for (collateral, amount) in addresses.into_iter().zip(values.into_iter()) {
         let queue_member = QueueMember { collateral, amount };
         oracle.priority_queue.push(queue_member);
     }
@@ -29,7 +29,12 @@ pub struct UpdateOracleInfo<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 
-    #[account(mut, has_one = authority)]
+    #[account(
+        mut,
+        seeds = [Oracle::SEED],
+        bump,
+        has_one = authority
+    )]
     pub oracle: Box<Account<'info, Oracle>>,
 
     pub system_program: Program<'info, System>,

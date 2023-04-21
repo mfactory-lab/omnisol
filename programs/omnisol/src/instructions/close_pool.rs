@@ -1,8 +1,16 @@
 use anchor_lang::prelude::*;
 
-use crate::state::Pool;
+use crate::{
+    state::Pool,
+    ErrorCode,
+};
 
-pub fn handle(_ctx: Context<ClosePool>) -> Result<()> {
+pub fn handle(ctx: Context<ClosePool>) -> Result<()> {
+    if ctx.accounts.pool.collaterals_amount > 0 {
+        msg!("Please, wait until all collaterals will be closed");
+        return Err(ErrorCode::StillRemainingCollaterals.into());
+    }
+
     Ok(())
 }
 

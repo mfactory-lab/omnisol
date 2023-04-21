@@ -1,3 +1,5 @@
+#![feature(int_roundings)]
+
 pub mod events;
 pub mod instructions;
 pub mod state;
@@ -33,8 +35,8 @@ pub mod omnisol {
         resume_pool::handle(ctx)
     }
 
-    pub fn add_to_whitelist(ctx: Context<AddToWhitelist>) -> Result<()> {
-        add_to_whitelist::handle(ctx)
+    pub fn add_to_token_whitelist(ctx: Context<AddToTokenWhitelist>) -> Result<()> {
+        add_to_token_whitelist::handle(ctx)
     }
 
     pub fn remove_from_whitelist(ctx: Context<RemoveFromWhitelist>) -> Result<()> {
@@ -85,8 +87,8 @@ pub mod omnisol {
         close_oracle::handle(ctx)
     }
 
-    pub fn update_oracle_info(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>) -> Result<()> {
-        update_oracle_info::handle(ctx, addresses, values)
+    pub fn update_oracle_info(ctx: Context<UpdateOracleInfo>, addresses: Vec<Pubkey>, values: Vec<u64>, clear: bool) -> Result<()> {
+        update_oracle_info::handle(ctx, addresses, values, clear)
     }
 
     pub fn add_liquidator(ctx: Context<AddLiquidator>) -> Result<()> {
@@ -103,6 +105,21 @@ pub mod omnisol {
     ) -> Result<()> {
         liquidate_collateral::handle(ctx, amount)
     }
+
+    pub fn update_pool(
+        ctx: Context<UpdatePool>,
+        data: UpdatePoolData,
+    ) -> Result<()> {
+        update_pool::handle(ctx, data)
+    }
+
+    pub fn withdraw_sol(ctx: Context<WithdrawSol>, amount: u64) -> Result<()> {
+        withdraw_sol::handle(ctx, amount)
+    }
+
+    pub fn set_liquidation_fee(ctx: Context<SetLiquidationFee>, fee: Option<u16>, fee_receiver: Option<Pubkey>) -> Result<()> {
+        set_liquidation_fee::handle(ctx, fee, fee_receiver)
+    }
 }
 
 #[error_code]
@@ -111,10 +128,14 @@ pub enum ErrorCode {
     Unauthorized,
     #[msg("Invalid stake account")]
     InvalidStakeAccount,
+    #[msg("Pool still has remaining collaterals")]
+    StillRemainingCollaterals,
     #[msg("Invalid token")]
     InvalidToken,
     #[msg("Insufficient amount")]
     InsufficientAmount,
+    #[msg("Insufficient funds")]
+    InsufficientFunds,
     #[msg("Type overflow")]
     TypeOverflow,
     #[msg("Pool is already paused")]

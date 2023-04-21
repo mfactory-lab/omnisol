@@ -5,92 +5,90 @@
  * See: https://github.com/metaplex-foundation/solita
  */
 
-import * as web3 from '@solana/web3.js'
 import * as beet from '@metaplex-foundation/beet'
-import * as beetSolana from '@metaplex-foundation/beet-solana'
+import * as web3 from '@solana/web3.js'
+import type { UpdatePoolData } from '../types/UpdatePoolData'
+import { updatePoolDataBeet } from '../types/UpdatePoolData'
 
 /**
  * @category Instructions
- * @category UpdateOracleInfo
+ * @category UpdatePool
  * @category generated
  */
-export interface UpdateOracleInfoInstructionArgs {
-  addresses: web3.PublicKey[]
-  values: beet.bignum[]
-  clear: boolean
+export interface UpdatePoolInstructionArgs {
+  data: UpdatePoolData
 }
 /**
  * @category Instructions
- * @category UpdateOracleInfo
+ * @category UpdatePool
  * @category generated
  */
-export const updateOracleInfoStruct = new beet.FixableBeetArgsStruct<
-  UpdateOracleInfoInstructionArgs & {
+export const updatePoolStruct = new beet.FixableBeetArgsStruct<
+  UpdatePoolInstructionArgs & {
     instructionDiscriminator: number[] /* size: 8 */
   }
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['addresses', beet.array(beetSolana.publicKey)],
-    ['values', beet.array(beet.u64)],
-    ['clear', beet.bool],
+    ['data', updatePoolDataBeet],
   ],
-  'UpdateOracleInfoInstructionArgs',
+  'UpdatePoolInstructionArgs',
 )
 /**
- * Accounts required by the _updateOracleInfo_ instruction
+ * Accounts required by the _updatePool_ instruction
  *
+ * @property [_writable_] pool
+ * @property [_writable_] manager
  * @property [_writable_, **signer**] authority
- * @property [_writable_] oracle
  * @category Instructions
- * @category UpdateOracleInfo
+ * @category UpdatePool
  * @category generated
  */
-export interface UpdateOracleInfoInstructionAccounts {
+export interface UpdatePoolInstructionAccounts {
+  pool: web3.PublicKey
+  manager: web3.PublicKey
   authority: web3.PublicKey
-  oracle: web3.PublicKey
-  systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
-export const updateOracleInfoInstructionDiscriminator = [
-  164, 24, 241, 250, 136, 128, 30, 227,
+export const updatePoolInstructionDiscriminator = [
+  239, 214, 170, 78, 36, 35, 30, 34,
 ]
 
 /**
- * Creates a _UpdateOracleInfo_ instruction.
+ * Creates a _UpdatePool_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
  * @param args to provide as instruction data to the program
  *
  * @category Instructions
- * @category UpdateOracleInfo
+ * @category UpdatePool
  * @category generated
  */
-export function createUpdateOracleInfoInstruction(
-  accounts: UpdateOracleInfoInstructionAccounts,
-  args: UpdateOracleInfoInstructionArgs,
+export function createUpdatePoolInstruction(
+  accounts: UpdatePoolInstructionAccounts,
+  args: UpdatePoolInstructionArgs,
   programId = new web3.PublicKey('6sccaGNYx7RSjVgFD13UKE7dyUiNavr2KXgeqaQvZUz7'),
 ) {
-  const [data] = updateOracleInfoStruct.serialize({
-    instructionDiscriminator: updateOracleInfoInstructionDiscriminator,
+  const [data] = updatePoolStruct.serialize({
+    instructionDiscriminator: updatePoolInstructionDiscriminator,
     ...args,
   })
   const keys: web3.AccountMeta[] = [
     {
+      pubkey: accounts.pool,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.manager,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
       pubkey: accounts.authority,
       isWritable: true,
       isSigner: true,
-    },
-    {
-      pubkey: accounts.oracle,
-      isWritable: true,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.systemProgram ?? web3.SystemProgram.programId,
-      isWritable: false,
-      isSigner: false,
     },
   ]
 

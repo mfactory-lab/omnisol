@@ -17,12 +17,13 @@ import * as beetSolana from '@metaplex-foundation/beet-solana'
 export interface CollateralArgs {
   user: web3.PublicKey
   pool: web3.PublicKey
-  sourceStake: web3.PublicKey
+  stakeSource: web3.PublicKey
   delegatedStake: web3.PublicKey
   delegationStake: beet.bignum
   amount: beet.bignum
   liquidatedAmount: beet.bignum
   createdAt: beet.bignum
+  creationEpoch: beet.bignum
   bump: number
   isNative: boolean
 }
@@ -39,12 +40,13 @@ export class Collateral implements CollateralArgs {
   private constructor(
     readonly user: web3.PublicKey,
     readonly pool: web3.PublicKey,
-    readonly sourceStake: web3.PublicKey,
+    readonly stakeSource: web3.PublicKey,
     readonly delegatedStake: web3.PublicKey,
     readonly delegationStake: beet.bignum,
     readonly amount: beet.bignum,
     readonly liquidatedAmount: beet.bignum,
     readonly createdAt: beet.bignum,
+    readonly creationEpoch: beet.bignum,
     readonly bump: number,
     readonly isNative: boolean,
   ) {}
@@ -56,12 +58,13 @@ export class Collateral implements CollateralArgs {
     return new Collateral(
       args.user,
       args.pool,
-      args.sourceStake,
+      args.stakeSource,
       args.delegatedStake,
       args.delegationStake,
       args.amount,
       args.liquidatedAmount,
       args.createdAt,
+      args.creationEpoch,
       args.bump,
       args.isNative,
     )
@@ -172,7 +175,7 @@ export class Collateral implements CollateralArgs {
     return {
       user: this.user.toBase58(),
       pool: this.pool.toBase58(),
-      sourceStake: this.sourceStake.toBase58(),
+      stakeSource: this.stakeSource.toBase58(),
       delegatedStake: this.delegatedStake.toBase58(),
       delegationStake: (() => {
         const x = <{ toNumber: () => number }> this.delegationStake
@@ -218,6 +221,17 @@ export class Collateral implements CollateralArgs {
         }
         return x
       })(),
+      creationEpoch: (() => {
+        const x = <{ toNumber: () => number }> this.creationEpoch
+        if (typeof x.toNumber === 'function') {
+          try {
+            return x.toNumber()
+          } catch (_) {
+            return x
+          }
+        }
+        return x
+      })(),
       bump: this.bump,
       isNative: this.isNative,
     }
@@ -238,12 +252,13 @@ export const collateralBeet = new beet.BeetStruct<
     ['accountDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
     ['user', beetSolana.publicKey],
     ['pool', beetSolana.publicKey],
-    ['sourceStake', beetSolana.publicKey],
+    ['stakeSource', beetSolana.publicKey],
     ['delegatedStake', beetSolana.publicKey],
     ['delegationStake', beet.u64],
     ['amount', beet.u64],
     ['liquidatedAmount', beet.u64],
     ['createdAt', beet.i64],
+    ['creationEpoch', beet.u64],
     ['bump', beet.u8],
     ['isNative', beet.bool],
   ],
