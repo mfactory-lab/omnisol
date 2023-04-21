@@ -46,7 +46,7 @@ export async function withdrawStake(opts: Opts) {
     userPoolToken: userPoolToken.address,
     withBurn: opts.withBurn.includes('true'),
   })
-  transaction.add(web3.ComputeBudgetProgram.setComputeUnitLimit({ units: 350000 }))
+  transaction.add(web3.ComputeBudgetProgram.setComputeUnitLimit({ units: 283309 }))
 
   try {
     const signature = await provider.sendAndConfirm(transaction, [splitKeypair])
