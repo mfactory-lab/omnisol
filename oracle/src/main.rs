@@ -2,20 +2,17 @@ mod utils;
 
 use std::{collections::HashMap, num::ParseIntError, path::PathBuf, rc::Rc, thread, time::Duration};
 
-use anchor_client::{
-    solana_sdk::{
-        commitment_config::CommitmentConfig,
-        signature::{read_keypair_file, Signer},
-        system_program,
-    },
-    Client, Cluster,
-};
+use anchor_client::{solana_sdk::{
+    commitment_config::CommitmentConfig,
+    signature::{read_keypair_file, Signer},
+    system_program,
+}, Client, Cluster};
 use clap::Parser;
-use log::{info, LevelFilter};
+use log::{info, error, LevelFilter};
 use omnisol::{id, state::Oracle};
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 
-use crate::utils::{generate_priority_queue, get_collateral_data, get_oracle, get_pool_data, get_user_data};
+use crate::utils::{generate_priority_queue, get_collateral_data, get_oracle_address, get_pool_data, get_user_data};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -70,17 +67,35 @@ fn main() {
     let mut previous_queue = HashMap::new();
 
     // find oracle PDA
-    let oracle = get_oracle();
+    let oracle = get_oracle_address();
 
     loop {
         info!("Thread is paused for {} seconds", args.sleep_duration.as_secs());
         thread::sleep(args.sleep_duration);
 
-        let user_data = get_user_data(&program).expect("Can't get user accounts");
+        let user_data = match get_user_data(&program) {
+            Ok(user_data) => user_data,
+            Err(e) => {
+                error!("Can't get user accounts: {}", e);
+                continue;
+            }
+        };
         info!("Got {} user(s)", user_data.len());
-        let collateral_data = get_collateral_data(&program).expect("Can't get collateral accounts");
+        let collateral_data = match get_collateral_data(&program) {
+            Ok(collateral_data) => collateral_data,
+            Err(e) => {
+                error!("Can't get collateral accounts: {}", e);
+                continue;
+            }
+        };
         info!("Got {} collateral(s)", collateral_data.len());
-        let pool_data = get_pool_data(&program).expect("Can't get pool accounts");
+        let pool_data = match get_pool_data(&program) {
+            Ok(pool_data) => pool_data,
+            Err(e) => {
+                error!("Can't get pool accounts: {}", e);
+                continue;
+            }
+        };
 
         // find collaterals by user list and make priority queue
         let queue = generate_priority_queue(user_data, collateral_data, pool_data);

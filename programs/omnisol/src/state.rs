@@ -13,7 +13,7 @@ pub struct Pool {
     pub stake_source: Pubkey,
     /// Total stake in deposit
     pub deposit_amount: u64,
-    /// Current amount of pools' collaterals
+    /// Current amount of pool's collaterals
     pub collaterals_amount: u64,
     /// Signer bump seed for deriving PDA seeds
     pub authority_bump: u8,

@@ -1,5 +1,4 @@
 use anchor_lang::{prelude::*, solana_program::stake::state::StakeAuthorize, system_program};
-use anchor_lang::solana_program::log::sol_log_compute_units;
 use anchor_spl::token;
 
 use crate::{

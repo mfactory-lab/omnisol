@@ -15,7 +15,7 @@ pub const USER_DISCRIMINATOR: [u8; 8] = [159, 117, 95, 227, 239, 151, 58, 236];
 pub const COLLATERAL_DISCRIMINATOR: [u8; 8] = [123, 130, 234, 63, 255, 240, 255, 92];
 pub const POOL_DISCRIMINATOR: [u8; 8] = [241, 154, 109, 4, 17, 177, 109, 188];
 
-pub fn get_oracle() -> Pubkey {
+pub fn get_oracle_address() -> Pubkey {
     Pubkey::find_program_address(&[Oracle::SEED], &id()).0
 }
 
