@@ -31,21 +31,11 @@ pub struct Args {
     pub keypair: PathBuf,
 
     /// Solana cluster name
-    #[arg(
-        short,
-        long,
-        value_name = "CLUSTER",
-        env = "CLUSTER"
-    )]
+    #[arg(short, long, value_name = "CLUSTER", env = "CLUSTER")]
     pub cluster: Cluster,
 
     /// Sleep duration in seconds
-    #[arg(
-        short,
-        long,
-        value_name = "SLEEP",
-        env = "SLEEP"
-    )]
+    #[arg(short, long, value_name = "SLEEP", env = "SLEEP")]
     #[arg(value_parser = |arg: &str| -> Result<Duration, ParseIntError> {Ok(Duration::from_secs(arg.parse()?))})]
     pub sleep_duration: Duration,
 }

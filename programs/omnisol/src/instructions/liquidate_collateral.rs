@@ -85,25 +85,28 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
             ctx.accounts.source_stake.to_account_info()
         };
 
-        unstake_it::unstake(CpiContext::new_with_signer(
-            ctx.accounts.unstake_it_program.to_account_info(),
-            unstake_it::Unstake {
-                payer: ctx.accounts.authority.to_account_info(),
-                unstaker: ctx.accounts.pool_authority.to_account_info(),
-                stake_account,
-                destination: ctx.accounts.user_wallet.to_account_info(),
-                pool_account: ctx.accounts.pool_account.to_account_info(),
-                pool_sol_reserves: ctx.accounts.sol_reserves.to_account_info(),
-                fee_account: ctx.accounts.fee_account.to_account_info(),
-                stake_account_record_account: ctx.accounts.stake_account_record.to_account_info(),
-                protocol_fee_account: ctx.accounts.protocol_fee.to_account_info(),
-                protocol_fee_destination: ctx.accounts.protocol_fee_destination.to_account_info(),
-                clock: ctx.accounts.clock.to_account_info(),
-                stake_program: ctx.accounts.stake_program.to_account_info(),
-                system_program: ctx.accounts.system_program.to_account_info(),
-            },
-            &[&pool_authority_seeds],
-        ), ctx.accounts.unstake_it_program.key())?;
+        unstake_it::unstake(
+            CpiContext::new_with_signer(
+                ctx.accounts.unstake_it_program.to_account_info(),
+                unstake_it::Unstake {
+                    payer: ctx.accounts.authority.to_account_info(),
+                    unstaker: ctx.accounts.pool_authority.to_account_info(),
+                    stake_account,
+                    destination: ctx.accounts.user_wallet.to_account_info(),
+                    pool_account: ctx.accounts.pool_account.to_account_info(),
+                    pool_sol_reserves: ctx.accounts.sol_reserves.to_account_info(),
+                    fee_account: ctx.accounts.fee_account.to_account_info(),
+                    stake_account_record_account: ctx.accounts.stake_account_record.to_account_info(),
+                    protocol_fee_account: ctx.accounts.protocol_fee.to_account_info(),
+                    protocol_fee_destination: ctx.accounts.protocol_fee_destination.to_account_info(),
+                    clock: ctx.accounts.clock.to_account_info(),
+                    stake_program: ctx.accounts.stake_program.to_account_info(),
+                    system_program: ctx.accounts.system_program.to_account_info(),
+                },
+                &[&pool_authority_seeds],
+            ),
+            ctx.accounts.unstake_it_program.key(),
+        )?;
     } else {
         if collateral.stake_source != ctx.accounts.source_stake.key() {
             return Err(ErrorCode::InvalidToken.into());
@@ -184,25 +187,28 @@ pub fn handle<'info>(ctx: Context<'_, '_, '_, 'info, LiquidateCollateral<'info>>
 
             invoke_signed(&ix, &account_infos, &[&pool_authority_seeds])?;
 
-            unstake_it::unstake(CpiContext::new_with_signer(
-                ctx.accounts.unstake_it_program.to_account_info(),
-                unstake_it::Unstake {
-                    payer: ctx.accounts.authority.to_account_info(),
-                    unstaker: ctx.accounts.pool_authority.to_account_info(),
-                    stake_account: stake_to_receive.to_account_info(),
-                    destination: ctx.accounts.user_wallet.to_account_info(),
-                    pool_account: ctx.accounts.pool_account.to_account_info(),
-                    pool_sol_reserves: ctx.accounts.sol_reserves.to_account_info(),
-                    fee_account: ctx.accounts.fee_account.to_account_info(),
-                    stake_account_record_account: ctx.accounts.stake_account_record.to_account_info(),
-                    protocol_fee_account: ctx.accounts.protocol_fee.to_account_info(),
-                    protocol_fee_destination: ctx.accounts.protocol_fee_destination.to_account_info(),
-                    clock: ctx.accounts.clock.to_account_info(),
-                    stake_program: ctx.accounts.stake_program.to_account_info(),
-                    system_program: ctx.accounts.system_program.to_account_info(),
-                },
-                &[&pool_authority_seeds],
-            ), ctx.accounts.unstake_it_program.key())?;
+            unstake_it::unstake(
+                CpiContext::new_with_signer(
+                    ctx.accounts.unstake_it_program.to_account_info(),
+                    unstake_it::Unstake {
+                        payer: ctx.accounts.authority.to_account_info(),
+                        unstaker: ctx.accounts.pool_authority.to_account_info(),
+                        stake_account: stake_to_receive.to_account_info(),
+                        destination: ctx.accounts.user_wallet.to_account_info(),
+                        pool_account: ctx.accounts.pool_account.to_account_info(),
+                        pool_sol_reserves: ctx.accounts.sol_reserves.to_account_info(),
+                        fee_account: ctx.accounts.fee_account.to_account_info(),
+                        stake_account_record_account: ctx.accounts.stake_account_record.to_account_info(),
+                        protocol_fee_account: ctx.accounts.protocol_fee.to_account_info(),
+                        protocol_fee_destination: ctx.accounts.protocol_fee_destination.to_account_info(),
+                        clock: ctx.accounts.clock.to_account_info(),
+                        stake_program: ctx.accounts.stake_program.to_account_info(),
+                        system_program: ctx.accounts.system_program.to_account_info(),
+                    },
+                    &[&pool_authority_seeds],
+                ),
+                ctx.accounts.unstake_it_program.key(),
+            )?;
         }
     }
 

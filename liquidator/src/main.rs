@@ -3,6 +3,7 @@ mod utils;
 use std::{collections::HashMap, num::ParseIntError, path::PathBuf, rc::Rc, thread, time::Duration};
 
 use anchor_client::{
+    solana_client::rpc_client::RpcClient,
     solana_sdk::{
         borsh::try_from_slice_unchecked,
         commitment_config::CommitmentConfig,
@@ -12,11 +13,10 @@ use anchor_client::{
         stake_history::StakeHistory,
         system_program,
         sysvar::{clock, SysvarId},
+        transaction::Transaction,
     },
     Client, ClientError, Cluster, Program,
 };
-use anchor_client::solana_client::rpc_client::RpcClient;
-use anchor_client::solana_sdk::transaction::Transaction;
 use anchor_lang::prelude::AccountMeta;
 use anchor_spl::{associated_token::get_associated_token_address, token::spl_token};
 use clap::Parser;
@@ -52,86 +52,41 @@ pub struct Args {
     pub keypair: PathBuf,
 
     /// Solana cluster name
-    #[arg(
-        short,
-        long,
-        value_name = "CLUSTER",
-        env = "CLUSTER"
-    )]
+    #[arg(short, long, value_name = "CLUSTER", env = "CLUSTER")]
     pub cluster: Cluster,
 
     /// Sleep duration in seconds for external loop
-    #[arg(
-        short,
-        long,
-        value_name = "EXTERNAL_SLEEP",
-        env = "EXTERNAL_SLEEP"
-    )]
+    #[arg(short, long, value_name = "EXTERNAL_SLEEP", env = "EXTERNAL_SLEEP")]
     #[arg(value_parser = |arg: &str| -> Result<Duration, ParseIntError> {Ok(Duration::from_secs(arg.parse()?))})]
     pub external_sleep_duration: Duration,
 
     /// Sleep duration in seconds for internal loop
-    #[arg(
-        short,
-        long,
-        value_name = "INTERNAL_SLEEP",
-        env = "INTERNAL_SLEEP"
-    )]
+    #[arg(short, long, value_name = "INTERNAL_SLEEP", env = "INTERNAL_SLEEP")]
     #[arg(value_parser = |arg: &str| -> Result<Duration, ParseIntError> {Ok(Duration::from_secs(arg.parse()?))})]
     pub internal_sleep_duration: Duration,
 
     /// Unstake.it pool address
-    #[arg(
-        short,
-        long,
-        value_name = "POOL",
-        env = "POOL"
-    )]
+    #[arg(short, long, value_name = "POOL", env = "POOL")]
     pub pool: Pubkey,
 
     /// Unstake.it protocol fee address
-    #[arg(
-        short,
-        long,
-        value_name = "PROTOCOL_FEE",
-        env = "PROTOCOL_FEE"
-    )]
+    #[arg(short, long, value_name = "PROTOCOL_FEE", env = "PROTOCOL_FEE")]
     pub fee_protocol: Pubkey,
 
     /// Unstake.it destination fee address
-    #[arg(
-        short,
-        long,
-        value_name = "DESTINATION_FEE",
-        env = "DESTINATION_FEE"
-    )]
+    #[arg(short, long, value_name = "DESTINATION_FEE", env = "DESTINATION_FEE")]
     pub destination_fee: Pubkey,
 
     /// Unstake.it SOL reserves address
-    #[arg(
-        short,
-        long,
-        value_name = "SOL_RESERVES",
-        env = "SOL_RESERVES"
-    )]
+    #[arg(short, long, value_name = "SOL_RESERVES", env = "SOL_RESERVES")]
     pub reserves: Pubkey,
 
     /// Unstake.it address
-    #[arg(
-        short,
-        long,
-        value_name = "UNSTAKE_IT",
-        env = "UNSTAKE_IT"
-    )]
+    #[arg(short, long, value_name = "UNSTAKE_IT", env = "UNSTAKE_IT")]
     pub unstake_it: Pubkey,
 
     /// Fee account address
-    #[arg(
-        short,
-        long,
-        value_name = "FEE_ACCOUNT",
-        env = "FEE_ACCOUNT"
-    )]
+    #[arg(short, long, value_name = "FEE_ACCOUNT", env = "FEE_ACCOUNT")]
     pub account_fee: Pubkey,
 }
 
@@ -154,17 +109,16 @@ fn main() {
     let signer = Rc::new(wallet_keypair);
 
     // establish connection
-    let client = Client::new_with_options(
-        args.cluster.clone(),
-        signer.clone(),
-        CommitmentConfig::confirmed(),
-    );
+    let client = Client::new_with_options(args.cluster.clone(), signer.clone(), CommitmentConfig::confirmed());
     info!("Established connection: {}", &args.cluster.url());
 
     let mut liquidator = Liquidator::new(args, client, signer.as_ref());
 
     loop {
-        info!("Thread is paused for {} seconds", liquidator.args.external_sleep_duration.as_secs());
+        info!(
+            "Thread is paused for {} seconds",
+            liquidator.args.external_sleep_duration.as_secs()
+        );
         thread::sleep(liquidator.args.external_sleep_duration);
 
         // get withdraw requests sorted by creation time
@@ -172,7 +126,10 @@ fn main() {
         info!("Got {} withdraw request(s))", withdraw_info_list.len());
 
         for (withdraw_address, withdraw_info) in withdraw_info_list {
-            info!("Thread is paused for {} seconds", liquidator.args.internal_sleep_duration.as_secs());
+            info!(
+                "Thread is paused for {} seconds",
+                liquidator.args.internal_sleep_duration.as_secs()
+            );
             thread::sleep(liquidator.args.internal_sleep_duration);
 
             liquidator.process_withdraw_request(withdraw_address, withdraw_info);
@@ -347,18 +304,16 @@ impl<'a> Liquidator<'a> {
 
             let instructions = request.instructions().expect("");
 
-            let signers:Vec<& dyn Signer> = vec![self.liquidator_keypair, &additional_signer];
+            let signers: Vec<&dyn Signer> = vec![self.liquidator_keypair, &additional_signer];
 
-            let rpc_client = RpcClient::new_with_commitment(String::from("https://api.testnet.solana.com"), CommitmentConfig::confirmed());
+            let rpc_client = RpcClient::new_with_commitment(
+                String::from("https://api.testnet.solana.com"),
+                CommitmentConfig::confirmed(),
+            );
 
             let tx = {
                 let latest_hash = rpc_client.get_latest_blockhash().expect("");
-                Transaction::new_signed_with_payer(
-                    &instructions,
-                    Some(&self.liquidator_wallet),
-                    &signers,
-                    latest_hash,
-                )
+                Transaction::new_signed_with_payer(&instructions, Some(&self.liquidator_wallet), &signers, latest_hash)
             };
             info!("Raw transaction: {}", base64::encode(&tx.message_data()));
 
