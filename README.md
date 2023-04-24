@@ -6,10 +6,6 @@ omniSOL is a liquid staking derivative that fundamentally changes how liquid sta
 It allows **any staked account** to access all of Solana’s DeFi,
 while gaining the staking yields of that particular validator.
 
-## Based on
-
-- https://soceanfi.notion.site/Technical-Whitepaper-OmniSOL-c30898acfff240b0b954dc08dc9f6a48
-
 ## License
 
 [GNU AGPL v3](./LICENSE)
@@ -165,3 +161,8 @@ When it is no longer profitable to hold omniSOL, the user should close the posit
 Because of omniSOL’s guarantee that 1 omniSOL can always be redeemed for at least 1 staked SOL, the user can be liquidated even if his liquidation ratio is very healthy. In such an event the user will not lose any of his staked SOL or accumulated staking rewards, but will lose out on future gains if the omniSOL APY is lower than the staked SOL’s APY. In return for this tradeoff, the protocol gives the best-effort guarantee that their staked SOL will remain staked to that particular validator. This aligns incentives between validators, stakers, and the protocol.
 
 In practice, I believe the delta between omniSOL’s yield and staked SOL yield will be minimal since the protocol can adjust omniSOL’s APY higher at any time. This will have the additional advantageous consequence of “raising the bar” — low-performing stake accounts will quickly be liquidated and reassigned.
+
+
+## Based on
+
+- https://soceanfi.notion.site/Technical-Whitepaper-OmniSOL-c30898acfff240b0b954dc08dc9f6a48
