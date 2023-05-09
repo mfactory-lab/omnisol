@@ -24,13 +24,13 @@ while gaining the staking yields of that particular validator.
 
 Currently, users have to choose between being able to control where they stake their SOL, and being able to access the broader DeFi ecosystem.
 **Current native stakers cannot access DeFi.** If you stake directly with a validator, you cannot use that staked SOL in DeFi.
-**Current liquid staking solutions don’t allow native stake.** Conversely, if I stake with any stake pool, I give up the ability to choose who I delegate with, as my stake is now pooled with everyone else’s and delegated to validators according to the pool’s delegation strategy.
+**Current liquid staking solutions don’t allow native stake.** Conversely, when staking with a stake pool, you usually give up the ability to choose the validators you delegate to, as your stake is now pooled with everyone else’s and delegated to validators according to the pool’s delegation strategy. (There are exceptions; at the time of this writing, SolBlaze offers an option of choosing the validators your SOL is delegated to, and Marinade is said to be working on a similar feature.)
 
 **Current liquid staking solutions pose a centralisation risk.** Because current liquid staking protocols take custody of SOL, they control where that SOL is delegated to (either via delegation strategy or governance gauges). This poses a centralisation risk. 
 
 Liquid staking protocols are incentivised to grow as large as possible to bring financial incentives to their tokenholders. While this is not a problem yet on Solana, the fact that existing liquid staking solutions have an incentive to grow large AND that they control where SOL goes means that a future is possible where liquid staking protocols pose a significant centralisation risk to the network.
 
-**Current liquid staking solutions are unhealthy for the broader Solana ecosystem.** In general, tokenholders of liquid staking protocols vote for their own financial gain, not network health. Because liquid staking protocols’ moats lie completely in network effects/market power, they are incentivised to constantly grow this moat via any means necessary, which is detrimental to other stake pools and unhealthy for the broader Solana ecosystem. For example, a leading liquid staking incumbent used their market power to sign an exclusivity deal with one of the largest Solana wallets, and has also pushed for exclusive integrations with DeFi protocols. We believe this is unhealthy for the competitive ecosystem.
+**Current liquid staking solutions are unhealthy for the broader Solana ecosystem.** In general, tokenholders of liquid staking protocols vote for their own financial gain, not network health. Because liquid staking protocols’ moats lie completely in network effects/market power, they are incentivised to constantly grow this moat via any means necessary, which is detrimental to other stake pools and unhealthy for the broader Solana ecosystem.
 
 We need a solution that **allows native stakers to enjoy the full benefits of DeFi** while posing **no centralisation risk** and also allows a rich competitive landscape to flourish. omniSOL aims to be that solution.
 
